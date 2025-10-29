@@ -122,6 +122,7 @@ body {
 .p-button:has(.p-button-icon:only-child) {
   padding: 0.75rem;
 }
+
 .home-container {
   padding: 1rem;
 }

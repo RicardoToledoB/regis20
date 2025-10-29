@@ -28,7 +28,13 @@ import Fieldset from 'primevue/fieldset'
 import Splitter from 'primevue/splitter';
 import SplitterPanel from 'primevue/splitterpanel';
 import Calendar from 'primevue/calendar';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import ColumnGroup from 'primevue/columngroup';   // optional
+import Row from 'primevue/row';                   // optional
+import ProgressSpinner from 'primevue/progressspinner'
 
+import axios from 'axios'
 //iconos
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -62,9 +68,10 @@ library.add(
   faChevronRight,
   faPlus  
 )
+axios.defaults.baseURL=import.meta.env.VITE_API_URL
 
 const app = createApp(App)
-
+app.config.globalProperties.$axios = axios;
 app.use(PrimeVue)
 app.component('font-awesome-icon', FontAwesomeIcon)
 
@@ -88,7 +95,10 @@ app.component('Dialog', Dialog)
 app.component('Fieldset', Fieldset)
 app.component('Splitter', Splitter)
 app.component('Calendar', Calendar)
-
-
+app.component('DataTable', DataTable)
+app.component('Column', Column)
+app.component('ColumnGroup',ColumnGroup)
+app.component('Row',Row)
+app.component('ProgressSpinner',ProgressSpinner)
 
 app.mount('#app')

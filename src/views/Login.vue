@@ -11,54 +11,50 @@
 
           <div class="login-form">
             <div class="form-header">
-              <h1>Iniciar Sesión</h1>
-             
+              <h3>Iniciar Sesión</h3>
             </div>
 
-            <form @submit.prevent="handleLogin">
+            <form @submit.prevent="conectar">
               <div class="field">
                 <label for="email">Correo Electrónico</label>
-                <InputText 
+                <InputText
                   id="email"
-                  v-model="form.email"
-                  type="email" 
+                  v-model="user.email"
+                  type="email"
                   placeholder="Ingresa tu correo electrónico"
-                  class="w-full"
+                  class="w-full p-inputtext-lg"
                   :class="{ 'p-invalid': errors.email }"
                 />
                 <small class="p-error" v-if="errors.email">{{ errors.email }}</small>
               </div>
 
               <div class="field">
-                <div class="flex justify-content-between align-items-center">
-                  <label for="password">Contraseña</label>
-               
-                </div>
-                <Password 
+                <label for="password">Contraseña</label>
+                <Password
                   id="password"
-                  v-model="form.password"
+                  v-model="user.password"
                   placeholder="Ingresa tu contraseña"
                   :feedback="false"
                   toggleMask
                   class="w-full p-inputtext-lg"
-                  :class="{ 'p-invalid': errors.password ,} "
+                  :class="{ 'p-invalid': errors.password }"
                   inputClass="w-full"
                 />
                 <small class="p-error" v-if="errors.password">{{ errors.password }}</small>
               </div>
 
-            
-
-              <Button 
-                type="button" 
-                @click="$router.push('/inicio')"
-                label="Iniciar Sesión" 
+              <Button
+                type="submit"
+                label="Iniciar Sesión"
                 class="w-full login-button"
-                :loading="loading"
+                :loading="isLoading"
               />
             </form>
 
-           
+            <small class="p-error" v-if="error" style="margin-top: 10px; display: block;">
+              {{ error }}
+            </small>
+
           </div>
         </div>
       </div>
@@ -66,99 +62,69 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
+
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
-import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
 
-export default {
-  name: 'LoginPage',
-  components: {
-    InputText,
-    Password,
-    Checkbox,
-    Button
-  },
-  setup() {
-    const router = useRouter()
-    const loading = ref(false)
-    
-    const form = reactive({
-      email: '',
-      password: '',
-      rememberMe: false
-    })
+const router = useRouter()
 
-    const errors = reactive({
-      email: '',
-      password: ''
-    })
+const user = reactive({
+  email: "",
+  password: "",
+  grant_type: "password"
+})
 
-    const validateForm = () => {
-      let isValid = true
+const errors = reactive({
+  email: "",
+  password: ""
+})
+
+const isLoading = ref(false)
+const error = ref("")
+
+const validateForm = () => {
+  errors.email = user.email ? "" : "El correo electrónico es requerido"
+  errors.password = user.password ? "" : "La contraseña es requerida"
+  return !errors.email && !errors.password
+}
+
+const conectar = () => {
+  if (!validateForm()) return
+
+  error.value = ""
+  isLoading.value = true
+
+  axios.post("auth/login", {
+    email: user.email,
+    password: user.password,
+   // grant_type: user.grant_type,
+  })
+    .then((response) => {
+    const data = response.data
+      console.log('algo');
       
-      // Reset errors
-      errors.email = ''
-      errors.password = ''
-
-      // Email validation
-      if (!form.email) {
-        errors.email = 'El correo electrónico es requerido'
-        isValid = false
-      } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-        errors.email = 'El correo electrónico no es válido'
-        isValid = false
-      }
-
-      // Password validation
-      if (!form.password) {
-        errors.password = 'La contraseña es requerida'
-        isValid = false
-      } else if (form.password.length < 6) {
-        errors.password = 'La contraseña debe tener al menos 6 caracteres'
-        isValid = false
-      }
-
-      return isValid
+    // ✅ Guardamos info del usuario 
+    localStorage.setItem("token", data.token)
+    
+    // ✅ Redirección según el rol del usuario
+    router.push("/inicio")
+    
+  })
+     .catch((err) => {
+    if (err.response?.status === 403) {
+      error.value = "No autorizado. Contacte al administrador."
+    } else {
+      error.value = "Usuario y/o contraseña incorrecta"
     }
-
-    const handleLogin = async () => {
-      if (!validateForm()) {
-        return
-      }
-
-      loading.value = true
-
-      try {
-        // Simular llamada a API
-        await new Promise(resolve => setTimeout(resolve, 1500))
-        
-        // Guardar en localStorage si rememberMe está activado
-        if (form.rememberMe) {
-          localStorage.setItem('user', JSON.stringify({ email: form.email }))
-        } else {
-          sessionStorage.setItem('user', JSON.stringify({ email: form.email }))
-        }
-
-        // Redirigir al dashboard
-        router.push('/')
-      } catch (error) {
-        console.error('Error en login:', error)
-      } finally {
-        loading.value = false
-      }
-    }
-
-    return {
-      form,
-      errors,
-      loading,
-      handleLogin
-    }
-  }
+  })
+    .finally(() => {
+    isLoading.value = false
+  })
 }
 </script>
 

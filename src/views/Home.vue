@@ -1,97 +1,205 @@
 <template>
-      <PlantillaContenido>
-          <template #contenido>
- <div class="home-container" >
-    <div class="page-content">
-      <h1>Inicio</h1>
-      
-      <div class="grid">
-        <div class="col-12 md:col-6 lg:col-3">
-          <Card class="stats-card">
-            <template #content>
-              <div class="stat-item">
-                <i class="pi pi-users stat-icon"></i>
-                <div class="stat-info">
-                  <span class="stat-number">1,254</span>
-                  <span class="stat-label">Usuarios</span>
-                </div>
-              </div>
-            </template>
-          </Card>
-        </div>
-        
-        <div class="col-12 md:col-6 lg:col-3">
-          <Card class="stats-card">
-            <template #content>
-              <div class="stat-item">
-                <i class="pi pi-shopping-cart stat-icon"></i>
-                <div class="stat-info">
-                  <span class="stat-number">524</span>
-                  <span class="stat-label">Ventas</span>
-                </div>
-              </div>
-            </template>
-          </Card>
-        </div>
-        
-        <div class="col-12 md:col-6 lg:col-3">
-          <Card class="stats-card">
-            <template #content>
-              <div class="stat-item">
-                <i class="pi pi-chart-line stat-icon"></i>
-                <div class="stat-info">
-                  <span class="stat-number">$12.4k</span>
-                  <span class="stat-label">Ingresos</span>
-                </div>
-              </div>
-            </template>
-          </Card>
-        </div>
-        
-        <div class="col-12 md:col-6 lg:col-3">
-          <Card class="stats-card">
-            <template #content>
-              <div class="stat-item">
-                <i class="pi pi-comments stat-icon"></i>
-                <div class="stat-info">
-                  <span class="stat-number">89</span>
-                  <span class="stat-label">Comentarios</span>
-                </div>
-              </div>
-            </template>
-          </Card>
+  <PlantillaContenido>
+    <template #contenido>
+      <div class="home-container">
+        <div class="page-content">
+          <h1>Inicio</h1>
+
+          <div class="grid">
+            <div class="col-12 md:col-6 lg:col-3">
+              <Card class="stats-card">
+                <template #content>
+                  <div class="stat-item">
+                    <i class="pi pi-users stat-icon"></i>
+                    <div class="stat-info">
+                      <span class="stat-number">{{user.cantidad}}</span>
+                      <span class="stat-label">Usuarios</span>
+                    </div>
+                  </div>
+                </template>
+              </Card>
+            </div>
+
+            <div class="col-12 md:col-6 lg:col-3">
+              <Card class="stats-card">
+                <template #content>
+                  <div class="stat-item">
+                    <i class="pi pi-envelope stat-icon"></i>
+                    <div class="stat-info">
+                      <span class="stat-number">{{ receptions }}</span>
+                      <span class="stat-label">Recepciones</span>
+                    </div>
+                  </div>
+                </template>
+              </Card>
+            </div>
+
+            <div class="col-12 md:col-6 lg:col-3">
+              <Card class="stats-card">
+                <template #content>
+                  <div class="stat-item">
+                    <i class="pi pi-check stat-icon"></i>
+                    <div class="stat-info">
+                      <span class="stat-number">{{ analisis }}</span>
+                      <span class="stat-label">Analisis</span>
+                    </div>
+                  </div>
+                </template>
+              </Card>
+            </div>
+
+            <div class="col-12 md:col-6 lg:col-3">
+              <Card class="stats-card">
+                <template #content>
+                  <div class="stat-item">
+                    <i class="pi pi-file-edit stat-icon"></i>
+                    <div class="stat-info">
+                      <span class="stat-number">{{borradores}}</span>
+                      <span class="stat-label">Comentarios</span>
+                    </div>
+                  </div>
+                </template>
+              </Card>
+            </div>
+          </div>
+
+          <div class="grid mt-4">
+            <div class="col-12">
+              <Card class="main-card">
+                <template #header>
+                  <img alt="user header" src="/public/ssm/BANNER.png" class="banner-img" />
+                </template>
+                <template #title style="padding-left: 15%;">{{user.name}}</template>
+                <template #content>
+                  <p>RUT:{{ user.rut }}</p>
+                  <p>EMAIL:{{ user.email }}</p>
+                </template>
+                <template #footer>
+                  <div class="flex gap-3 mt-1 justify-content-end">
+                    <Button label="Cambiar Clave" />
+                  </div>
+                </template>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
-      
-      <div class="grid mt-4">
-        <div class="col-12 lg:col-8">
-          <Card>
-            <template #title>Actividad Reciente</template>
-            <template #content>
-              <p>Gráficos y actividad reciente irían aquí...</p>
-            </template>
-          </Card>
-        </div>
-        
-        <div class="col-12 lg:col-4">
-          <Card>
-            <template #title>Notificaciones</template>
-            <template #content>
-              <p>Lista de notificaciones recientes...</p>
-            </template>
-          </Card>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-</PlantillaContenido>
-
- 
+    </template>
+  </PlantillaContenido>
 </template>
 
-<script setup>
+<script>
 import PlantillaContenido from './template/PlantillaContenido.vue';
-// Lógica del dashboard puede ir aquí
+export default {
+  name: 'Home',
+  components:{PlantillaContenido},
+  data() {
+    return {
+      user: {
+        name: "Joaquin Alvarado",
+        rut:"16.065.321-8",
+        email:"joaquin.alvarado@redsalud.gob.cl",
+        cantidad:0
+      },
+      visible: false,
+      buttondisplay: null,
+      receptions:0,
+      analisis:0,
+      borradores:0
+    }
+  },
+  mounted() {
+    console.log('Componente de institución montado');
+    this.user.cantidad=100
+  },
+  methods: {
+    openDialog() {
+      this.visible = true;
+    },
+    closeDialog() {
+      this.visible = false;
+    },
+    saveData() {
+      console.log('Guardando datos...', this.value, this.buttondisplay);
+      this.visible = false;
+    }
+  },
+  watch: {
+    visible(newVal) {
+      console.log('Visibilidad del diálogo:', newVal);
+    },
+    value(newVal) {
+      console.log('Valor cambiado:', newVal);
+    }
+  },
+  computed: {
+    formattedDate() {
+      return this.buttondisplay ? this.buttondisplay.toLocaleDateString() : '';
+    }
+  }
+}
 </script>
 
+<style scoped>
+.page-content {
+  padding: 0.1rem;
+}
+
+.stats-card .stat-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+}
+
+.stat-icon {
+  font-size: 2rem;
+  margin-right: 1rem;
+}
+
+.stat-number {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.banner-img {
+  width: 100%;
+  height: auto;
+}
+
+/* Ajustes de padding internos del Card */
+.p-card-body,
+.p-card-content,
+.p-card-footer {
+  padding: 1.25rem !important;
+}
+
+.grid > div {
+  margin-bottom: 1rem;
+}
+/* Aplica padding interno real al Card */
+::v-deep(.p-card-content),
+::v-deep(.p-card-body),
+::v-deep(.p-card-footer) {
+  padding: 0.5rem !important;
+}
+
+/* Espaciado entre Cards */
+.grid > div {
+  margin-bottom: 0.1rem;
+}
+
+/* Tarjetas de estadísticas: mejor espaciado */
+.stats-card ::v-deep(.p-card-content) {
+  padding: 0.1rem !important;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+}
+
+.stat-icon {
+  font-size: 2rem;
+  margin-right: 1rem;
+}
+</style>
