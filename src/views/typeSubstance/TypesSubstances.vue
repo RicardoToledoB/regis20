@@ -5,36 +5,24 @@
     <div class="page-content">
       <div class="flex justify-content-between align-items-center mb-4">
         <h1>Tipos de Sustancias</h1>
-        <CreateSubstance></CreateSubstance>
+        <CreateSubstance @created="handleSubstancesCreated" ></CreateSubstance>
       </div>
       
       <Card>
         <template #content>
           <div class="table-container">
-            <table class="users-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="typeSubstance in typesSubstances" :key="typeSubstance.id">
-                  <td>{{ typeSubstance.id }}</td>
-                  <td>{{ typeSubstance.name }}</td>
-                  
-                  <td>
-                    <Button 
-                      icon="pi pi-pencil" 
-                      class="p-button-text p-button-success" 
-                      v-tooltip="'Editar'"
-                    />
-                   
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+             <DataTable :value="typesSubstances" 
+             paginator size="large" 
+             :rows="5" 
+             :rowsPerPageOptions="[5,10,20,50]" 
+             scrollable scrollHeight="350px" 
+             class="p-datatable-striped p-datatable-gridlines users-table">
+            <Column field="name" header="Nombre" style="width: 25%"></Column>
+           
+            <Column header="Acciones" style="width: 10%">
+             
+            </Column>
+          </DataTable>
           </div>
         </template>
       </Card>
@@ -45,17 +33,57 @@
  
 </template>
 
-<script setup>
+<script>
 import { ref } from 'vue'
-import CreateSubstance from '@/components/typesSubtance/CreateSubstance.vue'
 import PlantillaContenido from '../template/PlantillaContenido.vue'
-const typesSubstances = ref([
-  { id: 1, name: 'Cocaina'},
-  { id: 2, name: 'Marihuana'},
-  { id: 3, name: 'Pasta Base'},
-  { id: 4, name: 'LSD'}
-])
-components:{CreateSubstance}
+import CreateSubstance from '../../components/typesSubtance/CreateSubstance.vue'
+import substances_types from '@/services/substances_types'
+//import EditUser from '@/components/users/EditUser.vue'
+export default {
+  name: 'TypesSubstancesView',
+
+  components: {
+    PlantillaContenido,
+    CreateSubstance, 
+   // EditUser
+  },
+
+  setup() {
+    const typesSubstances = ref([
+ 
+    ])
+
+ const fetchSubstance = async () => {
+      try {
+        const { data } = await substances_types.getAll()
+        typesSubstances.value = data
+      } catch (error) {
+        console.error("❌ Error cargando Sustancia:", error)
+      }
+    }
+
+    const handleSubstancesCreated = (newUser) => {
+      typesSubstances.value.push(newUser)
+    }
+
+    return {
+      typesSubstances,
+      fetchSubstance,
+      handleSubstancesCreated
+    }
+  },
+
+  mounted() {
+    console.log("✅ Vista de sustancias cargada")
+    this.fetchSubstance()
+  },
+  methods: {
+  updateUserInTable(updatedUser) {
+    const index = this.users.findIndex(u => u.id === updatedUser.id)
+    if(index !== -1) this.users[index] = updatedUser
+  }
+}
+}
 </script>
 
 <style scoped>
@@ -67,6 +95,30 @@ components:{CreateSubstance}
 .table-container {
   overflow-x: auto;
 }
+
+:deep(.p-datatable-table) {
+  border-spacing: 0 0.5rem !important;
+}
+
+:deep(.p-datatable-thead > tr > th) {
+  background: var(--surface-ground) !important;
+  font-weight: bold;
+  padding: rem !important;
+}
+
+:deep(.p-datatable-tbody > tr > td) {
+  padding: 0.5rem !important;
+  background: var(--surface-card);
+}
+
+:deep(.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) > td) {
+  background-color: var(--surface-section) !important;
+}
+
+:deep(.p-datatable .p-paginator) {
+  padding: 0.5rem;
+}
+
 
 .users-table {
   width: 100%;

@@ -1,98 +1,101 @@
 <template>
-  <div>
-    <ThemeSwitcher />
-    <div class="card flex justify-center">
-      <Button label="Agregar Tipo" @click="visible = true" />
+  <div class="card flex justify-center">
+    <Button label="Crear" @click="openDialog">
+      <template #icon>
+        <font-awesome-icon icon="fa-solid fa-plus" />
+      </template>
+    </Button>
 
-      <Dialog 
-        v-model:visible="visible" 
-        maximizable 
-        header="Agregar Tipo de Sustancia" 
-        :style="{ width: '50rem' }"
-        :headerStyle="{ 
-          padding: '1.5rem 1.5rem 1rem 1rem',
-        }"
-        :contentStyle="{ 
-          padding: '1rem 1.5rem 1.5rem 1.5rem'
-        }"         
-      >
-        <template #header>
-          <div class="custom-header">
-            <span class="text-xl font-semibold">Crear Tipo de Sustancia</span>
-          </div>
-        </template>
-        
-            <div class="dialog-content">
-               <div class="flex flex-column gap-2">
-                    <label for="name">Nombre</label>
-                    <InputText id="name" v-model="substance.name" aria-describedby="username-help" class="p-inputtext-lg" />
-                </div>
-                <br>
-                                <br>
-               
-                <!-- resto del contenido -->
-            </div>
-        
-        <br>
-        <br>
-        
-        <div class="flex justify-content-end gap-2">
-          <Button type="button" label="Cerrar" severity="secondary" @click="visible = false">
-             <template #icon>
-              <font-awesome-icon icon="fa-solid fa-close" />
-            </template>
-          </Button>
-          <Button type="button" label="Guardar" @click="visible = false">
-            <template #icon>
-              <font-awesome-icon icon="fa-solid fa-save" />
-            </template>
-          </Button>
+    <Dialog 
+      v-model:visible="visible"
+      :style="{ width: '30rem', padding: '0.5rem' }"
+      modal
+      :headerStyle="{ padding: '1rem 1.5rem' }"
+      :contentStyle="{ padding: '1rem 0.5rem 1rem 1rem' }"
+      :transition-options="{ name: 'fade', duration: 300 }"
+    >
+      <template #header>
+        <span class="text-xl font-semibold">Crear Tipo de Sustancia</span>
+      </template>
+
+      <!-- Spinner mientras se guarda -->
+      <div v-if="isLoading" class="flex justify-content-center align-items-center" style="height:200px;">
+        <ProgressSpinner />
+      </div>
+
+      <!-- Formulario solo cuando no está cargando -->
+      <div v-else class="dialog-content">
+        <div class="flex flex-column gap-2 mb-2">
+          <label>Nombre</label>
+          <InputText v-model="form.name" class="p-inputtext-lg" />
         </div>
-      </Dialog>
-    </div>
+
+    
+      </div>
+
+      <template #footer>
+        <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading"/>
+        <Button label="Guardar" @click="saveUser" :loading="isLoading"/>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script>
+import { reactive, ref, computed } from 'vue'
+import substances_types from '@/services/substances_types'
+import InputText from 'primevue/inputtext'
+import Password from 'primevue/password'
+import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
+
 export default {
-  name: 'CreateSubstance',
-  data() {
+  name: "CreateSubstance",
+  components: {  InputText, Password, Button, Dialog },
+  emits: ["created"],
+
+  setup(props, { emit }) {
+    const visible = ref(false)
+    const isLoading = ref(false)
+
+    const form = reactive({
+     name:""
+    })
+
+
+
+    const openDialog = () => { visible.value = true }
+    const closeDialog = () => { visible.value = false }
+
+    const resetForm = () => {
+      form.name=""
+   
+    }
+
+    const saveUser = async () => {
+      try {
+        isLoading.value = true
+        const payload = { ...form }
+        const { data } = await substances_types.create(payload)
+
+        emit("created", data) // actualiza la tabla Users.vue
+
+        resetForm()
+        closeDialog()
+      } catch (e) {
+        console.error("❌ Error al crear la sustancia:", e)
+      } finally {
+        isLoading.value = false
+      }
+    }
+
     return {
-      substance: {
-        name: null,
-        
-      },
-      visible: false,
-      buttondisplay: null,
-      value: ''
-    }
-  },
-  mounted() {
-    console.log('Componente de institución montado');
-  },
-  methods: {
-    openDialog() {
-      this.visible = true;
-    },
-    closeDialog() {
-      this.visible = false;
-    },
-    saveData() {
-      console.log('Guardando datos...', this.value, this.buttondisplay);
-      this.visible = false;
-    }
-  },
-  watch: {
-    visible(newVal) {
-      console.log('Visibilidad del diálogo:', newVal);
-    },
-    value(newVal) {
-      console.log('Valor cambiado:', newVal);
-    }
-  },
-  computed: {
-    formattedDate() {
-      return this.buttondisplay ? this.buttondisplay.toLocaleDateString() : '';
+      visible,
+      form,
+      isLoading,
+      openDialog,
+      closeDialog,
+      saveUser
     }
   }
 }
@@ -101,5 +104,8 @@ export default {
 <style scoped>
 :deep(.p-password .p-inputtext) {
   width: 100%;
+}
+.dialog-content {
+  padding: 0.5rem 0;
 }
 </style>

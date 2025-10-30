@@ -79,7 +79,6 @@
 <script>
 import { reactive, ref, computed } from 'vue'
 import userService from '@/services/userServices'
-import { ProgressSpinner } from 'primevue/progressspinner'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
@@ -87,7 +86,7 @@ import Dialog from 'primevue/dialog'
 
 export default {
   name: "CreateUser",
-  components: { ProgressSpinner, InputText, Password, Button, Dialog },
+  components: {  InputText, Password, Button, Dialog },
   emits: ["created"],
 
   setup(props, { emit }) {
