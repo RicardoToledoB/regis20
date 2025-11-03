@@ -36,7 +36,7 @@
 import { ref } from 'vue'
 import PlantillaContenido from '../template/PlantillaContenido.vue'
 import CreateUser from '../../components/users/CreateUser.vue'
-import userService from '@/services/userServices'
+import userService from '@/services/usersService'
 import EditUser from '@/components/users/EditUser.vue'
 export default {
   name: 'UsersView',

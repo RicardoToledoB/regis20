@@ -65,11 +65,11 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
 
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
+import axiosClient from '@/services/axiosClient'
 
 const router = useRouter()
 
@@ -99,18 +99,19 @@ const conectar = () => {
   error.value = ""
   isLoading.value = true
 
-  axios.post("auth/login", {
+  axiosClient.post("auth/login", {
     email: user.email,
     password: user.password,
    // grant_type: user.grant_type,
   })
     .then((response) => {
     const data = response.data
-      console.log('algo');
+      console.log(data);
       
     // ✅ Guardamos info del usuario 
     localStorage.setItem("token", data.token)
-    
+    localStorage.setItem("mail", user.email)
+
     // ✅ Redirección según el rol del usuario
     router.push("/inicio")
     

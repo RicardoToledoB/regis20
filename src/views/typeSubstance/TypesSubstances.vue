@@ -37,7 +37,7 @@
 import { ref } from 'vue'
 import PlantillaContenido from '../template/PlantillaContenido.vue'
 import CreateSubstance from '../../components/typesSubtance/CreateSubstance.vue'
-import substances_types from '@/services/substances_types'
+import substances_types from '@/services/substancesTypesService'
 //import EditUser from '@/components/users/EditUser.vue'
 export default {
   name: 'TypesSubstancesView',

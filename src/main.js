@@ -26,15 +26,17 @@ import Image from 'primevue/image';
 import Dialog from 'primevue/dialog';
 import Fieldset from 'primevue/fieldset'
 import Splitter from 'primevue/splitter';
-import SplitterPanel from 'primevue/splitterpanel';
 import Calendar from 'primevue/calendar';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import ColumnGroup from 'primevue/columngroup';   // optional
 import Row from 'primevue/row';                   // optional
 import ProgressSpinner from 'primevue/progressspinner'
+import Textarea from "primevue/textarea"
 
-import axios from 'axios'
+
+import axiosClient from '@/services/axiosClient'
+
 //iconos
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -68,10 +70,10 @@ library.add(
   faChevronRight,
   faPlus  
 )
-axios.defaults.baseURL=import.meta.env.VITE_API_URL
 
 const app = createApp(App)
-app.config.globalProperties.$axios = axios;
+app.config.globalProperties.$axios = axiosClient // ya incluye el interceptor
+
 app.use(PrimeVue)
 app.component('font-awesome-icon', FontAwesomeIcon)
 
@@ -100,5 +102,7 @@ app.component('Column', Column)
 app.component('ColumnGroup',ColumnGroup)
 app.component('Row',Row)
 app.component('ProgressSpinner',ProgressSpinner)
+app.component('Textarea',Textarea)
+
 
 app.mount('#app')

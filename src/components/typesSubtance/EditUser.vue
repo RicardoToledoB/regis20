@@ -74,7 +74,7 @@
 
 <script>
 import { ref, reactive, computed } from 'vue'
-import userService from '@/services/userServices'
+import userService from '@/services/usersService'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'

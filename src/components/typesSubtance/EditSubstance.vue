@@ -38,7 +38,7 @@
 
 <script>
 import { ref, reactive, computed } from 'vue'
-import substances_types_service from '@/services/substances_types'
+import substances_types_service from '@/services/substancesTypesService'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'

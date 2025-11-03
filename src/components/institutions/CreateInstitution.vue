@@ -2,7 +2,7 @@
   <div>
     <ThemeSwitcher />
     <div class="card flex justify-center">
-      <Button label="Agregar Institución" @click="visible = true" />
+      <Button label="Agregar Institución" @click="openDialog" />
 
       <Dialog 
         v-model:visible="visible" 
@@ -22,84 +22,123 @@
           </div>
         </template>
         
-            <div class="dialog-content">
-               <div class="flex flex-column gap-2">
-                    <label for="name">Nombre</label>
-                    <InputText id="name" v-model="institution.name" aria-describedby="username-help" class="p-inputtext-lg" />
-                </div>
-                <br>
-                                <br>
-               
-                <!-- resto del contenido -->
-            </div>
-        
-        <br>
-        <br>
-        
-        <div class="flex justify-content-end gap-2">
-          <Button type="button" label="Cerrar" severity="secondary" @click="visible = false">
-             <template #icon>
-              <font-awesome-icon icon="fa-solid fa-close" />
-            </template>
-          </Button>
-          <Button type="button" label="Guardar" @click="visible = false">
-            <template #icon>
-              <font-awesome-icon icon="fa-solid fa-save" />
-            </template>
-          </Button>
+        <!-- Formulario -->
+        <div class="dialog-content">
+          <div class="flex flex-column gap-2">
+            <label for="name">Nombre</label>
+            <InputText 
+              id="name" 
+              v-model="institution.name" 
+              placeholder="Ej: Carabineros de Chile"
+              class="p-inputtext-lg"
+            />
+          </div>
         </div>
+
+        <!-- Botones de acción -->
+        <template #footer>
+          <div class="flex justify-content-end gap-2">
+            <Button 
+              type="button" 
+              label="Cerrar" 
+              severity="secondary" 
+              @click="closeDialog"
+            >
+              <template #icon>
+                <font-awesome-icon icon="fa-solid fa-close" />
+              </template>
+            </Button>
+
+            <Button 
+              type="button" 
+              label="Guardar" 
+              icon="pi pi-save"
+              @click="saveData"
+              :loading="isSaving"
+            />
+          </div>
+        </template>
       </Dialog>
     </div>
   </div>
 </template>
 
 <script>
+import { ref, getCurrentInstance } from 'vue'
+import institutionsService from '@/services/institutionsService.js' // ✅ Import correcto
+import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
+import InputText from 'primevue/inputtext'
+import { useToast } from 'primevue/usetoast'
+
+
 export default {
   name: 'CreateInstitution',
-  data() {
+  components: { Button, Dialog, InputText },
+
+  setup() {
+    const toast = useToast()
+const { emit } = getCurrentInstance()
+
+    const visible = ref(false)
+    const isSaving = ref(false)
+    const institution = ref({ name: '',
+      commune:{id:1},
+      institutionType:{id:2}
+     })
+
+    const openDialog = () => {
+      visible.value = true
+    }
+
+    const closeDialog = () => {
+      visible.value = false
+    }
+
+   const saveData = async () => {
+  if (!institution.value.name || institution.value.name.trim() === '') {
+    toast.add({ severity: 'warn', summary: 'Atención', detail: 'Ingrese un nombre para la institución', life: 3000 })
+    return
+  }
+
+  try {
+    isSaving.value = true
+    const { data } = await institutionsService.create(institution.value)
+    toast.add({ severity: 'success', summary: 'Éxito', detail: 'Institución creada correctamente', life: 3000 })
+    
+    // ✅ Emitir evento con la nueva institución
+    emit('created', data)
+    
+    closeDialog()
+    institution.value = { name: '', commune:{id:1}, institutionType:{id:2} }
+  } catch (error) {
+    console.error(error)
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'Error al conectar con el servidor', life: 5000 })
+  } finally {
+    isSaving.value = false
+  }
+}
+
     return {
-      institution: {
-        name: null,
-        
-      },
-      visible: false,
-      buttondisplay: null,
-      value: ''
-    }
-  },
-  mounted() {
-    console.log('Componente de institución montado');
-  },
-  methods: {
-    openDialog() {
-      this.visible = true;
-    },
-    closeDialog() {
-      this.visible = false;
-    },
-    saveData() {
-      console.log('Guardando datos...', this.value, this.buttondisplay);
-      this.visible = false;
-    }
-  },
-  watch: {
-    visible(newVal) {
-      console.log('Visibilidad del diálogo:', newVal);
-    },
-    value(newVal) {
-      console.log('Valor cambiado:', newVal);
-    }
-  },
-  computed: {
-    formattedDate() {
-      return this.buttondisplay ? this.buttondisplay.toLocaleDateString() : '';
+      visible,
+      institution,
+      isSaving,
+      openDialog,
+      closeDialog,
+      saveData
     }
   }
 }
 </script>
 
 <style scoped>
-:deep(.p-password .p-inputtext) {
-  width: 100%;
+.dialog-content {
+  padding: 1.5rem;
+}
+
+.custom-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 </style>
