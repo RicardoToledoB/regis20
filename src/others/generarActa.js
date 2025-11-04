@@ -16,7 +16,7 @@ export const generarActaPDF = (form, receptionResponse) => {
 
 
   doc.setFont("helvetica", "normal")
-  doc.setFontSize(10)
+  doc.setFontSize(11)
   doc.text("Punta Arenas,", 130, 28)
   doc.text(
     new Date(form.date_reception).toLocaleDateString("es-CL", {
@@ -52,11 +52,13 @@ export const generarActaPDF = (form, receptionResponse) => {
     { header: "Peso (g)", dataKey: "peso" },
     { header: "Descripción muestra", dataKey: "descripcion" }
   ]
-console.log(form);
+console.log(form.substances);
 
   const data = form.substances.map((s, i) => ({
+    
+    
     n: i + 1,
-    presunto: form.substancesTypeName ? form.substancesTypeName : "—",
+    presunto: s.substanceTypeName || "—",
     nue: s.nue || "—",
     peso: s.weight || "—",
     descripcion: s.description || "—"
