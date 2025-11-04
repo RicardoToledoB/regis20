@@ -3,26 +3,26 @@ import axiosClient from './axiosClient'
 export default {
   // ✅ Obtener todos los usuarios
   getAll() {
-    return axiosClient.get('/api/v1/reception')
+    return axiosClient.get('/api/v1/receptions')
   },
 
   // ✅ Obtener usuario por ID
   getById(id) {
-    return axiosClient.get(`/api/v1/reception/${id}`)
+    return axiosClient.get(`/api/v1/receptions/${id}`)
   },
 
   // ✅ Crear usuario
   create(data) {
-    return axiosClient.post(`/api/v1/reception`, data)
+    return axiosClient.post(`/api/v1/receptions`, data)
   },
 
   // ✅ Actualizar usuario
   update(id, data) {
-    return axiosClient.put(`/api/v1/reception/${id}`, data)
+    return axiosClient.put(`/api/v1/receptions/${id}`, data)
   },
 
   // ✅ Eliminar usuario
   delete(id) {
-    return axiosClient.delete(`/api/v1/reception/${id}`)
+    return axiosClient.delete(`/api/v1/receptions/${id}`)
   }
 }

@@ -33,6 +33,7 @@ import ColumnGroup from 'primevue/columngroup';   // optional
 import Row from 'primevue/row';                   // optional
 import ProgressSpinner from 'primevue/progressspinner'
 import Textarea from "primevue/textarea"
+import ConfirmationService from 'primevue/confirmationservice'
 
 
 import axiosClient from '@/services/axiosClient'
@@ -79,6 +80,7 @@ app.component('font-awesome-icon', FontAwesomeIcon)
 
 app.use(ToastService)
 app.use(router)
+app.use(ConfirmationService) // ✅ Agregar esto
 
 // Registrar componentes globalmente
 app.component('Sidebar', Sidebar)

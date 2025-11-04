@@ -24,20 +24,25 @@
           <!-- Datos del Oficio -->
           <div class="section-title">📄 Datos del Oficio</div>
           <div class="grid formgrid p-fluid">
-            <div class="field col-12 md:col-4">
-              <label>N° Oficio</label>
-              <InputText v-model="form.of_number" />
-            </div>
+             <div class="field col-12 md:col-2">
+                <label>N° Acta</label>
+                <InputText v-model="form.number" class="p-inputtext-lg" placeholder="N° de acta"/>
+              </div>
+              
+              <div class="field col-12 md:col-2">
+                <label>N° Oficio</label>
+                <InputText v-model="form.of_number" class="p-inputtext-lg"/>
+              </div>
 
-            <div class="field col-12 md:col-4">
-              <label>Fecha Oficio</label>
-              <Calendar v-model="form.of_number_date" dateFormat="dd/mm/yy" showIcon />
-            </div>
+              <div class="field col-12 md:col-4">
+                <label>Fecha Oficio</label>
+                <Calendar v-model="form.of_number_date" dateFormat="dd/mm/yy" showIcon />
+              </div>
 
-            <div class="field col-12 md:col-4">
-              <label>Fecha Recepción</label>
-              <Calendar v-model="form.date_reception" dateFormat="dd/mm/yy" showIcon />
-            </div>
+              <div class="field col-12 md:col-4">
+                <label>Fecha Recepción</label>
+                <Calendar v-model="form.date_reception" dateFormat="dd/mm/yy" showIcon />
+              </div>
           </div>
 
           <!-- Datos del Policía -->
@@ -94,7 +99,7 @@
                 optionLabel="name"
                 optionValue="id"
                 placeholder="Seleccione grado"
-                class="w-full"
+                class="w-full p-inputtext-lg"
               />
             </div>
 
@@ -106,7 +111,7 @@
                 optionLabel="name"
                 optionValue="id"
                 placeholder="Seleccione una institución"
-                class="w-full"
+                class="w-full p-inputtext-lg"
               />
             </div>
 
@@ -118,7 +123,7 @@
                 optionLabel="name"
                 optionValue="id"
                 placeholder="Seleccione tipo"
-                class="w-full"
+                class="w-full p-inputtext-lg"
               />
             </div>
 
@@ -130,77 +135,82 @@
                 optionLabel="name"
                 optionValue="id"
                 placeholder="Seleccione comuna"
-                class="w-full"
+                class="w-full p-inputtext-lg"
               />
             </div>
           </div>
 
-          <!-- Ubicación -->
-          <div class="section-title">📍 Ubicación</div>
-          <div class="grid formgrid p-fluid">
-            <div class="field col-12">
-              <label>Ubicación</label>
-              <Dropdown
-                v-model="form.location.id"
-                :options="locations"
-                optionLabel="name"
-                optionValue="id"
-                placeholder="Seleccione ubicación"
-                class="w-full"
-              />
-            </div>
-          </div>
+          <!-- Sustancias -->
+          <div class="section-title">💊 Sustancias Asociadas</div>
 
-          <!-- Usuarios -->
-          <div class="section-title">👤 Usuario Origen / Destino</div>
-          <div class="grid formgrid p-fluid">
-            <div class="field col-12 md:col-6">
-              <label>Usuario Origen (Email)</label>
-              <InputText v-model="form.user_origin.email" />
-            </div>
-            <div class="field col-12 md:col-6">
-              <label>Usuario Destino (Email)</label>
-              <InputText v-model="form.user_destination.email" />
-            </div>
-          </div>
-
-          <!-- Drogas -->
-          <div class="section-title">💊 Drogas Asociadas</div>
-
-          <!-- Primera fila: tipo, cantidad, unidad -->
+          <!-- Primera fila: tipo, cantidad, unidad, packaging -->
           <div class="grid formgrid p-fluid align-items-end">
-            <div class="field col-12 md:col-6">
-              <label>Tipo de Droga</label>
+            <div class="field col-12 md:col-4">
+              <label>Tipo de Sustancia</label>
               <Dropdown 
-                v-model="newDrug.type" 
+                v-model="newSubstance.substanceType" 
                 :options="substancesTypes"
                 optionLabel="name"
                 optionValue="id"
-                placeholder="Seleccione una droga"
-                class="w-full"
+                placeholder="Seleccione sustancia"
+                class="w-full p-inputtext-lg"
+              />
+            </div>
+
+            <div class="field col-12 md:col-2">
+              <label>Peso (gr)</label>
+              <InputNumber 
+                v-model="newSubstance.weight" 
+                :min="0" 
+                mode="decimal"
+                :maxFractionDigits="2"
+                class="p-inputtext-lg w-full"
               />
             </div>
 
             <div class="field col-12 md:col-3">
-              <label>Cantidad</label>
-              <InputNumber v-model="newDrug.amount" :min="0" />
+              <label>Packaging</label>
+              <Dropdown
+                v-model="newSubstance.packaging"
+                :options="packagings"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Seleccione packaging"
+                class="w-full p-inputtext-lg"
+              />
             </div>
 
             <div class="field col-12 md:col-3">
-              <label>Unidad</label>
-              <InputText v-model="newDrug.unit" placeholder="Ej: gr, kg, ml" />
+              <label>Comuna</label>
+              <Dropdown
+                v-model="newSubstance.commune"
+                :options="communes"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Comuna sustancia"
+                class="w-full p-inputtext-lg"
+              />
             </div>
           </div>
 
-          <!-- Segunda fila: observaciones + botón agregar -->
+          <!-- Segunda fila: NUE, descripción + botón agregar -->
           <div class="grid formgrid p-fluid align-items-end mt-2">
-            <div class="field col-12 md:col-10">
-              <label>Observaciones</label>
+            <div class="field col-12 md:col-4">
+              <label>NUE</label>
+              <InputText 
+                v-model="newSubstance.nue" 
+                placeholder="Número único de evidencia"
+                class="p-inputtext-lg"
+              />
+            </div>
+
+            <div class="field col-12 md:col-6">
+              <label>Descripción</label>
               <Textarea 
-                v-model="newDrug.observations" 
-                rows="4" 
+                v-model="newSubstance.description" 
+                rows="3" 
                 autoResize 
-                placeholder="Ingrese observaciones..."
+                placeholder="Descripción de la sustancia..."
               />
             </div>
 
@@ -208,29 +218,44 @@
               <Button 
                 icon="pi pi-plus" 
                 label="Agregar" 
-                @click="addDrug"
-                :disabled="!newDrug.type"
+                @click="addSubstance"
+                :disabled="!newSubstance.substanceType || !newSubstance.weight"
                 class="mt-4 w-full"
               />
             </div>
           </div>
 
-          <DataTable :value="form.drugs" responsiveLayout="scroll" class="mt-3">
-            <Column field="type" header="Tipo de Droga">
+          <!-- Tabla de sustancias -->
+          <DataTable :value="form.substances" responsiveLayout="scroll" class="mt-3">
+            <Column field="nue" header="NUE"></Column>
+            <Column field="substanceType" header="Tipo de Sustancia">
               <template #body="slotProps">
-                {{ getSubstanceName(slotProps.data.type) }}
+                {{ getSubstanceName(slotProps.data.substanceType) }}
               </template>
             </Column>
-            <Column field="amount" header="Cantidad"></Column>
-            <Column field="unit" header="Unidad"></Column>
-            <Column field="observations" header="Observaciones"></Column>
+            <Column field="weight" header="Peso (gr)">
+              <template #body="slotProps">
+                {{ slotProps.data.weight?.toFixed(2) }}
+              </template>
+            </Column>
+            <Column field="packaging" header="Packaging">
+              <template #body="slotProps">
+                {{ getPackagingName(slotProps.data.packaging) }}
+              </template>
+            </Column>
+            <Column field="commune" header="Comuna">
+              <template #body="slotProps">
+                {{ getCommuneName(slotProps.data.commune) }}
+              </template>
+            </Column>
+            <Column field="description" header="Descripción"></Column>
             <Column header="Acciones" bodyStyle="text-align:center">
               <template #body="slotProps">
                 <Button 
                   icon="pi pi-trash" 
                   severity="danger"
                   text 
-                  @click="removeDrug(slotProps.index)"
+                  @click="removeSubstance(slotProps.index)"
                 />
               </template>
             </Column>
@@ -260,6 +285,7 @@ import Textarea from "primevue/textarea"
 import ProgressSpinner from "primevue/progressspinner"
 
 import recepcionService from "@/services/receptionsService"
+import substancesService from "@/services/substancesService"
 import policeService from "@/services/policesService"
 import {formatRut, validateRut} from "@/others/verificationRut"
 
@@ -269,6 +295,8 @@ import communesService from '@/services/communesService'
 import locationsService from '@/services/locationsService'
 import substancesTypesService from "@/services/substancesTypesService"
 import gradesService from '@/services/gradesService'
+import packagingsService from '@/services/packagingsService'
+import { generarActaPDF } from "@/others/generarActa"
 
 export default {
   name: "RecepcionComponent",
@@ -292,13 +320,14 @@ export default {
     const locations = ref([])
     const substancesTypes = ref([])
     const grades = ref([])
+    const packagings = ref([])
 
     const form = reactive({
       number: "",
       of_number: "",
       of_number_date: null,
       date_reception: null,
-      location: { id: null, name: "" },
+      location: { id: 1 }, // ID predeterminado
       police: {
         id: 0,
         rut: "",
@@ -317,27 +346,33 @@ export default {
         }
       },
       user_origin: { id: 1 },
-      user_destination: { id: 1 },
-      drugs: []
+      user_destination: { 
+        id: parseInt(localStorage.getItem('user_id')) || 0, 
+        email: "" 
+      },
+      substances: [] // Cambiado de drugs a substances
     })
 
-    const newDrug = reactive({
-      type: null,
-      amount: null,
-      unit: "",
-      observations: ""
+    const newSubstance = reactive({
+      nue: "",
+      description: "",
+      weight: null,
+      substanceType: null,
+      packaging: null,
+      commune: null
     })
 
     const fetchDropdownData = async () => {
       try {
         isLoading.value = true
-        const [instRes, typeRes, commRes, locRes, subRes, gradesRes] = await Promise.all([
+        const [instRes, typeRes, commRes, locRes, subRes, gradesRes, packRes] = await Promise.all([
           institutionsService.getAll(),
           institutionTypesService.getAll(),
           communesService.getAll(),
           locationsService.getAll(),
           substancesTypesService.getAll(),
-          gradesService.getAll()
+          gradesService.getAll(),
+          packagingsService.getAll()
         ])
         
         institutions.value = instRes.data || []
@@ -346,6 +381,7 @@ export default {
         locations.value = locRes.data || []
         substancesTypes.value = subRes.data || []
         grades.value = gradesRes.data || []
+        packagings.value = packRes.data || []
         
         console.log("✅ Datos cargados:", {
           institutions: institutions.value.length,
@@ -353,7 +389,8 @@ export default {
           communes: communes.value.length,
           locations: locations.value.length,
           substances: substancesTypes.value.length,
-          grades: grades.value.length
+          grades: grades.value.length,
+          packagings: packagings.value.length
         })
       } catch (err) {
         console.error("❌ Error cargando datos para dropdowns:", err)
@@ -364,7 +401,19 @@ export default {
 
     const getSubstanceName = (substanceId) => {
       const substance = substancesTypes.value.find(s => s.id === substanceId)
+      console.log(substance);
+      
       return substance ? substance.name : 'Desconocido'
+    }
+
+    const getPackagingName = (packagingId) => {
+      const packaging = packagings.value.find(p => p.id === packagingId)
+      return packaging ? packaging.name : 'Desconocido'
+    }
+
+    const getCommuneName = (communeId) => {
+      const commune = communes.value.find(c => c.id === communeId)
+      return commune ? commune.name : 'Desconocido'
     }
 
     watch(() => form.police.rut, (newValue) => {
@@ -393,7 +442,6 @@ export default {
 
     const closeDialog = () => { 
       visible.value = false 
-      // Resetear formulario si es necesario
       resetForm()
     }
 
@@ -403,7 +451,7 @@ export default {
         of_number: "",
         of_number_date: null,
         date_reception: null,
-        location: { id: null, name: "" },
+        location: { id: 1 },
         police: {
           id: 0,
           rut: "",
@@ -421,26 +469,42 @@ export default {
             commune: { id: null, name: "" }
           }
         },
-        user_origin: { id: 0, email: "" },
-        user_destination: { id: 0, email: "" },
-        drugs: []
+        user_origin: { id: 1 },
+        user_destination: { 
+          id: parseInt(localStorage.getItem('user_id')) || 0, 
+          email: "" 
+        },
+        substances: []
+      })
+      
+      Object.assign(newSubstance, {
+        nue: "",
+        description: "",
+        weight: null,
+        substanceType: null,
+        packaging: null,
+        commune: null
       })
     }
 
-    const addDrug = () => {
-      if (!newDrug.type) return
-      form.drugs.push({ ...newDrug })
-      // Limpiar formulario de nueva droga
-      Object.assign(newDrug, {
-        type: null,
-        amount: null,
-        unit: "",
-        observations: ""
+    const addSubstance = () => {
+      if (!newSubstance.substanceType || !newSubstance.weight) return
+      
+      form.substances.push({ ...newSubstance })
+      
+      // Limpiar formulario de nueva sustancia
+      Object.assign(newSubstance, {
+        nue: "",
+        description: "",
+        weight: null,
+        substanceType: null,
+        packaging: null,
+        commune: null
       })
     }
 
-    const removeDrug = (index) => {
-      form.drugs.splice(index, 1)
+    const removeSubstance = (index) => {
+      form.substances.splice(index, 1)
     }
 
     const buscarPolicia = async () => {
@@ -453,51 +517,52 @@ export default {
         buscandoPolicia.value = true
         console.log("🔍 Buscando policía con RUT:", form.police.rut)
         
-        const  datos  = await policeService.getByRut(form.police.rut)
+        const datos = await policeService.getByRut(form.police.rut)
         console.log("✅ Policía encontrado:", datos)
         const data = datos.data.content[0]
-        if (data) {
-          // Actualizar todos los campos del policía
-          form.police.id = data.id || 0
-          form.police.firstName = data.firstName || ""
-          form.police.secondName = data.secondName || ""
-          form.police.firstLastName = data.firstLastName || ""
-          form.police.secondLastName = data.secondLastName || ""
-          form.police.email = data.email || ""
-          form.police.cellphone = data.cellphone || ""
+      
+         if (data) {
+    // Actualizar todos los campos del policía
+    form.police.id = data.id || 0
+    form.police.firstName = data.firstName || ""
+    form.police.secondName = data.secondName || ""
+    form.police.firstLastName = data.firstLastName || ""
+    form.police.secondLastName = data.secondLastName || ""
+    form.police.email = data.email || ""
+    form.police.cellphone = data.cellphone || ""
+    
+    // Actualizar user_origin con datos del policía
+   
 
-          // Actualizar grado si existe
-          if (data.grade && data.grade.id) {
-            form.police.grade.id = data.grade.id
-            console.log("🎖️ Grado asignado:", data.grade.id)
-          }
+    // Actualizar grado si existe (con nombre)
+    if (data.grade && data.grade.id) {
+      form.police.grade = data.grade
+     
+    }
 
-          // Actualizar institución si existe
-          if (data.institutionType && data.institutionType.institution && data.institutionType.institution.id) {
-            form.police.institution.id = data.institutionType.institution.id
-            console.log("🏛️ Institución asignada:", data.institutionType.institution.id)
-          }
+    // Actualizar institución si existe (con nombre)
+    if (data.institutionType && data.institutionType.institution && data.institutionType.institution.id) {
+      form.police.institution = data.institutionType.institution
+  
+    }
 
-          // Actualizar tipo de institución si existe
-          if (data.institutionType && data.institutionType.id) {
-            form.police.institutionType.id = data.institutionType.id
-            console.log("📋 Tipo institución asignado:", data.institutionType.id)
-          }
+    // Actualizar tipo de institución si existe (con nombre y comuna)
+    if (data.institutionType && data.institutionType.id) {
+      form.police.institutionType = data.institutionType
+   
+      
+      // Actualizar comuna si existe
+      if (data.institutionType.commune && data.institutionType.commune.id) {
+        form.police.institutionType.commune= data.institutionType.commune
+      }
+    }
 
-          // Actualizar comuna si existe
-          if (data.institutionType && data.institutionType.commune && data.institutionType.commune.id) {
-            form.police.institutionType.commune.id = data.institutionType.commune.id
-            console.log("📍 Comuna asignada:", data.institutionType.commune.id)
-          }
-
-          console.log("✅ Campos actualizados correctamente")
-        } else {
+    console.log("✅ Campos actualizados correctamente")
+  } else {
           console.warn("⚠️ No se encontró policía con ese RUT")
-          // Podrías mostrar un toast/mensaje al usuario aquí
         }
       } catch (e) {
         console.error("❌ Error al buscar policía:", e)
-        // Mostrar mensaje de error al usuario
       } finally {
         buscandoPolicia.value = false
       }
@@ -507,34 +572,66 @@ export default {
       try {
         isSaving.value = true
 
-        // Preparar payload para enviar
-        const payload = {
-          ...form,
-          police: {
-            ...form.police,
-            institution: form.police.institution.id ? { id: form.police.institution.id } : null,
-            grade: form.police.grade.id ? { id: form.police.grade.id } : null,
-            institutionType: form.police.institutionType.id ? { 
-              id: form.police.institutionType.id,
-              commune: form.police.institutionType.commune.id ? { id: form.police.institutionType.commune.id } : null
-            } : null
-          },
+        // 1. Primero crear la recepción
+          const receptionPayload = {
+          number: form.number,
+          of_number: form.of_number,
+          of_number_date: form.of_number_date,
+          date_reception: form.date_reception,
           location: form.location.id ? { id: form.location.id } : null,
-          user_origin: form.user_origin.email ? { email: form.user_origin.email } : null,
-          user_destination: form.user_destination.email ? { email: form.user_destination.email } : null,
-          drugs: form.drugs.map(drug => ({
-            type: drug.type ? { id: drug.type } : null,
-            amount: drug.amount,
-            unit: drug.unit,
-            observations: drug.observations
-          }))
+          police: {
+            id: form.police.id,
+            rut: form.police.rut,
+            firstName: form.police.firstName,
+            secondName: form.police.secondName,
+            firstLastName: form.police.firstLastName,
+            secondLastName: form.police.secondLastName,
+            email: form.police.email,
+            cellphone: form.police.cellphone,
+            grade: form.police.grade.id ? form.police.grade : null,
+            institution: form.police.institution.id ? form.police.institution : null,
+            institutionType: form.police.institutionType.id ? form.police.institutionType : null
+          },
+          user_origin: { id: 1 },
+          user_destination: form.user_destination.id ? { id: form.user_destination.id } : null
         }
 
-        console.log("📤 Enviando payload:", payload)
-        const { data } = await recepcionService.create(payload)
-        console.log("✅ Recepción guardada:", data)
-        
+        console.log("📤 Enviando recepción:", receptionPayload)
+        const receptionResponse = await recepcionService.create(receptionPayload)
+        const receptionId = receptionResponse.data.id
+        console.log("✅ Recepción creada con ID:", receptionId)
+
+        // 2. Luego crear las sustancias asociadas a esta recepción
+       if (form.substances.length > 0) {
+      const substancesPromises = form.substances.map(substance => {
+        const substancePayload = {
+          nue: substance.nue,
+          description: substance.description,
+          weight: substance.weight,
+          reception: receptionResponse.data,
+          substanceType: substance.substanceType ? { id: substance.substanceType } : null,
+          packaging: substance.packaging ? { id: substance.packaging } : null,
+          commune: substance.commune ? { id: substance.commune } : null
+        }
+        return substancesService.create(substancePayload)
+      })
+
+      await Promise.all(substancesPromises)
+      console.log("✅ Todas las sustancias creadas correctamente")
+        form.substances = form.substances.map(s => ({
+        ...s,
+        substanceTypeName: getSubstanceName(s.substanceType),
+        packagingName: getPackagingName(s.packaging),
+        communeName: getCommuneName(s.commune)
+      }))
+          console.log(form.substances);
+          console.log("✅ Todas las sustancias creadas correctamente")
+          generarActaPDF(form, receptionResponse)
+
+        }
+
         closeDialog()
+        
       } catch (e) {
         console.error("❌ Error al guardar recepción:", e)
       } finally {
@@ -558,15 +655,18 @@ export default {
       communes,
       locations,
       grades,
+      packagings,
       rutError,
-      newDrug,
+      newSubstance,
       openDialog,
       closeDialog,
-      addDrug,
-      removeDrug,
+      addSubstance,
+      removeSubstance,
       buscarPolicia,
       guardarRecepcion,
-      getSubstanceName
+      getSubstanceName,
+      getPackagingName,
+      getCommuneName
     }
   }
 }

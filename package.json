@@ -20,6 +20,8 @@
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/vue-fontawesome": "^3.1.2",
     "axios": "^1.13.1",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",
     "primevue": "^3.53.1",

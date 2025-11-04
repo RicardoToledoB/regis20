@@ -11,6 +11,11 @@ export default {
     return axiosClient.get(`/api/v1/substances/${id}`)
   },
 
+    // ✅ Obtener usuario por ID
+  getByReceptionId(receptionId) {
+    return axiosClient.get(`/api/v1/substances/findByReceptionId/${receptionId}`)
+  },
+
   // ✅ Crear usuario
   create(data) {
     return axiosClient.post(`/api/v1/substances`, data)
