@@ -17,7 +17,7 @@
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
-        <span class="text-xl font-semibold">Editar Institución</span>
+        <span class="text-xl font-semibold">Editar Metodo de Destrucción</span>
       </template>
 
       <!-- Contenido -->
@@ -37,7 +37,7 @@
               id="name"
               v-model="form.name"
               class="p-inputtext-lg w-full"
-              placeholder="Ingrese el nombre de la comuna"
+              placeholder="Ingrese el nombre del Metodo"
             />
           </div>
         </div>
@@ -54,7 +54,7 @@
         <Button
           label="Guardar"
           icon="pi pi-save"
-          @click="updateInstitution"
+          @click="updateMethodDestruction"
           :loading="isLoading"
         />
       </template>
@@ -64,17 +64,17 @@
 
 <script>
 import { ref, reactive, watch } from 'vue'
-import institutionsService from '@/services/institutionsService'
+import methodsDestructionsService from '@/services/methodsDestructionsService'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import ProgressSpinner from 'primevue/progressspinner'
 
 export default {
-  name: 'EditInstitution',
+  name: 'EditMethodDestruction',
   components: { InputText, Button, Dialog, ProgressSpinner },
   props: {
-    institution: {
+    methodDestruction: {
       type: Object,
       required: true
     }
@@ -90,7 +90,7 @@ export default {
 
     // ✅ Cargar los datos de la comuna en el formulario cuando cambia la prop
     watch(
-      () => props.institution,
+      () => props.methodDestruction,
       (newVal) => {
         if (newVal) {
           form.name = newVal.name || ''
@@ -103,8 +103,8 @@ export default {
     watch(
       () => visible.value,
       (isVisible) => {
-        if (isVisible && props.institution) {
-          form.name = props.institution.name || ''
+        if (isVisible && props.methodDestruction) {
+          form.name = props.methodDestruction.name || ''
         }
       }
     )
@@ -120,7 +120,7 @@ export default {
     }
 
     // ✅ Actualizar comuna
-    const updateInstitution = async () => {
+    const updateMethodDestruction = async () => {
       if (!form.name.trim()) {
         console.error('❌ El nombre no puede estar vacío')
         return
@@ -130,7 +130,7 @@ export default {
         isLoading.value = true
         const payload = { name: form.name.trim() }
 
-        const { data } = await institutionsService.update(props.institution.id, payload)
+        const { data } = await methodsDestructionsService.update(props.methodDestruction.id, payload)
 
         emit('updated', data)
         closeDialog()
@@ -147,7 +147,7 @@ export default {
       form,
       openDialog,
       closeDialog,
-      updateInstitution
+      updateMethodDestruction
     }
   }
 }

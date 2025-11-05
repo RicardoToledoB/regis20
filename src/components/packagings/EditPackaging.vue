@@ -17,7 +17,7 @@
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
-        <span class="text-xl font-semibold">Editar Institución</span>
+        <span class="text-xl font-semibold">Editar Tipo de Contenedor</span>
       </template>
 
       <!-- Contenido -->
@@ -54,7 +54,7 @@
         <Button
           label="Guardar"
           icon="pi pi-save"
-          @click="updateInstitution"
+          @click="updatePackaging"
           :loading="isLoading"
         />
       </template>
@@ -64,17 +64,17 @@
 
 <script>
 import { ref, reactive, watch } from 'vue'
-import institutionsService from '@/services/institutionsService'
+import packagingsService from '@/services/packagingsService'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import ProgressSpinner from 'primevue/progressspinner'
 
 export default {
-  name: 'EditInstitution',
+  name: 'EditPackaging',
   components: { InputText, Button, Dialog, ProgressSpinner },
   props: {
-    institution: {
+    packaging: {
       type: Object,
       required: true
     }
@@ -90,7 +90,7 @@ export default {
 
     // ✅ Cargar los datos de la comuna en el formulario cuando cambia la prop
     watch(
-      () => props.institution,
+      () => props.packaging,
       (newVal) => {
         if (newVal) {
           form.name = newVal.name || ''
@@ -103,8 +103,8 @@ export default {
     watch(
       () => visible.value,
       (isVisible) => {
-        if (isVisible && props.institution) {
-          form.name = props.institution.name || ''
+        if (isVisible && props.packaging) {
+          form.name = props.packaging.name || ''
         }
       }
     )
@@ -120,7 +120,7 @@ export default {
     }
 
     // ✅ Actualizar comuna
-    const updateInstitution = async () => {
+    const updatePackaging = async () => {
       if (!form.name.trim()) {
         console.error('❌ El nombre no puede estar vacío')
         return
@@ -130,7 +130,7 @@ export default {
         isLoading.value = true
         const payload = { name: form.name.trim() }
 
-        const { data } = await institutionsService.update(props.institution.id, payload)
+        const { data } = await packagingsService.update(props.packaging.id, payload)
 
         emit('updated', data)
         closeDialog()
@@ -147,7 +147,7 @@ export default {
       form,
       openDialog,
       closeDialog,
-      updateInstitution
+      updatePackaging
     }
   }
 }

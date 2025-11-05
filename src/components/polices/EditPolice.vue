@@ -1,90 +1,92 @@
 <template>
-  <div class="card flex justify-center">
-    <Button label="Crear Policía" @click="openDialog">
-      <template #icon>
-        <font-awesome-icon icon="fa-solid fa-plus" />
-      </template>
-    </Button>
+  <div>
+    <Button
+      icon="pi pi-pencil"
+      class="p-button-rounded p-button-info"
+      @click="openDialog"
+    />
 
-    <Dialog 
+    <Dialog
       v-model:visible="visible"
-      :style="{ width: '40rem', padding: '0.5rem' }"
       modal
+      :style="{ width: '40rem', padding: '0.5rem' }"
       :headerStyle="{ padding: '1rem 1.5rem' }"
-      :contentStyle="{ padding: '1rem 0.5rem 1rem 1rem' }"
+      :contentStyle="{ padding: '1rem 1.5rem' }"
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
-        <span class="text-xl font-semibold">Crear Policía</span>
+        <span class="text-xl font-semibold">Editar Policía</span>
       </template>
 
-      <!-- Spinner mientras se guarda -->
-      <div v-if="isLoading" class="flex justify-content-center align-items-center" style="height:200px;">
-        <ProgressSpinner />
-      </div>
+      <div class="dialog-content">
+        <div
+          v-if="isLoading"
+          class="flex justify-content-center align-items-center"
+          style="height: 200px;"
+        >
+          <ProgressSpinner />
+        </div>
 
-      <!-- Formulario solo cuando no está cargando -->
-      <div v-else class="dialog-content">
-        <div class="flex flex-column gap-1">
+        <div v-else class="flex flex-column gap-4">
           <!-- Información Personal -->
-          <div class="grid grid-nogutter gap-1">
-            <div class="col-12 field">
+          <div class="grid grid-nogutter gap-4">
+            <div class="col-6 field">
               <label for="firstName">Primer Nombre *</label>
-              <InputText 
+              <InputText
                 id="firstName"
-                v-model="form.firstName" 
-                class="p-inputtext-lg w-full" 
+                v-model="form.firstName"
+                class="p-inputtext-lg w-full"
                 placeholder="Primer nombre"
               />
             </div>
-            <div class="col-12 field">
+            <div class="col-6 field">
               <label for="secondName">Segundo Nombre</label>
-              <InputText 
+              <InputText
                 id="secondName"
-                v-model="form.secondName" 
-                class="p-inputtext-lg w-full" 
+                v-model="form.secondName"
+                class="p-inputtext-lg w-full"
                 placeholder="Segundo nombre"
               />
             </div>
           </div>
 
-          <div class="grid grid-nogutter gap-1">
-            <div class="col-12 field">
+          <div class="grid grid-nogutter gap-4">
+            <div class="col-6 field">
               <label for="firstLastName">Primer Apellido *</label>
-              <InputText 
+              <InputText
                 id="firstLastName"
-                v-model="form.firstLastName" 
-                class="p-inputtext-lg w-full" 
+                v-model="form.firstLastName"
+                class="p-inputtext-lg w-full"
                 placeholder="Primer apellido"
               />
             </div>
-            <div class="col-12 field">
+            <div class="col-6 field">
               <label for="secondLastName">Segundo Apellido</label>
-              <InputText 
+              <InputText
                 id="secondLastName"
-                v-model="form.secondLastName" 
-                class="p-inputtext-lg w-full" 
+                v-model="form.secondLastName"
+                class="p-inputtext-lg w-full"
                 placeholder="Segundo apellido"
               />
             </div>
           </div>
 
-          <div class="grid grid-nogutter gap-1">
-            <div class="col-12 field">
+          <div class="grid grid-nogutter gap-4">
+            <div class="col-6 field">
               <label for="rut">RUT *</label>
-              <InputText 
+              <InputText
                 id="rut"
-                v-model="form.rut" 
-                class="p-inputtext-lg w-full" 
+                v-model="form.rut"
+                class="p-inputtext-lg w-full"
                 placeholder="12345678-9"
               />
             </div>
-            <div class="col-12 field">
+            <div class="col-6 field">
               <label for="cellphone">Celular *</label>
-              <InputText 
+              <InputText
                 id="cellphone"
-                v-model="form.cellphone" 
-                class="p-inputtext-lg w-full" 
+                v-model="form.cellphone"
+                class="p-inputtext-lg w-full"
                 placeholder="912345678"
               />
             </div>
@@ -92,36 +94,36 @@
 
           <div class="field">
             <label for="email">Email *</label>
-            <InputText 
+            <InputText
               id="email"
-              v-model="form.email" 
-              class="p-inputtext-lg w-full" 
+              v-model="form.email"
+              class="p-inputtext-lg w-full"
               placeholder="correo@ejemplo.cl"
               type="email"
             />
           </div>
 
           <!-- Información Institucional -->
-          <div class="grid grid-nogutter gap-1">
-            <div class="col-12 field">
+          <div class="grid grid-nogutter gap-4">
+            <div class="col-6 field">
               <label for="institutionType">Tipo de Institución *</label>
               <Dropdown
                 id="institutionType"
                 v-model="form.institutionTypeId"
                 :options="institutionTypes"
                 optionLabel="name"
-                
+                optionValue="id"
                 placeholder="Seleccione tipo"
                 class="w-full"
                 :filter="true"
               />
             </div>
-            <div class="col-12 field">
+            <div class="col-6 field">
               <label for="grade">Grado *</label>
               <Dropdown
                 id="grade"
                 v-model="form.gradeId"
-                :options="grades"
+                :options="filteredGrades"
                 optionLabel="name"
                 optionValue="id"
                 placeholder="Seleccione grado"
@@ -135,15 +137,25 @@
       </div>
 
       <template #footer>
-        <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading"/>
-        <Button label="Guardar" @click="savePolice" :loading="isLoading"/>
+        <Button
+          label="Cerrar"
+          severity="secondary"
+          @click="closeDialog"
+          :disabled="isLoading"
+        />
+        <Button
+          label="Guardar"
+          icon="pi pi-save"
+          @click="updatePolice"
+          :loading="isLoading"
+        />
       </template>
     </Dialog>
   </div>
 </template>
 
 <script>
-import { reactive, ref, computed, onMounted } from 'vue'
+import { ref, reactive, watch, computed, onMounted } from 'vue'
 import policeService from '@/services/policesService'
 import institutionTypeService from '@/services/institutionTypesService'
 import gradeService from '@/services/gradesService'
@@ -154,24 +166,30 @@ import Dropdown from 'primevue/dropdown'
 import ProgressSpinner from 'primevue/progressspinner'
 
 export default {
-  name: "CreatePolice",
+  name: 'EditPolice',
   components: { InputText, Button, Dialog, Dropdown, ProgressSpinner },
-  emits: ["created"],
+  props: {
+    police: {
+      type: Object,
+      required: true
+    }
+  },
+  emits: ['updated'],
 
   setup(props, { emit }) {
     const visible = ref(false)
     const isLoading = ref(false)
     const institutionTypes = ref([])
-    const grades = ref([])
+    const allGrades = ref([])
 
     const form = reactive({
-      firstName: "",
-      secondName: "",
-      firstLastName: "",
-      secondLastName: "",
-      rut: "",
-      email: "",
-      cellphone: "",
+      firstName: '',
+      secondName: '',
+      firstLastName: '',
+      secondLastName: '',
+      rut: '',
+      email: '',
+      cellphone: '',
       institutionTypeId: null,
       gradeId: null
     })
@@ -179,7 +197,7 @@ export default {
     // ✅ Computed para filtrar grados por institutionType seleccionado
     const filteredGrades = computed(() => {
       if (!form.institutionTypeId) return []
-      return grades.value.filter(grade => 
+      return allGrades.value.filter(grade => 
         grade.institutionType?.id === form.institutionTypeId
       )
     })
@@ -192,45 +210,49 @@ export default {
         console.error('❌ Error cargando tipos de institución:', error)
       }
     }
-    
 
     const fetchGrades = async () => {
       try {
         const { data } = await gradeService.getAll()
-        grades.value = data
+        allGrades.value = data
       } catch (error) {
         console.error('❌ Error cargando grados:', error)
       }
     }
 
+    // Cargar datos al montar el componente
+    onMounted(async () => {
+      await Promise.all([fetchInstitutionTypes(), fetchGrades()])
+    })
+
+    // Cargar datos cuando se abre el diálogo
     const openDialog = async () => {
+      console.log('🎯 Abriendo diálogo con police:', props.police)
+      
+      // Recargar datos para asegurar que tenemos los datos más recientes
+      await Promise.all([fetchInstitutionTypes(), fetchGrades()])
+      
+      // Asignar valores al formulario
+      form.firstName = props.police.firstName || ''
+      form.secondName = props.police.secondName || ''
+      form.firstLastName = props.police.firstLastName || ''
+      form.secondLastName = props.police.secondLastName || ''
+      form.rut = props.police.rut || ''
+      form.email = props.police.email || ''
+      form.cellphone = props.police.cellphone || ''
+      form.institutionTypeId = props.police.institutionType?.id || null
+      form.gradeId = props.police.grade?.id || null
+      
+      console.log('📝 Formulario cargado:', form)
+
       visible.value = true
-      if (institutionTypes.value.length === 0) {
-        await fetchInstitutionTypes()
-      }
-      if (grades.value.length === 0) {
-        await fetchGrades()
-      }
     }
 
-    const closeDialog = () => { 
-      visible.value = false 
-      resetForm()
+    const closeDialog = () => {
+      visible.value = false
     }
 
-    const resetForm = () => {
-      form.firstName = ""
-      form.secondName = ""
-      form.firstLastName = ""
-      form.secondLastName = ""
-      form.rut = ""
-      form.email = ""
-      form.cellphone = ""
-      form.institutionTypeId = null
-      form.gradeId = null
-    }
-
-    const savePolice = async () => {
+    const updatePolice = async () => {
       if (!form.firstName.trim() || !form.firstLastName.trim() || 
           !form.rut.trim() || !form.email.trim() || !form.cellphone.trim() ||
           !form.institutionTypeId || !form.gradeId) {
@@ -240,7 +262,7 @@ export default {
 
       try {
         isLoading.value = true
-        const payload = { 
+        const payload = {
           firstName: form.firstName.trim(),
           secondName: form.secondName.trim(),
           firstLastName: form.firstLastName.trim(),
@@ -248,17 +270,17 @@ export default {
           rut: form.rut.trim(),
           email: form.email.trim(),
           cellphone: form.cellphone.trim(),
-          institutionType: form.institutionType ,
-          grade: form.grade
+          institutionType: { id: form.institutionTypeId },
+          grade: { id: form.gradeId }
         }
-        
-        const { data } = await policeService.create(payload)
 
-        // ✅ Emitir solo un evento para indicar que se debe recargar
-        emit("created")
+        console.log('💾 Enviando payload:', payload)
+        const { data } = await policeService.update(props.police.id, payload)
+
+        emit('updated')
         closeDialog()
       } catch (e) {
-        console.error("❌ Error al crear el policía:", e)
+        console.error('❌ Error al actualizar policía:', e)
       } finally {
         isLoading.value = false
       }
@@ -266,13 +288,13 @@ export default {
 
     return {
       visible,
-      form,
+      isLoading,
       institutionTypes,
       grades: filteredGrades,
-      isLoading,
+      form,
       openDialog,
       closeDialog,
-      savePolice
+      updatePolice
     }
   }
 }

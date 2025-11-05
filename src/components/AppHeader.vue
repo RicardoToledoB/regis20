@@ -23,11 +23,17 @@ const currentPageTitle = computed(() => {
     case 'Receptions': return 'Recepcion'
     case 'Polices': return 'Policia'
     case 'Institutions': return 'Institucion'
-    case 'Storages': return 'Bodega'
+    case 'Storages': return 'Ubicación de Bodegas'
     case 'TypesSubstances': return 'Tipo de Sustancia'
     case 'Unities': return 'Unidades'
+    case 'Communes': return 'Comunas'
+    case 'Locations': return 'Locaciones'
+     case 'Packagings': return 'Tipos de Contenedor'
+    case 'MethodsDestructions': return 'Metodos de Destruccion'
+    case 'Grades': return 'Grados'
+        case 'Destinations': return 'Destinos'
 
-    default: return 'Recepcion'
+    default: return ' '
     //el case viene del name del index.js de las rutas
   }
 })

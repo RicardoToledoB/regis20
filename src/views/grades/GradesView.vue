@@ -1,36 +1,29 @@
 <template>
   <PlantillaContenido>
     <template #contenido>
-      <div class="police-container">
+      <div class="grades-container">
         <div class="page-content">
           <div class="flex justify-content-between align-items-center mb-4">
-            <h1>Policías</h1>
-            <CreatePolice @created="handlePoliceCreated" />
+            <h1>Grados</h1>
+            <CreateGrade @created="handleGradeCreated" />
           </div>
 
           <Card>
             <template #content>
               <div class="table-container">
                 <DataTable
-                  :value="police"
+                  :value="grades"
                   paginator
                   size="large"
                   :rows="5"
                   :rowsPerPageOptions="[5, 10, 20, 50]"
                   scrollable
                   scrollHeight="400px"
-                  class="p-datatable-striped p-datatable-gridlines police-table"
+                  class="p-datatable-striped p-datatable-gridlines grades-table"
                 >
-                  <Column header="Nombre Completo">
-                    <template #body="slotProps">
-                      {{ getFullName(slotProps.data) }}
-                    </template>
-                  </Column>
-                  <Column field="rut" header="RUT" />
-                  <Column field="email" header="Email" />
-                  <Column field="cellphone" header="Celular" />
-                  <Column field="institutionType.name" header="Tipo Institución" />
-                  <Column field="grade.name" header="Grado" />
+                  <Column field="name" header="Nombre" />
+                  <Column field="description" header="Descripción" />
+                  <Column field="institutionType.name" header="Tipo de Institución" />
                   
                   <Column header="Fecha Creación">
                     <template #body="slotProps">
@@ -40,9 +33,9 @@
 
                   <Column header="Acciones" style="width: 15%">
                     <template #body="slotProps">
-                      <EditPolice
-                        :police="slotProps.data"
-                        @updated="handlePoliceUpdated"
+                      <EditGrade
+                        :grade="slotProps.data"
+                        @updated="handleGradeUpdated"
                       />
                     </template>
                   </Column>
@@ -59,49 +52,43 @@
 <script>
 import { ref, onMounted } from 'vue'
 import PlantillaContenido from '../template/PlantillaContenido.vue'
-import CreatePolice from '@/components/polices/CreatePolice.vue'
-import EditPolice from '@/components/polices/EditPolice.vue'
-import policeService from '@/services/policesService'
+import CreateGrade from '@/components/grades/CreateGrade.vue'
+import EditGrade from '@/components/grades/EditGrade.vue'
+import gradeService from '@/services/gradesService'
 
 export default {
-  name: 'PoliceView',
+  name: 'GradesView',
 
   components: {
     PlantillaContenido,
-    CreatePolice,
-    EditPolice
+    CreateGrade,
+    EditGrade
   },
 
   setup() {
-    const police = ref([])
+    const grades = ref([])
 
-    const fetchPolice = async () => {
+    const fetchGrades = async () => {
       try {
-        console.log('🔄 Recargando datos de policías desde el API...')
-        const { data } = await policeService.getAll()
-        police.value = data
-        console.log('✅ Datos de policías recargados correctamente')
+        console.log('🔄 Recargando datos de grados desde el API...')
+        const { data } = await gradeService.getAll()
+        grades.value = data
+        console.log('✅ Datos de grados recargados correctamente')
       } catch (error) {
-        console.error('❌ Error cargando policías:', error)
+        console.error('❌ Error cargando grados:', error)
       }
     }
 
     // ✅ Recargar todos los datos desde el API
-    const handlePoliceCreated = () => {
+    const handleGradeCreated = () => {
       console.log('🎯 Recargando tabla después de crear...')
-      fetchPolice()
+      fetchGrades()
     }
 
     // ✅ Recargar todos los datos desde el API
-    const handlePoliceUpdated = () => {
+    const handleGradeUpdated = () => {
       console.log('🎯 Recargando tabla después de actualizar...')
-      fetchPolice()
-    }
-
-    const getFullName = (policeData) => {
-      const names = [policeData.firstName, policeData.secondName].filter(Boolean).join(' ')
-      const lastNames = [policeData.firstLastName, policeData.secondLastName].filter(Boolean).join(' ')
-      return `${names} ${lastNames}`
+      fetchGrades()
     }
 
     const formatDate = (dateString) => {
@@ -110,16 +97,15 @@ export default {
     }
 
     onMounted(() => {
-      console.log('✅ Vista de policías cargada')
-      fetchPolice()
+      console.log('✅ Vista de grados cargada')
+      fetchGrades()
     })
 
     return {
-      police,
-      fetchPolice,
-      handlePoliceCreated,
-      handlePoliceUpdated,
-      getFullName,
+      grades,
+      fetchGrades,
+      handleGradeCreated,
+      handleGradeUpdated,
       formatDate
     }
   }
@@ -127,7 +113,7 @@ export default {
 </script>
 
 <style scoped>
-.police-container {
+.grades-container {
   padding: 1rem;
 }
 
@@ -158,19 +144,19 @@ export default {
   padding: 0.5rem;
 }
 
-.police-table {
+.grades-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.police-table th,
-.police-table td {
+.grades-table th,
+.grades-table td {
   padding: 0.75rem;
   text-align: left;
   border-bottom: 1px solid #e0e0e0;
 }
 
-.police-table th {
+.grades-table th {
   background-color: #f8f9fa;
   font-weight: 600;
   color: #495057;

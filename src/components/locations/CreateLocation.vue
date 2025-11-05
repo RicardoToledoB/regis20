@@ -35,7 +35,7 @@
 
       <template #footer>
         <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading"/>
-        <Button label="Guardar" @click="saveInstitution" :loading="isLoading"/>
+        <Button label="Guardar" @click="saveLocation" :loading="isLoading"/>
       </template>
     </Dialog>
   </div>
@@ -43,14 +43,14 @@
 
 <script>
 import { reactive, ref, computed } from 'vue'
-import institutions from '@/services/institutionsService'
+import locations from '@/services/locationsService'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 
 export default {
-  name: "CreateInstitution",
+  name: "CreateLocation",
   components: {  InputText, Password, Button, Dialog },
   emits: ["created"],
 
@@ -72,11 +72,11 @@ export default {
    
     }
 
-    const saveInstitution = async () => {
+    const saveLocation = async () => {
       try {
         isLoading.value = true
         const payload = { ...form }
-        const { data } = await institutions.create(payload)
+        const { data } = await locations.create(payload)
 
         emit("created", data) // actualiza la tabla Users.vue
 
@@ -95,7 +95,7 @@ export default {
       isLoading,
       openDialog,
       closeDialog,
-      saveInstitution
+      saveLocation
     }
   }
 }

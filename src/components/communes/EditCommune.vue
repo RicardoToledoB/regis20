@@ -17,7 +17,7 @@
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
-        <span class="text-xl font-semibold">Editar Institución</span>
+        <span class="text-xl font-semibold">Editar Comuna</span>
       </template>
 
       <!-- Contenido -->
@@ -54,7 +54,7 @@
         <Button
           label="Guardar"
           icon="pi pi-save"
-          @click="updateInstitution"
+          @click="updateCommune"
           :loading="isLoading"
         />
       </template>
@@ -64,17 +64,17 @@
 
 <script>
 import { ref, reactive, watch } from 'vue'
-import institutionsService from '@/services/institutionsService'
+import communesService from '@/services/communesService'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import ProgressSpinner from 'primevue/progressspinner'
 
 export default {
-  name: 'EditInstitution',
+  name: 'EditCommune',
   components: { InputText, Button, Dialog, ProgressSpinner },
   props: {
-    institution: {
+    commune: {
       type: Object,
       required: true
     }
@@ -84,13 +84,14 @@ export default {
   setup(props, { emit }) {
     const visible = ref(false)
     const isLoading = ref(false)
+
     const form = reactive({
       name: ''
     })
 
     // ✅ Cargar los datos de la comuna en el formulario cuando cambia la prop
     watch(
-      () => props.institution,
+      () => props.commune,
       (newVal) => {
         if (newVal) {
           form.name = newVal.name || ''
@@ -103,8 +104,8 @@ export default {
     watch(
       () => visible.value,
       (isVisible) => {
-        if (isVisible && props.institution) {
-          form.name = props.institution.name || ''
+        if (isVisible && props.commune) {
+          form.name = props.commune.name || ''
         }
       }
     )
@@ -120,7 +121,7 @@ export default {
     }
 
     // ✅ Actualizar comuna
-    const updateInstitution = async () => {
+    const updateCommune = async () => {
       if (!form.name.trim()) {
         console.error('❌ El nombre no puede estar vacío')
         return
@@ -130,7 +131,7 @@ export default {
         isLoading.value = true
         const payload = { name: form.name.trim() }
 
-        const { data } = await institutionsService.update(props.institution.id, payload)
+        const { data } = await communesService.update(props.commune.id, payload)
 
         emit('updated', data)
         closeDialog()
@@ -147,7 +148,7 @@ export default {
       form,
       openDialog,
       closeDialog,
-      updateInstitution
+      updateCommune
     }
   }
 }

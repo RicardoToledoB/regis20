@@ -15,7 +15,7 @@
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
-        <span class="text-xl font-semibold">Crear Locacion</span>
+        <span class="text-xl font-semibold">Crear Destino</span>
       </template>
 
       <!-- Spinner mientras se guarda -->
@@ -35,7 +35,7 @@
 
       <template #footer>
         <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading"/>
-        <Button label="Guardar" @click="saveInstitution" :loading="isLoading"/>
+        <Button label="Guardar" @click="saveDestination" :loading="isLoading"/>
       </template>
     </Dialog>
   </div>
@@ -43,14 +43,14 @@
 
 <script>
 import { reactive, ref, computed } from 'vue'
-import institutions from '@/services/institutionsService'
+import destinations from '@/services/destinationsService'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 
 export default {
-  name: "CreateInstitution",
+  name: "CreateDestination",
   components: {  InputText, Password, Button, Dialog },
   emits: ["created"],
 
@@ -72,11 +72,11 @@ export default {
    
     }
 
-    const saveInstitution = async () => {
+    const saveDestination = async () => {
       try {
         isLoading.value = true
         const payload = { ...form }
-        const { data } = await institutions.create(payload)
+        const { data } = await destinations.create(payload)
 
         emit("created", data) // actualiza la tabla Users.vue
 
@@ -95,7 +95,7 @@ export default {
       isLoading,
       openDialog,
       closeDialog,
-      saveInstitution
+      saveDestination
     }
   }
 }

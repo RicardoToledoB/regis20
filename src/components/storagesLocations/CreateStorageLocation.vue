@@ -15,7 +15,7 @@
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
-        <span class="text-xl font-semibold">Crear Locacion</span>
+        <span class="text-xl font-semibold">Crear Ubicación Bodega</span>
       </template>
 
       <!-- Spinner mientras se guarda -->
@@ -35,7 +35,7 @@
 
       <template #footer>
         <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading"/>
-        <Button label="Guardar" @click="saveInstitution" :loading="isLoading"/>
+        <Button label="Guardar" @click="saveStorageLocation" :loading="isLoading"/>
       </template>
     </Dialog>
   </div>
@@ -43,15 +43,14 @@
 
 <script>
 import { reactive, ref, computed } from 'vue'
-import institutions from '@/services/institutionsService'
+import storagesLocations from '@/services/storagesLocationsService'
 import InputText from 'primevue/inputtext'
-import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 
 export default {
-  name: "CreateInstitution",
-  components: {  InputText, Password, Button, Dialog },
+  name: "CreateStorageLocation",
+  components: {  InputText, Button, Dialog },
   emits: ["created"],
 
   setup(props, { emit }) {
@@ -72,11 +71,11 @@ export default {
    
     }
 
-    const saveInstitution = async () => {
+    const saveStorageLocation = async () => {
       try {
         isLoading.value = true
         const payload = { ...form }
-        const { data } = await institutions.create(payload)
+        const { data } = await storagesLocations.create(payload)
 
         emit("created", data) // actualiza la tabla Users.vue
 
@@ -95,7 +94,7 @@ export default {
       isLoading,
       openDialog,
       closeDialog,
-      saveInstitution
+      saveStorageLocation
     }
   }
 }

@@ -1,10 +1,10 @@
 <template>
   <PlantillaContenido>
     <template #contenido>
-      <div class="users-container">
+      <div class="institutions-container">
         <div class="page-content">
           <div class="flex justify-content-between align-items-center mb-4">
-            <h1>Gestión de Instituciones</h1>
+            <h1>Instituciones</h1>
             <CreateInstitution @created="handleInstitutionCreated" />
           </div>
 
@@ -16,18 +16,19 @@
                   paginator
                   size="large"
                   :rows="5"
-                  :rowsPerPageOptions="[5,10,20,50]"
+                  :rowsPerPageOptions="[5, 10, 20, 50]"
                   scrollable
                   scrollHeight="350px"
-                  class="p-datatable-striped p-datatable-gridlines users-table"
+                  class="p-datatable-striped p-datatable-gridlines institutions-table"
                 >
-                  <Column field="id" header="ID" style="width: 10%"></Column>
-                  <Column field="name" header="Nombre" style="width: 60%"></Column>
-                  <Column header="Acciones" style="width: 30%">
+                  <Column field="name" header="Nombre" />
+
+                  <Column header="Acciones" style="width: 20%">
                     <template #body="slotProps">
-                      <EditInstitution 
-                        :institution="slotProps.data" 
-                        @updated="updateInstitutionInTable"
+                      <!-- ✅ Renderiza un EditInstitution por cada fila -->
+                      <EditInstitution
+                        :institution="slotProps.data"
+                        @updated="handleInstitutionUpdated"
                       />
                     </template>
                   </Column>
@@ -44,33 +45,27 @@
 <script>
 import { ref, onMounted } from 'vue'
 import PlantillaContenido from '../template/PlantillaContenido.vue'
-import institutionsService from '@/services/institutionsService.js'
-import CreateInstitution from '@/components/institutions/CreateInstitution.vue'
-import EditInstitution from '@/components/institutions/EditInstitution.vue' // 👉 la crearás igual que EditUser.vue
-import Card from 'primevue/card'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
+import CreateInstitution from '../../components/institutions/CreateInstitution.vue'
+import EditInstitution from '@/components/institutions/EditInstitution.vue'
+import institutionsService from '@/services/institutionsService'
 
 export default {
-  name: 'InstitutionsView',
+  name: 'institutionsView',
+
   components: {
     PlantillaContenido,
     CreateInstitution,
-    EditInstitution,
-    Card,
-    DataTable,
-    Column
+    EditInstitution
   },
 
   setup() {
     const institutions = ref([])
-
-    const fetchInstitutions = async () => {
+    const fetchinstitutions = async () => {
       try {
         const { data } = await institutionsService.getAll()
         institutions.value = data
       } catch (error) {
-        console.error("❌ Error cargando instituciones:", error)
+        console.error('❌ Error cargando comunas:', error)
       }
     }
 
@@ -78,33 +73,35 @@ export default {
       institutions.value.push(newInstitution)
     }
 
-    const updateInstitutionInTable = (updatedInstitution) => {
-      const index = institutions.value.findIndex(i => i.id === updatedInstitution.id)
-      if (index !== -1) institutions.value[index] = updatedInstitution
+    const handleInstitutionUpdated = (updatedInstitution) => {
+      const index = institutions.value.findIndex((c) => c.id === updatedInstitution.id)
+      if (index !== -1) {
+        institutions.value[index] = updatedInstitution
+      }
     }
 
     onMounted(() => {
-      console.log("✅ Vista de instituciones cargada")
-      fetchInstitutions()
+      console.log('✅ Vista de comunas cargada')
+      fetchinstitutions()
     })
 
     return {
       institutions,
-      fetchInstitutions,
+      fetchinstitutions,
       handleInstitutionCreated,
-      updateInstitutionInTable
+      handleInstitutionUpdated
     }
   }
 }
 </script>
 
 <style scoped>
-.users-container {
-  padding: 1.5rem;
+.institutions-container {
+  padding: 1rem;
 }
 
 .table-container {
-  margin-top: 1rem;
+  overflow-x: auto;
 }
 
 :deep(.p-datatable-table) {
@@ -130,8 +127,21 @@ export default {
   padding: 0.5rem;
 }
 
-.users-table {
+.institutions-table {
   width: 100%;
   border-collapse: collapse;
+}
+
+.institutions-table th,
+.institutions-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.institutions-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
 }
 </style>

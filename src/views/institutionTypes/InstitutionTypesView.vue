@@ -1,36 +1,29 @@
 <template>
   <PlantillaContenido>
     <template #contenido>
-      <div class="police-container">
+      <div class="institution-types-container">
         <div class="page-content">
           <div class="flex justify-content-between align-items-center mb-4">
-            <h1>Policías</h1>
-            <CreatePolice @created="handlePoliceCreated" />
+            <h1>Tipos de Institución</h1>
+            <CreateInstitutionType @created="handleInstitutionTypeCreated" />
           </div>
 
           <Card>
             <template #content>
               <div class="table-container">
                 <DataTable
-                  :value="police"
+                  :value="institutionTypes"
                   paginator
                   size="large"
                   :rows="5"
                   :rowsPerPageOptions="[5, 10, 20, 50]"
                   scrollable
                   scrollHeight="400px"
-                  class="p-datatable-striped p-datatable-gridlines police-table"
+                  class="p-datatable-striped p-datatable-gridlines institution-types-table"
                 >
-                  <Column header="Nombre Completo">
-                    <template #body="slotProps">
-                      {{ getFullName(slotProps.data) }}
-                    </template>
-                  </Column>
-                  <Column field="rut" header="RUT" />
-                  <Column field="email" header="Email" />
-                  <Column field="cellphone" header="Celular" />
-                  <Column field="institutionType.name" header="Tipo Institución" />
-                  <Column field="grade.name" header="Grado" />
+                  <Column field="name" header="Nombre" />
+                  <Column field="commune.name" header="Comuna" />
+                  <Column field="institution.name" header="Institución" />
                   
                   <Column header="Fecha Creación">
                     <template #body="slotProps">
@@ -40,9 +33,9 @@
 
                   <Column header="Acciones" style="width: 15%">
                     <template #body="slotProps">
-                      <EditPolice
-                        :police="slotProps.data"
-                        @updated="handlePoliceUpdated"
+                      <EditInstitutionType
+                        :institution-type="slotProps.data"
+                        @updated="handleInstitutionTypeUpdated"
                       />
                     </template>
                   </Column>
@@ -59,49 +52,43 @@
 <script>
 import { ref, onMounted } from 'vue'
 import PlantillaContenido from '../template/PlantillaContenido.vue'
-import CreatePolice from '@/components/polices/CreatePolice.vue'
-import EditPolice from '@/components/polices/EditPolice.vue'
-import policeService from '@/services/policesService'
+import CreateInstitutionType from '@/components/institutionsTypes/CreateInstitutionType.vue'
+import EditInstitutionType from '@/components/institutionsTypes/EditInstitutionType.vue'
+import institutionTypeService from '@/services/institutionTypesService'
 
 export default {
-  name: 'PoliceView',
+  name: 'InstitutionTypesView',
 
   components: {
     PlantillaContenido,
-    CreatePolice,
-    EditPolice
+    CreateInstitutionType,
+    EditInstitutionType
   },
 
   setup() {
-    const police = ref([])
+    const institutionTypes = ref([])
 
-    const fetchPolice = async () => {
+    const fetchInstitutionTypes = async () => {
       try {
-        console.log('🔄 Recargando datos de policías desde el API...')
-        const { data } = await policeService.getAll()
-        police.value = data
-        console.log('✅ Datos de policías recargados correctamente')
+        console.log('🔄 Recargando datos desde el API...')
+        const { data } = await institutionTypeService.getAll()
+        institutionTypes.value = data
+        console.log('✅ Datos recargados correctamente')
       } catch (error) {
-        console.error('❌ Error cargando policías:', error)
+        console.error('❌ Error cargando tipos de institución:', error)
       }
     }
 
-    // ✅ Recargar todos los datos desde el API
-    const handlePoliceCreated = () => {
+    // ✅ Modificado: Recargar todos los datos desde el API
+    const handleInstitutionTypeCreated = () => {
       console.log('🎯 Recargando tabla después de crear...')
-      fetchPolice()
+      fetchInstitutionTypes()
     }
 
-    // ✅ Recargar todos los datos desde el API
-    const handlePoliceUpdated = () => {
+    // ✅ Modificado: Recargar todos los datos desde el API
+    const handleInstitutionTypeUpdated = () => {
       console.log('🎯 Recargando tabla después de actualizar...')
-      fetchPolice()
-    }
-
-    const getFullName = (policeData) => {
-      const names = [policeData.firstName, policeData.secondName].filter(Boolean).join(' ')
-      const lastNames = [policeData.firstLastName, policeData.secondLastName].filter(Boolean).join(' ')
-      return `${names} ${lastNames}`
+      fetchInstitutionTypes()
     }
 
     const formatDate = (dateString) => {
@@ -110,16 +97,15 @@ export default {
     }
 
     onMounted(() => {
-      console.log('✅ Vista de policías cargada')
-      fetchPolice()
+      console.log('✅ Vista de tipos de institución cargada')
+      fetchInstitutionTypes()
     })
 
     return {
-      police,
-      fetchPolice,
-      handlePoliceCreated,
-      handlePoliceUpdated,
-      getFullName,
+      institutionTypes,
+      fetchInstitutionTypes,
+      handleInstitutionTypeCreated,
+      handleInstitutionTypeUpdated,
       formatDate
     }
   }
@@ -127,7 +113,7 @@ export default {
 </script>
 
 <style scoped>
-.police-container {
+.institution-types-container {
   padding: 1rem;
 }
 
@@ -158,19 +144,19 @@ export default {
   padding: 0.5rem;
 }
 
-.police-table {
+.institution-types-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.police-table th,
-.police-table td {
+.institution-types-table th,
+.institution-types-table td {
   padding: 0.75rem;
   text-align: left;
   border-bottom: 1px solid #e0e0e0;
 }
 
-.police-table th {
+.institution-types-table th {
   background-color: #f8f9fa;
   font-weight: 600;
   color: #495057;

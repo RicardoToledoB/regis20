@@ -139,6 +139,36 @@ const mantainersItems = ref([
     icon: 'fa-solid fa-users',
     to: '/users',
   },
+   {
+    label: 'Perfiles',
+    icon: 'fa-solid fa-users',
+    to: '/roles',
+  },
+  {
+    label: 'Tipo de institucion',
+    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
+    to: '/institution-type',
+  },
+  {
+    label: 'Comunas',
+    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
+    to: '/communes',
+  },
+  {
+    label: 'Locaciones',
+    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
+    to: '/locations',
+  },
+   {
+    label: 'Destinos',
+    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
+    to: '/destinations',
+  },
+  {
+    label: 'Grados',
+    icon: 'fa-solid fa-users',
+    to: '/grades',
+  },
   {
     label: 'Policia',
     icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
@@ -150,7 +180,7 @@ const mantainersItems = ref([
     to: '/institutions',
   },
   {
-    label: 'Bodega',
+    label: 'Ubicación de Bodega',
     icon: 'fa-solid fa-warehouse',
     to: '/storages',
   },
@@ -160,9 +190,14 @@ const mantainersItems = ref([
     to: '/types-substances',
   },
   {
-    label: 'Unidades',
-    icon: 'fa-solid fa-building',
-    to: '/unities',
+    label: 'Metodo de Destrucción',
+    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
+    to: '/methods-destructions',
+  },
+  {
+    label: 'Tipo de Contenedor',
+    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
+    to: '/packagings',
   },
 ])
 </script>
