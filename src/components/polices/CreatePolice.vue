@@ -107,27 +107,26 @@
               <label for="institutionType">Tipo de Institución *</label>
               <Dropdown
                 id="institutionType"
-                v-model="form.institutionTypeId"
+                v-model="form.institutionType"
                 :options="institutionTypes"
                 optionLabel="name"
-                
                 placeholder="Seleccione tipo"
                 class="w-full"
                 :filter="true"
+                @change="onInstitutionTypeChange"
               />
             </div>
             <div class="col-12 field">
               <label for="grade">Grado *</label>
               <Dropdown
                 id="grade"
-                v-model="form.gradeId"
+                v-model="form.grade"
                 :options="grades"
                 optionLabel="name"
-                optionValue="id"
                 placeholder="Seleccione grado"
                 class="w-full"
                 :filter="true"
-                :disabled="!form.institutionTypeId"
+                :disabled="!form.institutionType"
               />
             </div>
           </div>
@@ -162,7 +161,7 @@ export default {
     const visible = ref(false)
     const isLoading = ref(false)
     const institutionTypes = ref([])
-    const grades = ref([])
+    const allGrades = ref([]) // Almacena todos los grados
 
     const form = reactive({
       firstName: "",
@@ -172,15 +171,15 @@ export default {
       rut: "",
       email: "",
       cellphone: "",
-      institutionTypeId: null,
-      gradeId: null
+      institutionType: null,
+      grade: null
     })
 
     // ✅ Computed para filtrar grados por institutionType seleccionado
     const filteredGrades = computed(() => {
-      if (!form.institutionTypeId) return []
-      return grades.value.filter(grade => 
-        grade.institutionType?.id === form.institutionTypeId
+      if (!form.institutionType) return []
+      return allGrades.value.filter(grade => 
+        grade.institutionType?.id === form.institutionType.id
       )
     })
 
@@ -192,15 +191,19 @@ export default {
         console.error('❌ Error cargando tipos de institución:', error)
       }
     }
-    
 
     const fetchGrades = async () => {
       try {
         const { data } = await gradeService.getAll()
-        grades.value = data
+        allGrades.value = data
       } catch (error) {
         console.error('❌ Error cargando grados:', error)
       }
+    }
+
+    const onInstitutionTypeChange = () => {
+      // Limpiar el grado seleccionado cuando cambia el tipo de institución
+      form.grade = null
     }
 
     const openDialog = async () => {
@@ -208,7 +211,7 @@ export default {
       if (institutionTypes.value.length === 0) {
         await fetchInstitutionTypes()
       }
-      if (grades.value.length === 0) {
+      if (allGrades.value.length === 0) {
         await fetchGrades()
       }
     }
@@ -226,20 +229,21 @@ export default {
       form.rut = ""
       form.email = ""
       form.cellphone = ""
-      form.institutionTypeId = null
-      form.gradeId = null
+      form.institutionType = null
+      form.grade = null
     }
 
     const savePolice = async () => {
       if (!form.firstName.trim() || !form.firstLastName.trim() || 
           !form.rut.trim() || !form.email.trim() || !form.cellphone.trim() ||
-          !form.institutionTypeId || !form.gradeId) {
+          !form.institutionType || !form.grade) {
         console.error('❌ Todos los campos marcados con * son requeridos')
         return
       }
 
       try {
         isLoading.value = true
+        
         const payload = { 
           firstName: form.firstName.trim(),
           secondName: form.secondName.trim(),
@@ -248,10 +252,11 @@ export default {
           rut: form.rut.trim(),
           email: form.email.trim(),
           cellphone: form.cellphone.trim(),
-          institutionType: form.institutionType ,
+          institutionType: form.institutionType,
           grade: form.grade
         }
         
+        console.log('📤 Enviando payload:', payload)
         const { data } = await policeService.create(payload)
 
         // ✅ Emitir solo un evento para indicar que se debe recargar
@@ -272,7 +277,8 @@ export default {
       isLoading,
       openDialog,
       closeDialog,
-      savePolice
+      savePolice,
+      onInstitutionTypeChange
     }
   }
 }

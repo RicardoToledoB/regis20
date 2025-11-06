@@ -70,6 +70,7 @@ import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import axiosClient from '@/services/axiosClient'
+import usersService from '@/services/usersService' // Asegúrate de importar el servicio
 
 const router = useRouter()
 
@@ -93,39 +94,82 @@ const validateForm = () => {
   return !errors.email && !errors.password
 }
 
-const conectar = () => {
+// Función para cargar datos del usuario
+const cargarDatosUsuario = async () => {
+  try {
+    console.log('🔍 Buscando usuario con email:', user.email);
+
+    // Llamar al servicio para obtener datos del usuario
+    const response = await usersService.getByEmail(user.email);
+    
+    if (response.data && response.data.length > 0) {
+      const userData = response.data[0];
+      console.log('✅ Datos del usuario obtenidos:', userData);
+      
+      // Guardar datos en localStorage
+      localStorage.setItem("user_id", userData.id);
+      localStorage.setItem("userName", userData.username || `${userData.firstName} ${userData.firstLastName}`);
+      localStorage.setItem("userEmail", userData.email);
+      localStorage.setItem("userRut", userData.rut);
+      
+      // También guardar datos completos si los necesitas
+      localStorage.setItem("userData", JSON.stringify(userData));
+
+      console.log('✅ Datos del usuario guardados en localStorage');
+      return true;
+    } else {
+      console.warn('⚠️ No se encontraron datos del usuario');
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Error al cargar datos del usuario:', error);
+    return false;
+  }
+}
+
+const conectar = async () => {
   if (!validateForm()) return
 
   error.value = ""
   isLoading.value = true
 
-  axiosClient.post("auth/login", {
-    email: user.email,
-    password: user.password,
-   // grant_type: user.grant_type,
-  })
-    .then((response) => {
+  try {
+    // 1. Primero hacer login
+    const response = await axiosClient.post("auth/login", {
+      email: user.email,
+      password: user.password,
+    })
+    
     const data = response.data
-      console.log(data);
-      
-    // ✅ Guardamos info del usuario 
+    console.log('✅ Login exitoso:', data);
+    
+    // 2. Guardar token y email
     localStorage.setItem("token", data.token)
     localStorage.setItem("mail", user.email)
 
-    // ✅ Redirección según el rol del usuario
-    router.push("/inicio")
+    // 3. Cargar datos adicionales del usuario
+    const datosCargados = await cargarDatosUsuario()
     
-  })
-     .catch((err) => {
+    if (datosCargados) {
+      console.log('✅ Todos los datos cargados correctamente');
+      // 4. Redireccionar al home
+      router.push("/inicio")
+    } else {
+      console.warn('⚠️ Login exitoso pero no se pudieron cargar datos adicionales');
+      // Aún así redireccionar, pero mostrar mensaje
+      router.push("/inicio")
+    }
+    
+  } catch (err) {
+    console.error('❌ Error en login:', err);
     if (err.response?.status === 403) {
       error.value = "No autorizado. Contacte al administrador."
     } else {
       error.value = "Usuario y/o contraseña incorrecta"
     }
-  })
-    .finally(() => {
+  } finally {
     isLoading.value = false
-  })
+  }
 }
 </script>
 

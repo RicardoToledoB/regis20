@@ -50,10 +50,9 @@
             <label for="institutionType">Tipo de Institución</label>
             <Dropdown
               id="institutionType"
-              v-model="form.institutionTypeId"
+              v-model="form.institutionType"
               :options="institutionTypes"
               optionLabel="name"
-              optionValue="id"
               placeholder="Seleccione un tipo de institución"
               class="w-full"
               :filter="true"
@@ -93,7 +92,7 @@ export default {
     const form = reactive({
       name: "",
       description: "",
-      institutionTypeId: null
+      institutionType: null
     })
 
     const fetchInstitutionTypes = async () => {
@@ -120,11 +119,11 @@ export default {
     const resetForm = () => {
       form.name = ""
       form.description = ""
-      form.institutionTypeId = null
+      form.institutionType = null
     }
 
     const saveGrade = async () => {
-      if (!form.name.trim() || !form.institutionTypeId) {
+      if (!form.name.trim() || !form.institutionType) {
         console.error('❌ Nombre y Tipo de Institución son requeridos')
         return
       }
@@ -134,9 +133,10 @@ export default {
         const payload = { 
           name: form.name.trim(),
           description: form.description.trim(),
-          institutionType: { id: form.institutionTypeId }
+          institutionType: form.institutionType
         }
         
+        console.log('📤 Enviando payload:', payload)
         const { data } = await gradeService.create(payload)
 
         // ✅ Emitir solo un evento para indicar que se debe recargar

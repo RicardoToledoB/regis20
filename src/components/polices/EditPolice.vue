@@ -27,10 +27,10 @@
           <ProgressSpinner />
         </div>
 
-        <div v-else class="flex flex-column gap-4">
+        <div v-else class="flex flex-column gap-1">
           <!-- Información Personal -->
-          <div class="grid grid-nogutter gap-4">
-            <div class="col-6 field">
+          <div class="grid grid-nogutter gap-1">
+            <div class="col-12 field">
               <label for="firstName">Primer Nombre *</label>
               <InputText
                 id="firstName"
@@ -39,7 +39,7 @@
                 placeholder="Primer nombre"
               />
             </div>
-            <div class="col-6 field">
+            <div class="col-12 field">
               <label for="secondName">Segundo Nombre</label>
               <InputText
                 id="secondName"
@@ -50,8 +50,8 @@
             </div>
           </div>
 
-          <div class="grid grid-nogutter gap-4">
-            <div class="col-6 field">
+          <div class="grid grid-nogutter gap-1">
+            <div class="col-12 field">
               <label for="firstLastName">Primer Apellido *</label>
               <InputText
                 id="firstLastName"
@@ -60,7 +60,7 @@
                 placeholder="Primer apellido"
               />
             </div>
-            <div class="col-6 field">
+            <div class="col-12 field">
               <label for="secondLastName">Segundo Apellido</label>
               <InputText
                 id="secondLastName"
@@ -71,8 +71,8 @@
             </div>
           </div>
 
-          <div class="grid grid-nogutter gap-4">
-            <div class="col-6 field">
+          <div class="grid grid-nogutter gap-1">
+            <div class="col-12 field">
               <label for="rut">RUT *</label>
               <InputText
                 id="rut"
@@ -81,7 +81,7 @@
                 placeholder="12345678-9"
               />
             </div>
-            <div class="col-6 field">
+            <div class="col-12 field">
               <label for="cellphone">Celular *</label>
               <InputText
                 id="cellphone"
@@ -104,32 +104,31 @@
           </div>
 
           <!-- Información Institucional -->
-          <div class="grid grid-nogutter gap-4">
-            <div class="col-6 field">
+          <div class="grid grid-nogutter gap-1">
+            <div class="col-12 field">
               <label for="institutionType">Tipo de Institución *</label>
               <Dropdown
                 id="institutionType"
-                v-model="form.institutionTypeId"
+                v-model="form.institutionType"
                 :options="institutionTypes"
                 optionLabel="name"
-                optionValue="id"
                 placeholder="Seleccione tipo"
                 class="w-full"
                 :filter="true"
+                @change="onInstitutionTypeChange"
               />
             </div>
-            <div class="col-6 field">
+            <div class="col-12 field">
               <label for="grade">Grado *</label>
               <Dropdown
                 id="grade"
-                v-model="form.gradeId"
-                :options="filteredGrades"
+                v-model="form.grade"
+                :options="grades"
                 optionLabel="name"
-                optionValue="id"
                 placeholder="Seleccione grado"
                 class="w-full"
                 :filter="true"
-                :disabled="!form.institutionTypeId"
+                :disabled="!form.institutionType"
               />
             </div>
           </div>
@@ -155,7 +154,7 @@
 </template>
 
 <script>
-import { ref, reactive, watch, computed, onMounted } from 'vue'
+import { reactive, ref, computed, onMounted } from 'vue'
 import policeService from '@/services/policesService'
 import institutionTypeService from '@/services/institutionTypesService'
 import gradeService from '@/services/gradesService'
@@ -180,25 +179,25 @@ export default {
     const visible = ref(false)
     const isLoading = ref(false)
     const institutionTypes = ref([])
-    const allGrades = ref([])
+    const allGrades = ref([]) // Almacena todos los grados
 
     const form = reactive({
-      firstName: '',
-      secondName: '',
-      firstLastName: '',
-      secondLastName: '',
-      rut: '',
-      email: '',
-      cellphone: '',
-      institutionTypeId: null,
-      gradeId: null
+      firstName: "",
+      secondName: "",
+      firstLastName: "",
+      secondLastName: "",
+      rut: "",
+      email: "",
+      cellphone: "",
+      institutionType: null,
+      grade: null
     })
 
     // ✅ Computed para filtrar grados por institutionType seleccionado
     const filteredGrades = computed(() => {
-      if (!form.institutionTypeId) return []
+      if (!form.institutionType) return []
       return allGrades.value.filter(grade => 
-        grade.institutionType?.id === form.institutionTypeId
+        grade.institutionType?.id === form.institutionType.id
       )
     })
 
@@ -220,9 +219,18 @@ export default {
       }
     }
 
+    const onInstitutionTypeChange = () => {
+      // Limpiar el grado seleccionado cuando cambia el tipo de institución
+      // Solo si el grado actual no pertenece a la nueva institución
+      if (form.grade && form.grade.institutionType?.id !== form.institutionType?.id) {
+        form.grade = null
+      }
+    }
+
     // Cargar datos al montar el componente
     onMounted(async () => {
-      await Promise.all([fetchInstitutionTypes(), fetchGrades()])
+      await fetchInstitutionTypes()
+      await fetchGrades()
     })
 
     // Cargar datos cuando se abre el diálogo
@@ -230,7 +238,8 @@ export default {
       console.log('🎯 Abriendo diálogo con police:', props.police)
       
       // Recargar datos para asegurar que tenemos los datos más recientes
-      await Promise.all([fetchInstitutionTypes(), fetchGrades()])
+      await fetchInstitutionTypes()
+      await fetchGrades()
       
       // Asignar valores al formulario
       form.firstName = props.police.firstName || ''
@@ -240,10 +249,30 @@ export default {
       form.rut = props.police.rut || ''
       form.email = props.police.email || ''
       form.cellphone = props.police.cellphone || ''
-      form.institutionTypeId = props.police.institutionType?.id || null
-      form.gradeId = props.police.grade?.id || null
       
-      console.log('📝 Formulario cargado:', form)
+      // Buscar el objeto completo de institutionType en la lista cargada
+      if (props.police.institutionType?.id) {
+        form.institutionType = institutionTypes.value.find(
+          type => type.id === props.police.institutionType.id
+        ) || null
+      } else {
+        form.institutionType = null
+      }
+      
+      // Buscar el objeto completo de grade en la lista cargada
+      if (props.police.grade?.id) {
+        form.grade = allGrades.value.find(
+          grade => grade.id === props.police.grade.id
+        ) || null
+      } else {
+        form.grade = null
+      }
+      
+      console.log('📝 Formulario cargado:', {
+        firstName: form.firstName,
+        institutionType: form.institutionType,
+        grade: form.grade
+      })
 
       visible.value = true
     }
@@ -255,7 +284,7 @@ export default {
     const updatePolice = async () => {
       if (!form.firstName.trim() || !form.firstLastName.trim() || 
           !form.rut.trim() || !form.email.trim() || !form.cellphone.trim() ||
-          !form.institutionTypeId || !form.gradeId) {
+          !form.institutionType || !form.grade) {
         console.error('❌ Todos los campos marcados con * son requeridos')
         return
       }
@@ -270,8 +299,8 @@ export default {
           rut: form.rut.trim(),
           email: form.email.trim(),
           cellphone: form.cellphone.trim(),
-          institutionType: { id: form.institutionTypeId },
-          grade: { id: form.gradeId }
+          institutionType: form.institutionType,
+          grade: form.grade
         }
 
         console.log('💾 Enviando payload:', payload)
@@ -294,7 +323,8 @@ export default {
       form,
       openDialog,
       closeDialog,
-      updatePolice
+      updatePolice,
+      onInstitutionTypeChange
     }
   }
 }

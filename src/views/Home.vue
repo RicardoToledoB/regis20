@@ -90,7 +90,6 @@
 
 <script>
 import PlantillaContenido from './template/PlantillaContenido.vue';
-import usersService from '@/services/usersService'; // Ajusta la ruta según tu estructura
 
 export default {
   name: 'Home',
@@ -108,51 +107,70 @@ export default {
       receptions: 0,
       analisis: 0,
       borradores: 0,
-      isLoading: true
+      isLoading: false
     }
   },
-  async mounted() {
-    console.log('Componente de institución montado');
-    await this.cargarDatosUsuario();
+  mounted() {
+    console.log('Componente Home montado');
+    this.cargarDatosDesdeLocalStorage();
     this.user.cantidad = 100; // Puedes mantener este valor o obtenerlo de otra API
   },
   methods: {
-    async cargarDatosUsuario() {
+    cargarDatosDesdeLocalStorage() {
       try {
-        this.isLoading = true;
+        console.log('📥 Cargando datos desde localStorage...');
         
-        // Obtener email del localStorage
-        const userEmail = localStorage.getItem('mail');
+        // Obtener datos del localStorage
+        const userName = localStorage.getItem('userName');
+        const userRut = localStorage.getItem('userRut');
+        const userEmail = localStorage.getItem('userEmail');
+        const userData = localStorage.getItem('userData');
         
-        if (!userEmail) {
-          console.error('❌ No se encontró email en localStorage');
-          return;
+        console.log('📋 Datos encontrados en localStorage:', {
+          userName,
+          userRut,
+          userEmail,
+          userData: userData ? 'Presente' : 'No presente'
+        });
+
+        // Cargar datos básicos
+        this.user.name = userName || 'Usuario';
+        this.user.rut = userRut || 'No disponible';
+        this.user.email = userEmail || 'No disponible';
+
+        // Si hay datos completos, intentar cargar información adicional
+        if (userData) {
+          try {
+            const userDataObj = JSON.parse(userData);
+            console.log('✅ Datos completos del usuario:', userDataObj);
+            
+            // Si no tenemos nombre completo, intentar construirlo desde los datos
+            if (!userName && (userDataObj.firstName || userDataObj.firstLastName)) {
+              this.user.name = `${userDataObj.firstName || ''} ${userDataObj.firstLastName || ''}`.trim();
+            }
+            
+            // Si no tenemos RUT, intentar obtenerlo de los datos
+            if (!userRut && userDataObj.rut) {
+              this.user.rut = userDataObj.rut;
+            }
+            
+            // Si no tenemos email, intentar obtenerlo de los datos
+            if (!userEmail && userDataObj.email) {
+              this.user.email = userDataObj.email;
+            }
+          } catch (parseError) {
+            console.error('❌ Error al parsear userData:', parseError);
+          }
         }
 
-        console.log('🔍 Buscando usuario con email:', userEmail);
+        console.log('✅ Datos cargados en el componente:', this.user);
 
-        // Llamar al servicio para obtener datos del usuario
-        const response = await usersService.getByEmail(userEmail);
-        
-        if (response.data) {
-          const userData = response.data[0];
-          console.log('✅ Datos del usuario obtenidos:', userData);
-          
-          // Actualizar los datos del usuario con la respuesta del servicio
-          this.user.name = `${userData.firstName || ''} ${userData.firstLastName || ''}`.trim();
-          this.user.rut = userData.rut || '';
-          this.user.email = userData.email || '';
-          localStorage.setItem("user_id", userData.id)
-
-          console.log('✅ Usuario actualizado:', this.user);
-        } else {
-          console.warn('⚠️ No se encontraron datos del usuario');
-        }
       } catch (error) {
-        console.error('❌ Error al cargar datos del usuario:', error);
-        // Puedes mostrar un mensaje de error al usuario aquí
-      } finally {
-        this.isLoading = false;
+        console.error('❌ Error al cargar datos desde localStorage:', error);
+        // Valores por defecto en caso de error
+        this.user.name = 'Usuario';
+        this.user.rut = 'No disponible';
+        this.user.email = 'No disponible';
       }
     },
 

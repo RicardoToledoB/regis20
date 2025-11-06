@@ -52,10 +52,9 @@
             <label for="institutionType">Tipo de Institución</label>
             <Dropdown
               id="institutionType"
-              v-model="form.institutionTypeId"
+              v-model="form.institutionType"
               :options="institutionTypes"
               optionLabel="name"
-              optionValue="id"
               placeholder="Seleccione un tipo de institución"
               class="w-full"
               :filter="true"
@@ -111,7 +110,7 @@ export default {
     const form = reactive({
       name: '',
       description: '',
-      institutionTypeId: null
+      institutionType: null
     })
 
     const fetchInstitutionTypes = async () => {
@@ -138,12 +137,20 @@ export default {
       // Asignar valores al formulario
       form.name = props.grade.name || ''
       form.description = props.grade.description || ''
-      form.institutionTypeId = props.grade.institutionType?.id || null
+      
+      // Buscar el objeto completo de institutionType en la lista cargada
+      if (props.grade.institutionType?.id) {
+        form.institutionType = institutionTypes.value.find(
+          type => type.id === props.grade.institutionType.id
+        ) || null
+      } else {
+        form.institutionType = null
+      }
       
       console.log('📝 Formulario cargado:', {
         name: form.name,
         description: form.description,
-        institutionTypeId: form.institutionTypeId
+        institutionType: form.institutionType
       })
 
       visible.value = true
@@ -154,7 +161,7 @@ export default {
     }
 
     const updateGrade = async () => {
-      if (!form.name.trim() || !form.institutionTypeId) {
+      if (!form.name.trim() || !form.institutionType) {
         console.error('❌ Nombre y Tipo de Institución son requeridos')
         return
       }
@@ -164,7 +171,7 @@ export default {
         const payload = {
           name: form.name.trim(),
           description: form.description.trim(),
-          institutionType: { id: form.institutionTypeId }
+          institutionType: form.institutionType
         }
 
         console.log('💾 Enviando payload:', payload)

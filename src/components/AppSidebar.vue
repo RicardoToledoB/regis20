@@ -30,8 +30,12 @@
     <!-- Menú de Navegación -->
     <div class="navigation-section">
       <div class="custom-menu">
+        <!-- Módulo Principal -->
+        <div class="menu-section" v-if="!collapsed">
+          <span class="section-label">Principal</span>
+        </div>
         <router-link 
-          v-for="item in menuItems" 
+          v-for="item in mainMenu" 
           :key="item.to"
           :to="item.to" 
           class="custom-menu-item"
@@ -44,14 +48,7 @@
             <font-awesome-icon :icon="item.icon" class="menu-icon" />
             <span class="menu-text" v-if="!collapsed">{{ item.label }}</span>
           </div>
-          <Badge 
-            v-if="item.badge && !collapsed" 
-            :value="item.badge" 
-            class="menu-badge"
-            :severity="item.badgeSeverity"
-          />
         </router-link>
-        <br>
         <div v-if="!collapsed">
           <hr>
             <br>
@@ -62,28 +59,193 @@
         <div v-else>
           <hr><br>
         </div>
-        
-        <router-link 
-          v-for="item in mantainersItems" 
-          :key="item.to"
-          :to="item.to" 
-          class="custom-menu-item"
-          :class="{ 
-            'active-route': $route.path === item.to,
-            'collapsed-item': collapsed
-          }"
-        >
-          <div class="menu-item-content">
-            <font-awesome-icon :icon="item.icon" class="menu-icon" />
-            <span class="menu-text" v-if="!collapsed">{{ item.label }}</span>
+        <!-- Seguridad y Usuarios -->
+        <div class="menu-dropdown" v-if="!collapsed">
+          <div 
+            class="dropdown-header"
+            @click="toggleDropdown('security')"
+          >
+            <div class="dropdown-header-content">
+              <font-awesome-icon icon="fa-solid fa-shield-halved" class="menu-icon" />
+              <span class="menu-text">Seguridad y Usuarios</span>
+            </div>
+            <font-awesome-icon 
+              :icon="openDropdowns.security ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" 
+              class="dropdown-arrow"
+            />
           </div>
-          <Badge 
-            v-if="item.badge && !collapsed" 
-            :value="item.badge" 
-            class="menu-badge"
-            :severity="item.badgeSeverity"
-          />
-        </router-link>
+          <div 
+            class="dropdown-content" 
+            :class="{ 'dropdown-open': openDropdowns.security }"
+          >
+            <router-link 
+              v-for="item in securityMenu" 
+              :key="item.to"
+              :to="item.to" 
+              class="dropdown-menu-item"
+              :class="{ 'active-route': $route.path === item.to }"
+            >
+              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+              <span class="menu-text">{{ item.label }}</span>
+            </router-link>
+          </div>
+        </div>
+
+        <!-- Versión colapsada para Seguridad -->
+        <template v-else>
+          <router-link 
+            v-for="item in securityMenu" 
+            :key="item.to"
+            :to="item.to" 
+            class="custom-menu-item collapsed-item"
+            :class="{ 'active-route': $route.path === item.to }"
+          >
+            <div class="menu-item-content">
+              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+            </div>
+          </router-link>
+        </template>
+
+        <!-- Geografía y Ubicaciones -->
+        <div class="menu-dropdown" v-if="!collapsed">
+          <div 
+            class="dropdown-header"
+            @click="toggleDropdown('geography')"
+          >
+            <div class="dropdown-header-content">
+              <font-awesome-icon icon="fa-solid fa-map" class="menu-icon" />
+              <span class="menu-text">Geografía y Ubicaciones</span>
+            </div>
+            <font-awesome-icon 
+              :icon="openDropdowns.geography ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" 
+              class="dropdown-arrow"
+            />
+          </div>
+          <div 
+            class="dropdown-content" 
+            :class="{ 'dropdown-open': openDropdowns.geography }"
+          >
+            <router-link 
+              v-for="item in geographyMenu" 
+              :key="item.to"
+              :to="item.to" 
+              class="dropdown-menu-item"
+              :class="{ 'active-route': $route.path === item.to }"
+            >
+              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+              <span class="menu-text">{{ item.label }}</span>
+            </router-link>
+          </div>
+        </div>
+
+        <!-- Versión colapsada para Geografía -->
+        <template v-else>
+          <router-link 
+            v-for="item in geographyMenu" 
+            :key="item.to"
+            :to="item.to" 
+            class="custom-menu-item collapsed-item"
+            :class="{ 'active-route': $route.path === item.to }"
+          >
+            <div class="menu-item-content">
+              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+            </div>
+          </router-link>
+        </template>
+
+        <!-- Instituciones y Personal -->
+        <div class="menu-dropdown" v-if="!collapsed">
+          <div 
+            class="dropdown-header"
+            @click="toggleDropdown('institutions')"
+          >
+            <div class="dropdown-header-content">
+              <font-awesome-icon icon="fa-solid fa-building-user" class="menu-icon" />
+              <span class="menu-text">Instituciones y Personal</span>
+            </div>
+            <font-awesome-icon 
+              :icon="openDropdowns.institutions ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" 
+              class="dropdown-arrow"
+            />
+          </div>
+          <div 
+            class="dropdown-content" 
+            :class="{ 'dropdown-open': openDropdowns.institutions }"
+          >
+            <router-link 
+              v-for="item in institutionsMenu" 
+              :key="item.to"
+              :to="item.to" 
+              class="dropdown-menu-item"
+              :class="{ 'active-route': $route.path === item.to }"
+            >
+              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+              <span class="menu-text">{{ item.label }}</span>
+            </router-link>
+          </div>
+        </div>
+
+        <!-- Versión colapsada para Instituciones -->
+        <template v-else>
+          <router-link 
+            v-for="item in institutionsMenu" 
+            :key="item.to"
+            :to="item.to" 
+            class="custom-menu-item collapsed-item"
+            :class="{ 'active-route': $route.path === item.to }"
+          >
+            <div class="menu-item-content">
+              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+            </div>
+          </router-link>
+        </template>
+
+        <!-- Inventario y Sustancias -->
+        <div class="menu-dropdown" v-if="!collapsed">
+          <div 
+            class="dropdown-header"
+            @click="toggleDropdown('inventory')"
+          >
+            <div class="dropdown-header-content">
+              <font-awesome-icon icon="fa-solid fa-boxes-stacked" class="menu-icon" />
+              <span class="menu-text">Inventario y Sustancias</span>
+            </div>
+            <font-awesome-icon 
+              :icon="openDropdowns.inventory ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" 
+              class="dropdown-arrow"
+            />
+          </div>
+          <div 
+            class="dropdown-content" 
+            :class="{ 'dropdown-open': openDropdowns.inventory }"
+          >
+            <router-link 
+              v-for="item in inventoryMenu" 
+              :key="item.to"
+              :to="item.to" 
+              class="dropdown-menu-item"
+              :class="{ 'active-route': $route.path === item.to }"
+            >
+              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+              <span class="menu-text">{{ item.label }}</span>
+            </router-link>
+          </div>
+        </div>
+
+        <!-- Versión colapsada para Inventario -->
+        <template v-else>
+          <router-link 
+            v-for="item in inventoryMenu" 
+            :key="item.to"
+            :to="item.to" 
+            class="custom-menu-item collapsed-item"
+            :class="{ 'active-route': $route.path === item.to }"
+          >
+            <div class="menu-item-content">
+              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+            </div>
+          </router-link>
+        </template>
       </div>
     </div>
 
@@ -97,107 +259,198 @@
         <Button 
           class="p-button-text p-button-plain"
           v-tooltip="'Cerrar Sesión'"
-          @click="$router.push('/')"
+          @click="showLogoutConfirmation"
         >
           <font-awesome-icon icon="fa-solid fa-sign-out-alt" />
         </Button>
       </div>
     </div>
+
+    <!-- Diálogo de Confirmación de Cierre de Sesión -->
+    <Dialog 
+      v-model:visible="showLogoutDialog" 
+      modal
+      :style="{ width: '400px' }"
+      header="Confirmar Cierre de Sesión"
+      :draggable="false"
+    >
+      <div class="confirmation-content">
+        <div class="confirmation-icon">
+          <font-awesome-icon icon="fa-solid fa-question-circle" />
+        </div>
+        <div class="confirmation-message">
+          <p>¿Estás seguro de que deseas cerrar sesión?</p>
+          <p class="confirmation-warning">Se perderán los datos no guardados.</p>
+        </div>
+      </div>
+      <template #footer>
+        <Button 
+          label="Cancelar" 
+          severity="secondary" 
+          @click="showLogoutDialog = false" 
+          class="p-button-text"
+        />
+        <Button 
+          label="Sí, Cerrar Sesión" 
+          severity="danger" 
+          @click="confirmLogout" 
+          autofocus
+        />
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, reactive } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import Dialog from 'primevue/dialog'
+import Button from 'primevue/button'
 
 const route = useRoute()
+const router = useRouter()
 const collapsed = ref(false)
+const showLogoutDialog = ref(false)
+
+// Control de dropdowns abiertos
+const openDropdowns = reactive({
+  security: false,
+  geography: false,
+  institutions: false,
+  inventory: false
+})
 
 const toggleSidebar = () => {
   collapsed.value = !collapsed.value
 }
 
-// Menu items con FontAwesome icons
-const menuItems = ref([
+const toggleDropdown = (dropdownName) => {
+  openDropdowns[dropdownName] = !openDropdowns[dropdownName]
+}
+
+// Mostrar diálogo de confirmación
+const showLogoutConfirmation = () => {
+  showLogoutDialog.value = true
+}
+
+// Confirmar cierre de sesión
+const confirmLogout = () => {
+  // Limpiar todas las variables del localStorage relacionadas con la sesión
+  const sessionKeys = [
+    'userName',
+    'sessionTime', 
+    'sessionLastUpdate',
+    'token',
+    'userRole',
+    'userId'
+  ]
+  
+  sessionKeys.forEach(key => {
+    localStorage.removeItem(key)
+  })
+  
+  // También limpiar sessionStorage por si acaso
+  sessionStorage.clear()
+  
+  // Cerrar el diálogo
+  showLogoutDialog.value = false
+  
+  // Redirigir al login
+  router.push('/login')
+}
+
+// Menú Principal (siempre visible)
+const mainMenu = ref([
   {
     label: 'Inicio',
     icon: 'fa-solid fa-home',
     to: '/inicio',
-    badge: null
   },
   {
-    label: 'Recepcion',
-    icon: 'fa-solid fa-inbox', // Cambiado a icono más apropiado
+    label: 'Recepción',
+    icon: 'fa-solid fa-truck-loading',
     to: '/receptions',
-    badge: null
   },
 ])
 
-const mantainersItems = ref([
+// Seguridad y Usuarios
+const securityMenu = ref([
   {
     label: 'Usuarios',
-    icon: 'fa-solid fa-users',
+    icon: 'fa-solid fa-user-gear',
     to: '/users',
   },
-   {
+  {
     label: 'Perfiles',
-    icon: 'fa-solid fa-users',
+    icon: 'fa-solid fa-id-card',
     to: '/roles',
   },
-  {
-    label: 'Tipo de institucion',
-    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
-    to: '/institution-type',
-  },
+])
+
+// Geografía y Ubicaciones
+const geographyMenu = ref([
   {
     label: 'Comunas',
-    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
+    icon: 'fa-solid fa-map-location-dot',
     to: '/communes',
   },
   {
     label: 'Locaciones',
-    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
+    icon: 'fa-solid fa-location-dot',
     to: '/locations',
   },
-   {
+  {
     label: 'Destinos',
-    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
+    icon: 'fa-solid fa-route',
     to: '/destinations',
+  },
+])
+
+// Instituciones y Personal
+const institutionsMenu = ref([
+  {
+    label: 'Tipo de Institución',
+    icon: 'fa-solid fa-building-shield',
+    to: '/institution-type',
+  },
+  {
+    label: 'Instituciones',
+    icon: 'fa-solid fa-building-columns',
+    to: '/institutions',
   },
   {
     label: 'Grados',
-    icon: 'fa-solid fa-users',
+    icon: 'fa-solid fa-ranking-star',
     to: '/grades',
   },
   {
-    label: 'Policia',
-    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
+    label: 'Policías',
+    icon: 'fa-solid fa-user-police',
     to: '/polices',
   },
-   {
-    label: 'Institucion',
-    icon: 'fa-solid fa-warehouse',
-    to: '/institutions',
-  },
+])
+
+// Inventario y Sustancias
+const inventoryMenu = ref([
   {
     label: 'Ubicación de Bodega',
     icon: 'fa-solid fa-warehouse',
     to: '/storages',
   },
   {
-    label: 'Tipo Droga',
-    icon: 'fa-solid fa-capsules',
+    label: 'Tipo de Droga',
+    icon: 'fa-solid fa-tablets',
     to: '/types-substances',
   },
   {
-    label: 'Metodo de Destrucción',
-    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
-    to: '/methods-destructions',
+    label: 'Tipo de Contenedor',
+    icon: 'fa-solid fa-box-archive',
+    to: '/packagings',
   },
   {
-    label: 'Tipo de Contenedor',
-    icon: 'fa-solid fa-shield-alt', // Icono más apropiado para policía
-    to: '/packagings',
+    label: 'Método de Destrucción',
+    icon: 'fa-solid fa-trash-can',
+    to: '/methods-destructions',
   },
 ])
 </script>
@@ -279,6 +532,20 @@ const mantainersItems = ref([
   padding: 0 0.5rem;
 }
 
+.menu-section {
+  padding: 1rem 0.5rem 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--surface-400);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Items de menú normales */
 .custom-menu-item {
   display: flex;
   align-items: center;
@@ -304,6 +571,78 @@ const mantainersItems = ref([
   box-shadow: 0 4px 12px rgba(var(--primary-500), 0.3);
 }
 
+/* Dropdown Styles */
+.menu-dropdown {
+  margin-bottom: 0.25rem;
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  color: var(--surface-300);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.dropdown-header:hover {
+  background: var(--surface-700);
+  color: var(--surface-0);
+  border-color: var(--surface-600);
+}
+
+.dropdown-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dropdown-arrow {
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+  color: var(--surface-400);
+}
+
+.dropdown-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  margin-left: 1.5rem;
+}
+
+.dropdown-open {
+  max-height: 500px;
+}
+
+.dropdown-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  color: var(--surface-300);
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  margin-bottom: 0.125rem;
+  border: 1px solid transparent;
+}
+
+.dropdown-menu-item:hover {
+  background: var(--surface-700);
+  color: var(--surface-0);
+  border-color: var(--surface-600);
+}
+
+.dropdown-menu-item.active-route {
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+  color: white;
+  box-shadow: 0 2px 8px rgba(var(--primary-500), 0.2);
+}
+
+/* Contenido común */
 .menu-item-content {
   display: flex;
   align-items: center;
@@ -319,10 +658,6 @@ const mantainersItems = ref([
 .menu-text {
   font-weight: 500;
   font-size: 0.9rem;
-}
-
-.menu-badge {
-  font-size: 0.7rem;
 }
 
 .collapsed-item {
@@ -362,6 +697,31 @@ const mantainersItems = ref([
 .footer-actions .p-button:hover {
   color: var(--surface-0) !important;
   background: var(--surface-700) !important;
+}
+
+/* Estilos del diálogo de confirmación */
+.confirmation-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.confirmation-icon {
+  font-size: 3rem;
+  color: var(--primary-color);
+}
+
+.confirmation-message p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.confirmation-warning {
+  color: var(--red-500);
+  font-size: 0.9rem !important;
+  font-weight: 500;
 }
 
 /* Scrollbar personalizado */

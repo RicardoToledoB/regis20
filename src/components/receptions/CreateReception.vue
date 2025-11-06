@@ -8,10 +8,14 @@
         maximizable 
         modal
         :style="{ width: '70rem' }"
-        header="Recepción de Documento"
+        :headerStyle="{ padding: '1.5rem 1.5rem 0.5rem' }"
+        :contentStyle="{ padding: '0 1.5rem 1rem' }"
+        :footerStyle="{ padding: '1rem 1.5rem' }"
       >
         <template #header>
-          <span class="text-xl font-semibold">Recepción de Documento</span>
+          <div class="dialog-header">
+            <span class="text-xl font-semibold">Recepción de Documento</span>
+          </div>
         </template>
 
         <!-- Loader -->
@@ -100,6 +104,7 @@
                 optionValue="id"
                 placeholder="Seleccione grado"
                 class="w-full p-inputtext-lg"
+                :filter="true"
               />
             </div>
 
@@ -124,6 +129,7 @@
                 optionValue="id"
                 placeholder="Seleccione tipo"
                 class="w-full p-inputtext-lg"
+                :filter="true"
               />
             </div>
 
@@ -136,6 +142,7 @@
                 optionValue="id"
                 placeholder="Seleccione comuna"
                 class="w-full p-inputtext-lg"
+                :filter="true"
               />
             </div>
           </div>
@@ -154,6 +161,7 @@
                 optionValue="id"
                 placeholder="Seleccione sustancia"
                 class="w-full p-inputtext-lg"
+                :filter="true"
               />
             </div>
 
@@ -165,6 +173,7 @@
                 mode="decimal"
                 :maxFractionDigits="2"
                 class="p-inputtext-lg w-full"
+                
               />
             </div>
 
@@ -177,6 +186,7 @@
                 optionValue="id"
                 placeholder="Seleccione packaging"
                 class="w-full p-inputtext-lg"
+                :filter="true"
               />
             </div>
 
@@ -189,6 +199,7 @@
                 optionValue="id"
                 placeholder="Comuna sustancia"
                 class="w-full p-inputtext-lg"
+                :filter="true"
               />
             </div>
           </div>
@@ -263,8 +274,10 @@
         </div>
 
         <template #footer>
-          <Button label="Cerrar" severity="secondary" @click="closeDialog" />
-          <Button label="Guardar" icon="pi pi-save" @click="guardarRecepcion" :loading="isSaving" />
+          <div class="dialog-footer">
+            <Button label="Cerrar" severity="secondary" @click="closeDialog" />
+            <Button label="Guardar" icon="pi pi-save" @click="guardarRecepcion" :loading="isSaving" />
+          </div>
         </template>
       </Dialog>
     </div>
@@ -673,6 +686,16 @@ export default {
 </script>
 
 <style scoped>
+.dialog-header {
+  padding: 0.5rem 0;
+}
+
+.dialog-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
 .section-title {
   font-weight: 600;
   margin: 1.5rem 0 0.75rem 0;
@@ -683,6 +706,34 @@ export default {
   margin-bottom: 1rem;
 }
 .dialog-content {
-  padding: 1.5rem;
+  padding: 0.5rem 0;
+}
+
+/* Ajustes adicionales para mejor espaciado */
+:deep(.p-dialog .p-dialog-header) {
+  padding: 1.5rem 1.5rem 0.5rem !important;
+}
+
+:deep(.p-dialog .p-dialog-content) {
+  padding: 0 1.5rem 1rem !important;
+}
+
+:deep(.p-dialog .p-dialog-footer) {
+  padding: 1rem 1.5rem !important;
+}
+
+/* Mejor espaciado en los campos del formulario */
+:deep(.p-field) {
+  margin-bottom: 1.25rem;
+}
+
+/* Espaciado en la tabla */
+:deep(.p-datatable) {
+  margin-top: 1rem;
+}
+
+:deep(.p-datatable .p-datatable-thead > tr > th),
+:deep(.p-datatable .p-datatable-tbody > tr > td) {
+  padding: 0.75rem 1rem;
 }
 </style>
