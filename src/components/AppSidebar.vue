@@ -396,7 +396,7 @@ const geographyMenu = ref([
   },
   {
     label: 'Locaciones',
-    icon: 'pi pi-location-arrow',
+    icon: 'pi pi-map-marker',
     to: '/locations',
   },
   {
@@ -409,15 +409,16 @@ const geographyMenu = ref([
 // Instituciones y Personal
 const institutionsMenu = ref([
   {
+    label: 'Instituciones',
+    icon: 'pi pi-building-columns',
+    to: '/institutions',
+  },
+  {
     label: 'Tipo de Institución',
     icon: 'pi pi-building',
     to: '/institution-type',
   },
-  {
-    label: 'Instituciones',
-    icon: 'pi pi-bank',
-    to: '/institutions',
-  },
+  
   {
     label: 'Grados',
     icon: 'pi pi-star',
