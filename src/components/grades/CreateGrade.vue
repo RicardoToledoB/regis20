@@ -11,7 +11,7 @@
       :style="{ width: '35rem', padding: '0.5rem' }"
       modal
       :headerStyle="{ padding: '1rem 1.5rem' }"
-      :contentStyle="{ padding: '1rem 0.5rem 1rem 1rem' }"
+       
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
@@ -31,7 +31,7 @@
             <InputText 
               id="name"
               v-model="form.name" 
-              class="p-inputtext-lg w-full" 
+              class="  w-full" 
               placeholder="Ingrese el nombre del grado"
             />
           </div>
@@ -41,7 +41,7 @@
             <InputText 
               id="description"
               v-model="form.description" 
-              class="p-inputtext-lg w-full" 
+              class="  w-full" 
               placeholder="Ingrese la descripción"
             />
           </div>

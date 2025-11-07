@@ -4,64 +4,62 @@
 
     <Dialog 
       v-model:visible="visible"
-      :style="{ width: 'auto', padding: '0.5rem' }"
       modal
-      :headerStyle="{ padding: '1rem 1.5rem' }"
-      :contentStyle="{ padding: '1rem 0.5rem 1rem 1rem' }"
+       :style="{ width: '30rem' }"
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
         <span class="text-xl font-semibold">Editar Usuario</span>
       </template>
 
-      <div class="dialog-content">
+      <div >
         <div v-if="isLoading" class="flex justify-content-center align-items-center" style="height:200px;">
           <ProgressSpinner />
         </div>
 
-        <div v-else class="flex flex-column gap-4">
-          <div >
-            <label>Nombre</label>
-            <InputText v-model="form.firstName" class="p-inputtext-lg w-full" />
-          </div>
-
-          <div >
-            <label>Segundo Nombre</label>
-            <InputText v-model="form.secondName" class="p-inputtext-lg w-full" />
-          </div>
-
-          <div>
-            <label>Apellido Paterno</label>
-            <InputText v-model="form.firstLastName" class="p-inputtext-lg w-full" />
-          </div>
-
-          <div>
-            <label>Apellido Materno</label>
-            <InputText v-model="form.secondLastName" class="p-inputtext-lg w-full" />
-          </div>
-
-          <div >
-            <label>Email</label>
-            <InputText v-model="form.email" type="email" class="p-inputtext-lg w-full" />
-          </div>
-
-          <div >
-            <label>RUT</label>
-            <InputText v-model="form.rut" class="p-inputtext-lg w-full" />
-          </div>
-
-          <div >
-            <label>Contraseña</label>
-            <Password 
-              v-model="form.password"
-              promptLabel="Selecciona una contraseña"
-              weakLabel="Muy débil"
-              mediumLabel="Medianamente segura"
-              strongLabel="Muy segura"
-              class="w-full"
-            />
-          </div>
+        <div v-else class="dialog-content">
+        <div class="flex flex-column gap-2 mb-2">
+          <label>Nombre</label>
+          <InputText v-model="form.firstName" class=" " />
         </div>
+
+        <div class="flex flex-column gap-2 mb-2">
+          <label>Segundo Nombre</label>
+          <InputText v-model="form.secondName" class=" " />
+        </div>
+
+        <div class="flex flex-column gap-2 mb-2">
+          <label>Apellido Paterno</label>
+          <InputText v-model="form.firstLastName" class=" " />
+        </div>
+
+        <div class="flex flex-column gap-2 mb-2">
+          <label>Apellido Materno</label>
+          <InputText v-model="form.secondLastName" class=" " />
+        </div>
+
+        <div class="flex flex-column gap-2 mb-2">
+          <label>Email</label>
+          <InputText v-model="form.email" type="email" class=" " />
+        </div>
+
+        <div class="flex flex-column gap-2 mb-2">
+          <label>RUT</label>
+          <InputText v-model="form.rut" class=" " />
+        </div>
+
+        <div class="flex flex-column">
+          <label>Contraseña</label>
+          <Password 
+            v-model="form.password"
+            promptLabel="Selecciona una contraseña"
+            weakLabel="Muy débil"
+            mediumLabel="Medianamente segura"
+            strongLabel="Muy segura"
+            class="w-full"
+          />
+        </div>
+      </div>
       </div>
 
       <template #footer>
@@ -162,20 +160,7 @@ export default {
 </script>
 
 <style scoped>
-.dialog-content {
-  padding: 0.1rem 0;
-}
 
-.field {
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.field label {
-  font-weight: 500;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
-}
 
 :deep(.p-password .p-inputtext) {
   width: 100%;

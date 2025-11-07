@@ -33,7 +33,7 @@
             <InputText
               id="name"
               v-model="form.name"
-              class="p-inputtext-lg w-full"
+              class="  w-full"
               placeholder="Ingrese el nombre del grado"
             />
           </div>
@@ -43,7 +43,7 @@
             <InputText
               id="description"
               v-model="form.description"
-              class="p-inputtext-lg w-full"
+              class="  w-full"
               placeholder="Ingrese la descripción"
             />
           </div>

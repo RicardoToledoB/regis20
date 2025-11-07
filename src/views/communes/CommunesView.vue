@@ -105,44 +105,6 @@ export default {
   overflow-x: auto;
 }
 
-:deep(.p-datatable-table) {
-  border-spacing: 0 0.5rem !important;
-}
 
-:deep(.p-datatable-thead > tr > th) {
-  background: var(--surface-ground) !important;
-  font-weight: bold;
-  padding: 1rem !important;
-}
 
-:deep(.p-datatable-tbody > tr > td) {
-  padding: 0.5rem !important;
-  background: var(--surface-card);
-}
-
-:deep(.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) > td) {
-  background-color: var(--surface-section) !important;
-}
-
-:deep(.p-datatable .p-paginator) {
-  padding: 0.5rem;
-}
-
-.communes-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.communes-table th,
-.communes-table td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.communes-table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-  color: #495057;
-}
 </style>

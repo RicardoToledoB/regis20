@@ -11,7 +11,8 @@
     <Dialog
       v-model:visible="visible"
       modal
-      :style="{ width: '30rem', padding: '0.5rem' }"
+       :style="{ width: '30rem' }"
+
       :headerStyle="{ padding: '1rem 1.5rem' }"
       :contentStyle="{ padding: '1rem 1.5rem' }"
       :transition-options="{ name: 'fade', duration: 300 }"
@@ -36,7 +37,7 @@
             <InputText
               id="name"
               v-model="form.name"
-              class="p-inputtext-lg w-full"
+              class="  w-full"
               placeholder="Ingrese el nombre de la comuna"
             />
           </div>

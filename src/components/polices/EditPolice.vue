@@ -35,7 +35,7 @@
               <InputText
                 id="firstName"
                 v-model="form.firstName"
-                class="p-inputtext-lg w-full"
+                class="  w-full"
                 placeholder="Primer nombre"
               />
             </div>
@@ -44,7 +44,7 @@
               <InputText
                 id="secondName"
                 v-model="form.secondName"
-                class="p-inputtext-lg w-full"
+                class="  w-full"
                 placeholder="Segundo nombre"
               />
             </div>
@@ -56,7 +56,7 @@
               <InputText
                 id="firstLastName"
                 v-model="form.firstLastName"
-                class="p-inputtext-lg w-full"
+                class="  w-full"
                 placeholder="Primer apellido"
               />
             </div>
@@ -65,7 +65,7 @@
               <InputText
                 id="secondLastName"
                 v-model="form.secondLastName"
-                class="p-inputtext-lg w-full"
+                class="  w-full"
                 placeholder="Segundo apellido"
               />
             </div>
@@ -77,7 +77,7 @@
               <InputText
                 id="rut"
                 v-model="form.rut"
-                class="p-inputtext-lg w-full"
+                class="  w-full"
                 placeholder="12345678-9"
               />
             </div>
@@ -86,7 +86,7 @@
               <InputText
                 id="cellphone"
                 v-model="form.cellphone"
-                class="p-inputtext-lg w-full"
+                class="  w-full"
                 placeholder="912345678"
               />
             </div>
@@ -97,7 +97,7 @@
             <InputText
               id="email"
               v-model="form.email"
-              class="p-inputtext-lg w-full"
+              class="  w-full"
               placeholder="correo@ejemplo.cl"
               type="email"
             />

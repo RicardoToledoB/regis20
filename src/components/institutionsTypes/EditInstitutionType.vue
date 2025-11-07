@@ -33,7 +33,7 @@
             <InputText
               id="name"
               v-model="form.name"
-              class="p-inputtext-lg w-full"
+              class="  w-full"
               placeholder="Ingrese el nombre del tipo"
             />
           </div>

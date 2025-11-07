@@ -8,10 +8,11 @@
 
     <Dialog 
       v-model:visible="visible"
-      :style="{ width: '30rem', padding: '0.5rem' }"
+       :style="{ width: '30rem' }"
+
       modal
-      :headerStyle="{ padding: '1rem 1.5rem' }"
-      :contentStyle="{ padding: '1rem 0.5rem 1rem 1rem' }"
+     
+       
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
@@ -27,35 +28,35 @@
       <div v-else class="dialog-content">
         <div class="flex flex-column gap-2 mb-2">
           <label>Nombre</label>
-          <InputText v-model="form.firstName" class="p-inputtext-lg" />
+          <InputText v-model="form.firstName" class=" " />
         </div>
 
         <div class="flex flex-column gap-2 mb-2">
           <label>Segundo Nombre</label>
-          <InputText v-model="form.secondName" class="p-inputtext-lg" />
+          <InputText v-model="form.secondName" class=" " />
         </div>
 
         <div class="flex flex-column gap-2 mb-2">
           <label>Apellido Paterno</label>
-          <InputText v-model="form.firstLastName" class="p-inputtext-lg" />
+          <InputText v-model="form.firstLastName" class=" " />
         </div>
 
         <div class="flex flex-column gap-2 mb-2">
           <label>Apellido Materno</label>
-          <InputText v-model="form.secondLastName" class="p-inputtext-lg" />
+          <InputText v-model="form.secondLastName" class=" " />
         </div>
 
         <div class="flex flex-column gap-2 mb-2">
           <label>Email</label>
-          <InputText v-model="form.email" type="email" class="p-inputtext-lg" />
+          <InputText v-model="form.email" type="email" class=" " />
         </div>
 
         <div class="flex flex-column gap-2 mb-2">
           <label>RUT</label>
-          <InputText v-model="form.rut" class="p-inputtext-lg" />
+          <InputText v-model="form.rut" class=" " />
         </div>
 
-        <div class="flex flex-column gap-2 mb-4">
+        <div class="flex flex-column">
           <label>Contraseña</label>
           <Password 
             v-model="form.password"
@@ -157,7 +158,5 @@ export default {
 :deep(.p-password .p-inputtext) {
   width: 100%;
 }
-.dialog-content {
-  padding: 0.5rem 0;
-}
+
 </style>

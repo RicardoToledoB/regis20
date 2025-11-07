@@ -8,10 +8,11 @@
 
     <Dialog 
       v-model:visible="visible"
-      :style="{ width: '30rem', padding: '0.5rem' }"
+       :style="{ width: '30rem' }"
+
       modal
       :headerStyle="{ padding: '1rem 1.5rem' }"
-      :contentStyle="{ padding: '1rem 0.5rem 1rem 1rem' }"
+       
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
@@ -27,7 +28,7 @@
       <div v-else class="dialog-content">
         <div class="flex flex-column gap-2 mb-2">
           <label>Nombre</label>
-          <InputText v-model="form.name" class="p-inputtext-lg" />
+          <InputText v-model="form.name" class=" " />
         </div>
 
     

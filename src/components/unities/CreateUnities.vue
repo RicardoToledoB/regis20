@@ -25,7 +25,7 @@
             <div class="dialog-content">
                <div class="flex flex-column gap-2">
                     <label for="name">Nombre</label>
-                    <InputText id="name" v-model="unity.name" aria-describedby="username-help" class="p-inputtext-lg" />
+                    <InputText id="name" v-model="unity.name" aria-describedby="username-help" class=" " />
                 </div>
                 <br>
                                 <br>

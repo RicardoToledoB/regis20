@@ -49,7 +49,9 @@ export const generarActaPDF = (form, receptionResponse) => {
     { header: "Muestra Nº", dataKey: "n" },
     { header: "Presunto", dataKey: "presunto" },
     { header: "NUE", dataKey: "nue" },
-    { header: "Peso (g)", dataKey: "peso" },
+     { header: "Peso Bruto (g)", dataKey: "peso" },
+    { header: "Peso Neto (g)", dataKey: "peso_neto" },
+    { header: "Unidad", dataKey: "unidad" },
     { header: "Descripción muestra", dataKey: "descripcion" }
   ]
 console.log(form.substances);
@@ -60,7 +62,9 @@ console.log(form.substances);
     n: i + 1,
     presunto: s.substanceTypeName || "—",
     nue: s.nue || "—",
-    peso: s.weight || "—",
+    peso: s.weight ? Number(s.weight).toFixed(2) : "—",
+    peso_neto: s.weight_net ? Number(s.weight_net).toFixed(2) : "—",
+    unidad: s.unity || "—",
     descripcion: s.description || "—"
   }))
 

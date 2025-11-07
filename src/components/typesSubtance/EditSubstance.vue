@@ -7,7 +7,7 @@
       :style="{ width: 'auto', padding: '0.5rem' }"
       modal
       :headerStyle="{ padding: '1rem 1.5rem' }"
-      :contentStyle="{ padding: '1rem 0.5rem 1rem 1rem' }"
+       
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
@@ -22,7 +22,7 @@
         <div v-else class="flex flex-column gap-4">
           <div >
             <label>Nombre</label>
-            <InputText v-model="form.firstName" class="p-inputtext-lg w-full" />
+            <InputText v-model="form.firstName" class="  w-full" />
           </div>
 
         </div>

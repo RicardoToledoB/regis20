@@ -8,8 +8,8 @@
       
       <!-- Información de sesión al centro -->
       <div class="header-center">
-        <div class="session-timer" :class="{ 'warning': remainingTime <= 300 }">
-          <font-awesome-icon icon="fa-solid fa-clock" class="timer-icon" />
+        <div class="session-timer" :class="timerClass">
+          <i class="pi pi-clock timer-icon" />
           <span class="timer-text">
             Sesión: {{ formattedTime }}
           </span>
@@ -19,7 +19,7 @@
       <!-- Información de usuario a la derecha -->
       <div class="header-right">
         <div class="user-info">
-          <font-awesome-icon icon="fa-solid fa-user" class="user-icon" />
+          <i class="pi pi-user user-icon" />
           <span class="user-name">{{ userName }}</span>
         </div>
       </div>
@@ -30,14 +30,30 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
 
 const route = useRoute()
-const remainingTime = ref(3600) // 1 hora en segundos (3600)
-let timerInterval = null
+const toast = useToast()
+
+// Constantes
+const SESSION_DURATION = 3600 // 1 hora en segundos
+const WARNING_THRESHOLD = 600 // 10 minutos para advertencia
+const CRITICAL_THRESHOLD = 300 // 5 minutos para crítico
+
+const remainingTime = ref(SESSION_DURATION)
+let lastUpdateTime = Date.now()
+let animationFrameId = null
+
+// Clase computada para el timer
+const timerClass = computed(() => {
+  if (remainingTime.value <= CRITICAL_THRESHOLD) return 'critical'
+  if (remainingTime.value <= WARNING_THRESHOLD) return 'warning'
+  return ''
+})
 
 // Obtener nombre de usuario desde localStorage
 const userName = computed(() => {
-  return localStorage.getItem('userName') 
+  return localStorage.getItem('userName') || 'Usuario'
 })
 
 // Tiempo formateado en MM:SS
@@ -50,95 +66,135 @@ const formattedTime = computed(() => {
 // Título de la página
 const currentPageTitle = computed(() => {
   const routeName = route.name
-  switch (routeName) {
-    case 'Home': return 'Inicio'
-    case 'Users': return 'Gestión de Usuarios'
-    case 'Receptions': return 'Recepción'
-    case 'Polices': return 'Policía'
-    case 'Institutions': return 'Institución'
-    case 'Storages': return 'Ubicación de Bodegas'
-    case 'TypesSubstances': return 'Tipo de Sustancia'
-    case 'Unities': return 'Unidades'
-    case 'Communes': return 'Comunas'
-    case 'Locations': return 'Locaciones'
-    case 'Packagings': return 'Tipos de Contenedor'
-    case 'MethodsDestructions': return 'Métodos de Destrucción'
-    case 'Grades': return 'Grados'
-    case 'Destinations': return 'Destinos'
-    default: return ' '
+  const titles = {
+    'Home': 'Inicio',
+    'Users': 'Gestión de Usuarios',
+    'Receptions': 'Recepción',
+    'Polices': 'Policía',
+    'Institutions': 'Institución',
+    'Storages': 'Ubicación de Bodegas',
+    'TypesSubstances': 'Tipo de Sustancia',
+    'Unities': 'Unidades',
+    'Communes': 'Comunas',
+    'Locations': 'Locaciones',
+    'Packagings': 'Tipos de Contenedor',
+    'MethodsDestructions': 'Métodos de Destrucción',
+    'Grades': 'Grados',
+    'Destinations': 'Destinos'
   }
+  return titles[routeName] || ' '
 })
 
-// Inicializar y controlar el temporizador
-const initTimer = () => {
-  // Intentar recuperar el tiempo restante desde localStorage
-  const savedTime = localStorage.getItem('sessionTime')
-  const lastUpdate = localStorage.getItem('sessionLastUpdate')
+// Sistema de tiempo preciso usando requestAnimationFrame
+const updateTimer = () => {
+  const now = Date.now()
+  const elapsed = Math.floor((now - lastUpdateTime) / 1000)
   
-  if (savedTime && lastUpdate) {
-    const elapsed = Math.floor((Date.now() - parseInt(lastUpdate)) / 1000)
-    remainingTime.value = Math.max(0, parseInt(savedTime) - elapsed)
-  } else {
-    // Nueva sesión - 1 hora
-    remainingTime.value = 3600
+  if (elapsed > 0) {
+    remainingTime.value = Math.max(0, remainingTime.value - elapsed)
+    lastUpdateTime = now
     saveTimerState()
+    
+    // Verificar estados críticos
+    checkCriticalStates()
   }
+  
+  animationFrameId = requestAnimationFrame(updateTimer)
+}
 
-  // Iniciar el contador
-  timerInterval = setInterval(() => {
-    if (remainingTime.value > 0) {
-      remainingTime.value--
-      saveTimerState()
-      
-      // Mostrar alerta cuando queden 5 minutos
-      if (remainingTime.value === 300) {
-        showSessionWarning()
-      }
-      
-      // Cerrar sesión automáticamente cuando llegue a 0
-      if (remainingTime.value === 0) {
-        logoutUser()
-      }
-    }
-  }, 1000)
+// Verificar estados críticos y mostrar advertencias
+const checkCriticalStates = () => {
+  // Solo mostrar advertencias una vez cuando se cruzan los umbrales
+  if (remainingTime.value === WARNING_THRESHOLD) {
+    showSessionWarning('Tu sesión expirará en 10 minutos', 'warn')
+  }
+  if (remainingTime.value === CRITICAL_THRESHOLD) {
+    showSessionWarning('¡Sesión por expirar! 5 minutos restantes', 'error')
+  }
+  if (remainingTime.value === 0) {
+    logoutUser()
+  }
+}
+
+// Mostrar advertencia de sesión
+const showSessionWarning = (message, severity = 'warn') => {
+  toast.add({
+    severity: severity,
+    summary: 'Sesión',
+    detail: message,
+    life: 10000, // 10 segundos
+    closable: true
+  })
+}
+
+// Inicializar temporizador
+const initTimer = () => {
+  // Cargar estado guardado
+  const savedTime = localStorage.getItem('sessionTime')
+  const savedLastUpdate = localStorage.getItem('sessionLastUpdate')
+  
+  if (savedTime && savedLastUpdate) {
+    const elapsed = Math.floor((Date.now() - parseInt(savedLastUpdate)) / 1000)
+    remainingTime.value = Math.max(0, parseInt(savedTime) - elapsed)
+    console.log(`⏰ Tiempo cargado: ${remainingTime.value}s, transcurrido: ${elapsed}s`)
+  } else {
+    remainingTime.value = SESSION_DURATION
+    console.log('⏰ Nueva sesión iniciada: 1 hora')
+  }
+  
+  lastUpdateTime = Date.now()
+  saveTimerState()
+  
+  // Iniciar sistema de tiempo preciso
+  animationFrameId = requestAnimationFrame(updateTimer)
 }
 
 // Guardar estado del temporizador
 const saveTimerState = () => {
   localStorage.setItem('sessionTime', remainingTime.value.toString())
-  localStorage.setItem('sessionLastUpdate', Date.now().toString())
-}
-
-// Mostrar advertencia de sesión
-const showSessionWarning = () => {
-  // Puedes usar un toast, alert o modal aquí
-  console.warn('⚠️ Tu sesión expirará en 5 minutos')
-  // Ejemplo con PrimeVue Toast (si lo tienes instalado):
-  // toast.add({ severity: 'warn', summary: 'Sesión', detail: 'Tu sesión expirará en 5 minutos', life: 5000 });
+  localStorage.setItem('sessionLastUpdate', lastUpdateTime.toString())
 }
 
 // Cerrar sesión del usuario
 const logoutUser = () => {
-  clearInterval(timerInterval)
-  localStorage.removeItem('sessionTime')
-  localStorage.removeItem('sessionLastUpdate')
-  localStorage.removeItem('userName')
-  // Redirigir al login
-  window.location.href = '/login'
+  console.log('🔒 Cerrando sesión por tiempo expirado')
+  
+  // Limpiar recursos
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+  }
+  
+  // Limpiar localStorage
+  const sessionKeys = [
+    'userName', 'sessionTime', 'sessionLastUpdate', 
+    'token', 'userRole', 'userId', 'userEmail', 'userRut', 'userData'
+  ]
+  
+  sessionKeys.forEach(key => localStorage.removeItem(key))
+  sessionStorage.clear()
+  
+  // Mostrar mensaje final
+  toast.add({
+    severity: 'info',
+    summary: 'Sesión Expirada',
+    detail: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',
+    life: 5000
+  })
+  
+  // Redirigir al login después de un breve delay
+  setTimeout(() => {
+    window.location.href = '/'
+  }, 2000)
 }
-
-// Reiniciar el temporizador (ej: cuando el usuario hace una acción)
 
 // Ciclo de vida
 onMounted(() => {
   initTimer()
-  
-
 })
 
 onUnmounted(() => {
-  if (timerInterval) {
-    clearInterval(timerInterval)
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
   }
 })
 </script>
@@ -200,32 +256,54 @@ onUnmounted(() => {
   border-radius: 20px;
   border: 1px solid #e9ecef;
   transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .session-timer.warning {
   background: #fff3cd;
   border-color: #ffc107;
   color: #856404;
+  animation: pulse 2s infinite;
+}
+
+.session-timer.critical {
+  background: #f8d7da;
+  border-color: #dc3545;
+  color: #721c24;
+  animation: pulse 1s infinite;
+  font-weight: 600;
 }
 
 .timer-icon {
   font-size: 0.9rem;
-  color: #6c757d;
 }
 
 .session-timer.warning .timer-icon {
   color: #856404;
 }
 
+.session-timer.critical .timer-icon {
+  color: #721c24;
+}
+
 .timer-text {
   font-size: 0.875rem;
-  font-weight: 500;
-  color: #495057;
+  font-weight: inherit;
 }
 
 .session-timer.warning .timer-text {
   color: #856404;
-  font-weight: 600;
+}
+
+.session-timer.critical .timer-text {
+  color: #721c24;
+}
+
+/* Animación de pulso para estados críticos */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
 }
 
 /* Estilos de información de usuario */
@@ -270,6 +348,11 @@ onUnmounted(() => {
   .page-title {
     font-size: 1.1rem;
     text-align: center;
+  }
+  
+  .session-timer,
+  .user-info {
+    padding: 0.4rem 0.8rem;
   }
 }
 </style>

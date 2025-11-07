@@ -1,13 +1,13 @@
 <template>
-  <div class="diamond-sidebar" :class="{ 'sidebar-collapsed': collapsed }">
+  <div class="app-sidebar" :class="{ 'sidebar-collapsed': collapsed }">
     <!-- Header del Sidebar -->
     <div class="sidebar-header">
       <div class="logo-section" v-if="!collapsed">
         <div>
-          <Image src="public/ssm/logo-ssm.png" alt="Image" width="50" />
+          <img src="/ssm/logo-ssm.png" alt="Logo" class="logo" />
         </div>
         <div class="brand">
-          <span class="brand-name" style="color: white;">REGIS20</span>
+          <span class="brand-name">REGIS20</span>
         </div>
       </div>
       <Button 
@@ -15,21 +15,20 @@
         class="p-button-text p-button-plain logo-btn"
         @click="toggleSidebar"
       >
-        <font-awesome-icon icon="fa-solid fa-gem" class="logo-icon" />
-        <Image src="public/ssm/logo-ssm.png" alt="Image" width="60" />
+        <img src="/ssm/logo-ssm.png" alt="Logo" class="logo-collapsed" />
       </Button>
       <Button v-if="!collapsed"
         @click="toggleSidebar" 
         class="p-button-text p-button-secondary toggle-btn"
         v-tooltip="collapsed ? 'Expandir' : 'Contraer'"
       >
-        <font-awesome-icon :icon="collapsed ? 'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-left'" />
+        <i :class="collapsed ? 'pi pi-chevron-right' : 'pi pi-chevron-left'" />
       </Button>
     </div>
 
     <!-- Menú de Navegación -->
     <div class="navigation-section">
-      <div class="custom-menu">
+      <div class="menu-container">
         <!-- Módulo Principal -->
         <div class="menu-section" v-if="!collapsed">
           <span class="section-label">Principal</span>
@@ -38,27 +37,28 @@
           v-for="item in mainMenu" 
           :key="item.to"
           :to="item.to" 
-          class="custom-menu-item"
+          class="menu-item"
           :class="{ 
             'active-route': $route.path === item.to,
             'collapsed-item': collapsed
           }"
         >
           <div class="menu-item-content">
-            <font-awesome-icon :icon="item.icon" class="menu-icon" />
+            <i :class="item.icon" class="menu-icon" />
             <span class="menu-text" v-if="!collapsed">{{ item.label }}</span>
           </div>
         </router-link>
+        
         <div v-if="!collapsed">
           <hr>
-            <br>
-              <center>Mantenedores</center><br>
-            <hr>
-          <br>
+          <div class="menu-section">
+            <span class="section-label">Mantenedores</span>
+          </div>
         </div>
         <div v-else>
-          <hr><br>
+          <hr>
         </div>
+
         <!-- Seguridad y Usuarios -->
         <div class="menu-dropdown" v-if="!collapsed">
           <div 
@@ -66,11 +66,11 @@
             @click="toggleDropdown('security')"
           >
             <div class="dropdown-header-content">
-              <font-awesome-icon icon="fa-solid fa-shield-halved" class="menu-icon" />
+              <i class="pi pi-shield menu-icon" />
               <span class="menu-text">Seguridad y Usuarios</span>
             </div>
-            <font-awesome-icon 
-              :icon="openDropdowns.security ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" 
+            <i 
+              :class="openDropdowns.security ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" 
               class="dropdown-arrow"
             />
           </div>
@@ -82,10 +82,10 @@
               v-for="item in securityMenu" 
               :key="item.to"
               :to="item.to" 
-              class="dropdown-menu-item"
+              class="dropdown-item"
               :class="{ 'active-route': $route.path === item.to }"
             >
-              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+              <i :class="item.icon" class="menu-icon" />
               <span class="menu-text">{{ item.label }}</span>
             </router-link>
           </div>
@@ -97,11 +97,11 @@
             v-for="item in securityMenu" 
             :key="item.to"
             :to="item.to" 
-            class="custom-menu-item collapsed-item"
+            class="menu-item collapsed-item"
             :class="{ 'active-route': $route.path === item.to }"
           >
             <div class="menu-item-content">
-              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+              <i :class="item.icon" class="menu-icon" />
             </div>
           </router-link>
         </template>
@@ -113,11 +113,11 @@
             @click="toggleDropdown('geography')"
           >
             <div class="dropdown-header-content">
-              <font-awesome-icon icon="fa-solid fa-map" class="menu-icon" />
+              <i class="pi pi-map-marker menu-icon" />
               <span class="menu-text">Geografía y Ubicaciones</span>
             </div>
-            <font-awesome-icon 
-              :icon="openDropdowns.geography ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" 
+            <i 
+              :class="openDropdowns.geography ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" 
               class="dropdown-arrow"
             />
           </div>
@@ -129,10 +129,10 @@
               v-for="item in geographyMenu" 
               :key="item.to"
               :to="item.to" 
-              class="dropdown-menu-item"
+              class="dropdown-item"
               :class="{ 'active-route': $route.path === item.to }"
             >
-              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+              <i :class="item.icon" class="menu-icon" />
               <span class="menu-text">{{ item.label }}</span>
             </router-link>
           </div>
@@ -144,11 +144,11 @@
             v-for="item in geographyMenu" 
             :key="item.to"
             :to="item.to" 
-            class="custom-menu-item collapsed-item"
+            class="menu-item collapsed-item"
             :class="{ 'active-route': $route.path === item.to }"
           >
             <div class="menu-item-content">
-              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+              <i :class="item.icon" class="menu-icon" />
             </div>
           </router-link>
         </template>
@@ -160,11 +160,11 @@
             @click="toggleDropdown('institutions')"
           >
             <div class="dropdown-header-content">
-              <font-awesome-icon icon="fa-solid fa-building-user" class="menu-icon" />
+              <i class="pi pi-building menu-icon" />
               <span class="menu-text">Instituciones y Personal</span>
             </div>
-            <font-awesome-icon 
-              :icon="openDropdowns.institutions ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" 
+            <i 
+              :class="openDropdowns.institutions ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" 
               class="dropdown-arrow"
             />
           </div>
@@ -176,10 +176,10 @@
               v-for="item in institutionsMenu" 
               :key="item.to"
               :to="item.to" 
-              class="dropdown-menu-item"
+              class="dropdown-item"
               :class="{ 'active-route': $route.path === item.to }"
             >
-              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+              <i :class="item.icon" class="menu-icon" />
               <span class="menu-text">{{ item.label }}</span>
             </router-link>
           </div>
@@ -191,11 +191,11 @@
             v-for="item in institutionsMenu" 
             :key="item.to"
             :to="item.to" 
-            class="custom-menu-item collapsed-item"
+            class="menu-item collapsed-item"
             :class="{ 'active-route': $route.path === item.to }"
           >
             <div class="menu-item-content">
-              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+              <i :class="item.icon" class="menu-icon" />
             </div>
           </router-link>
         </template>
@@ -207,11 +207,11 @@
             @click="toggleDropdown('inventory')"
           >
             <div class="dropdown-header-content">
-              <font-awesome-icon icon="fa-solid fa-boxes-stacked" class="menu-icon" />
+              <i class="pi pi-box menu-icon" />
               <span class="menu-text">Inventario y Sustancias</span>
             </div>
-            <font-awesome-icon 
-              :icon="openDropdowns.inventory ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" 
+            <i 
+              :class="openDropdowns.inventory ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" 
               class="dropdown-arrow"
             />
           </div>
@@ -223,10 +223,10 @@
               v-for="item in inventoryMenu" 
               :key="item.to"
               :to="item.to" 
-              class="dropdown-menu-item"
+              class="dropdown-item"
               :class="{ 'active-route': $route.path === item.to }"
             >
-              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+              <i :class="item.icon" class="menu-icon" />
               <span class="menu-text">{{ item.label }}</span>
             </router-link>
           </div>
@@ -238,11 +238,11 @@
             v-for="item in inventoryMenu" 
             :key="item.to"
             :to="item.to" 
-            class="custom-menu-item collapsed-item"
+            class="menu-item collapsed-item"
             :class="{ 'active-route': $route.path === item.to }"
           >
             <div class="menu-item-content">
-              <font-awesome-icon :icon="item.icon" class="menu-icon" />
+              <i :class="item.icon" class="menu-icon" />
             </div>
           </router-link>
         </template>
@@ -261,7 +261,7 @@
           v-tooltip="'Cerrar Sesión'"
           @click="showLogoutConfirmation"
         >
-          <font-awesome-icon icon="fa-solid fa-sign-out-alt" />
+          <i class="pi pi-sign-out" />
         </Button>
       </div>
     </div>
@@ -276,7 +276,7 @@
     >
       <div class="confirmation-content">
         <div class="confirmation-icon">
-          <font-awesome-icon icon="fa-solid fa-question-circle" />
+          <i class="pi pi-question-circle" />
         </div>
         <div class="confirmation-message">
           <p>¿Estás seguro de que deseas cerrar sesión?</p>
@@ -356,19 +356,19 @@ const confirmLogout = () => {
   showLogoutDialog.value = false
   
   // Redirigir al login
-  router.push('/login')
+  router.push('/')
 }
 
-// Menú Principal (siempre visible)
+// Menú Principal (siempre visible) - Ahora con iconos de PrimeVue
 const mainMenu = ref([
   {
     label: 'Inicio',
-    icon: 'fa-solid fa-home',
+    icon: 'pi pi-home',
     to: '/inicio',
   },
   {
     label: 'Recepción',
-    icon: 'fa-solid fa-truck-loading',
+    icon: 'pi pi-inbox',
     to: '/receptions',
   },
 ])
@@ -377,12 +377,12 @@ const mainMenu = ref([
 const securityMenu = ref([
   {
     label: 'Usuarios',
-    icon: 'fa-solid fa-user-gear',
+    icon: 'pi pi-users',
     to: '/users',
   },
   {
     label: 'Perfiles',
-    icon: 'fa-solid fa-id-card',
+    icon: 'pi pi-id-card',
     to: '/roles',
   },
 ])
@@ -391,17 +391,17 @@ const securityMenu = ref([
 const geographyMenu = ref([
   {
     label: 'Comunas',
-    icon: 'fa-solid fa-map-location-dot',
+    icon: 'pi pi-map',
     to: '/communes',
   },
   {
     label: 'Locaciones',
-    icon: 'fa-solid fa-location-dot',
+    icon: 'pi pi-location-arrow',
     to: '/locations',
   },
   {
     label: 'Destinos',
-    icon: 'fa-solid fa-route',
+    icon: 'pi pi-arrows-alt',
     to: '/destinations',
   },
 ])
@@ -410,22 +410,22 @@ const geographyMenu = ref([
 const institutionsMenu = ref([
   {
     label: 'Tipo de Institución',
-    icon: 'fa-solid fa-building-shield',
+    icon: 'pi pi-building',
     to: '/institution-type',
   },
   {
     label: 'Instituciones',
-    icon: 'fa-solid fa-building-columns',
+    icon: 'pi pi-bank',
     to: '/institutions',
   },
   {
     label: 'Grados',
-    icon: 'fa-solid fa-ranking-star',
+    icon: 'pi pi-star',
     to: '/grades',
   },
   {
     label: 'Policías',
-    icon: 'fa-solid fa-user-police',
+    icon: 'pi pi-user',
     to: '/polices',
   },
 ])
@@ -434,34 +434,34 @@ const institutionsMenu = ref([
 const inventoryMenu = ref([
   {
     label: 'Ubicación de Bodega',
-    icon: 'fa-solid fa-warehouse',
+    icon: 'pi pi-warehouse',
     to: '/storages',
   },
   {
     label: 'Tipo de Droga',
-    icon: 'fa-solid fa-tablets',
+    icon: 'pi pi-heart',
     to: '/types-substances',
   },
   {
     label: 'Tipo de Contenedor',
-    icon: 'fa-solid fa-box-archive',
+    icon: 'pi pi-box',
     to: '/packagings',
   },
   {
     label: 'Método de Destrucción',
-    icon: 'fa-solid fa-trash-can',
+    icon: 'pi pi-trash',
     to: '/methods-destructions',
   },
 ])
 </script>
 
 <style scoped>
-.diamond-sidebar {
+.app-sidebar {
   width: 270px;
   height: 100vh;
-  background: linear-gradient(180deg, var(--surface-900) 0%, var(--surface-800) 100%);
+  background: var(--surface-900);
   color: var(--surface-0);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.3s ease;
   position: fixed;
   left: 0;
   top: 0;
@@ -477,7 +477,7 @@ const inventoryMenu = ref([
 
 /* Header */
 .sidebar-header {
-  padding: 1.5rem 1rem 1rem;
+  padding: 1rem;
   border-bottom: 1px solid var(--surface-700);
   display: flex;
   justify-content: space-between;
@@ -490,31 +490,30 @@ const inventoryMenu = ref([
   gap: 0.75rem;
 }
 
-.logo-icon {
-  font-size: 1.5rem;
-  color: var(--primary-color);
+.logo {
+  width: 50px;
+  height: auto;
 }
 
-.brand {
-  display: flex;
-  flex-direction: column;
+.logo-collapsed {
+  width: 40px;
+  height: auto;
 }
 
 .brand-name {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--primary-color);
-  line-height: 1;
+  color: white; /* Texto REGIS20 en blanco */
 }
 
 .toggle-btn {
-  color: var(--surface-300) !important;
+  color: var(--surface-300);
   width: 2rem;
   height: 2rem;
 }
 
 .logo-btn {
-  color: var(--primary-color) !important;
+  color: var(--primary-color);
   width: 2.5rem;
   height: 2.5rem;
 }
@@ -526,7 +525,7 @@ const inventoryMenu = ref([
   overflow-y: auto;
 }
 
-.custom-menu {
+.menu-container {
   display: flex;
   flex-direction: column;
   padding: 0 0.5rem;
@@ -534,7 +533,6 @@ const inventoryMenu = ref([
 
 .menu-section {
   padding: 1rem 0.5rem 0.5rem;
-  margin-top: 0.5rem;
 }
 
 .section-label {
@@ -545,30 +543,26 @@ const inventoryMenu = ref([
   letter-spacing: 0.5px;
 }
 
-/* Items de menú normales */
-.custom-menu-item {
+/* Items de menú */
+.menu-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0.75rem 1rem;
   color: var(--surface-300);
   text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
   margin-bottom: 0.25rem;
 }
 
-.custom-menu-item:hover {
+.menu-item:hover {
   background: var(--surface-700);
   color: var(--surface-0);
-  border-color: var(--surface-600);
 }
 
-.custom-menu-item.active-route {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-600));
+.menu-item.active-route {
+  background: var(--primary-color);
   color: white;
-  box-shadow: 0 4px 12px rgba(var(--primary-500), 0.3);
 }
 
 /* Dropdown Styles */
@@ -582,16 +576,14 @@ const inventoryMenu = ref([
   justify-content: space-between;
   padding: 0.75rem 1rem;
   color: var(--surface-300);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
+  transition: background-color 0.2s ease;
 }
 
 .dropdown-header:hover {
   background: var(--surface-700);
   color: var(--surface-0);
-  border-color: var(--surface-600);
 }
 
 .dropdown-header-content {
@@ -610,14 +602,14 @@ const inventoryMenu = ref([
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease;
-  margin-left: 1.5rem;
+  margin-left: 1rem;
 }
 
 .dropdown-open {
   max-height: 500px;
 }
 
-.dropdown-menu-item {
+.dropdown-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -625,21 +617,18 @@ const inventoryMenu = ref([
   color: var(--surface-300);
   text-decoration: none;
   border-radius: 6px;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
   margin-bottom: 0.125rem;
-  border: 1px solid transparent;
 }
 
-.dropdown-menu-item:hover {
+.dropdown-item:hover {
   background: var(--surface-700);
   color: var(--surface-0);
-  border-color: var(--surface-600);
 }
 
-.dropdown-menu-item.active-route {
-  background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+.dropdown-item.active-route {
+  background: var(--primary-500);
   color: white;
-  box-shadow: 0 2px 8px rgba(var(--primary-500), 0.2);
 }
 
 /* Contenido común */
@@ -662,7 +651,7 @@ const inventoryMenu = ref([
 
 .collapsed-item {
   justify-content: center;
-  padding: 0.75rem !important;
+  padding: 0.75rem;
 }
 
 .collapsed-item .menu-item-content {
@@ -683,20 +672,15 @@ const inventoryMenu = ref([
   color: var(--surface-400);
 }
 
-.footer-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
 .footer-actions .p-button {
-  color: var(--surface-400) !important;
+  color: var(--surface-400);
   width: 2rem;
   height: 2rem;
 }
 
 .footer-actions .p-button:hover {
-  color: var(--surface-0) !important;
-  background: var(--surface-700) !important;
+  color: var(--surface-0);
+  background: var(--surface-700);
 }
 
 /* Estilos del diálogo de confirmación */
@@ -720,11 +704,11 @@ const inventoryMenu = ref([
 
 .confirmation-warning {
   color: var(--red-500);
-  font-size: 0.9rem !important;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
-/* Scrollbar personalizado */
+/* Scrollbar */
 .navigation-section::-webkit-scrollbar {
   width: 4px;
 }

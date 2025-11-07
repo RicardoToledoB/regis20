@@ -8,14 +8,10 @@
         maximizable 
         modal
         :style="{ width: '70rem' }"
-        :headerStyle="{ padding: '1.5rem 1.5rem 0.5rem' }"
-        :contentStyle="{ padding: '0 1.5rem 1rem' }"
-        :footerStyle="{ padding: '1rem 1.5rem' }"
+        header="Recepción de Documento"
       >
         <template #header>
-          <div class="dialog-header">
-            <span class="text-xl font-semibold">Recepción de Documento</span>
-          </div>
+          <span class="text-xl font-semibold">Recepción de Documento</span>
         </template>
 
         <!-- Loader -->
@@ -30,12 +26,12 @@
           <div class="grid formgrid p-fluid">
              <div class="field col-12 md:col-2">
                 <label>N° Acta</label>
-                <InputText v-model="form.number" class="p-inputtext-lg" placeholder="N° de acta"/>
+                <InputText v-model="form.number" class=" " placeholder="N° de acta"/>
               </div>
               
               <div class="field col-12 md:col-2">
                 <label>N° Oficio</label>
-                <InputText v-model="form.of_number" class="p-inputtext-lg"/>
+                <InputText v-model="form.of_number" class=" "/>
               </div>
 
               <div class="field col-12 md:col-4">
@@ -67,32 +63,32 @@
 
             <div class="field col-12 md:col-3">
               <label>Nombre</label>
-              <InputText v-model="form.police.firstName" class="p-inputtext-lg" />
+              <InputText v-model="form.police.firstName" class=" " />
             </div>
 
             <div class="field col-12 md:col-3">
               <label>Segundo Nombre</label>
-              <InputText v-model="form.police.secondName" class="p-inputtext-lg"/>
+              <InputText v-model="form.police.secondName" class=" "/>
             </div>
 
             <div class="field col-12 md:col-3">
               <label>Apellido Paterno</label>
-              <InputText v-model="form.police.firstLastName" class="p-inputtext-lg"/>
+              <InputText v-model="form.police.firstLastName" class=" "/>
             </div>
 
             <div class="field col-12 md:col-3">
               <label>Apellido Materno</label>
-              <InputText v-model="form.police.secondLastName" class="p-inputtext-lg"/>
+              <InputText v-model="form.police.secondLastName" class=" "/>
             </div>
 
             <div class="field col-12 md:col-3">
               <label>Correo</label>
-              <InputText v-model="form.police.email" type="email" class="p-inputtext-lg"/>
+              <InputText v-model="form.police.email" type="email" class=" "/>
             </div>
 
             <div class="field col-12 md:col-3">
               <label>Teléfono</label>
-              <InputText v-model="form.police.cellphone" class="p-inputtext-lg"/>
+              <InputText v-model="form.police.cellphone" class=" "/>
             </div>
 
             <div class="field col-12 md:col-3">
@@ -103,7 +99,7 @@
                 optionLabel="name"
                 optionValue="id"
                 placeholder="Seleccione grado"
-                class="w-full p-inputtext-lg"
+                class="w-full  "
                 :filter="true"
               />
             </div>
@@ -116,7 +112,7 @@
                 optionLabel="name"
                 optionValue="id"
                 placeholder="Seleccione una institución"
-                class="w-full p-inputtext-lg"
+                class="w-full  "
               />
             </div>
 
@@ -128,7 +124,7 @@
                 optionLabel="name"
                 optionValue="id"
                 placeholder="Seleccione tipo"
-                class="w-full p-inputtext-lg"
+                class="w-full  "
                 :filter="true"
               />
             </div>
@@ -141,100 +137,125 @@
                 optionLabel="name"
                 optionValue="id"
                 placeholder="Seleccione comuna"
-                class="w-full p-inputtext-lg"
+                class="w-full  "
                 :filter="true"
               />
             </div>
           </div>
 
           <!-- Sustancias -->
-          <div class="section-title">💊 Sustancias Asociadas</div>
+         <div class="section-title mt-4">💊 Sustancias Asociadas</div>
 
-          <!-- Primera fila: tipo, cantidad, unidad, packaging -->
-          <div class="grid formgrid p-fluid align-items-end">
-            <div class="field col-12 md:col-4">
-              <label>Tipo de Sustancia</label>
-              <Dropdown 
-                v-model="newSubstance.substanceType" 
-                :options="substancesTypes"
-                optionLabel="name"
-                optionValue="id"
-                placeholder="Seleccione sustancia"
-                class="w-full p-inputtext-lg"
-                :filter="true"
-              />
-            </div>
+<!-- 🧩 Primera fila: tipo, packaging, comuna -->
+<div class="grid formgrid p-fluid align-items-end">
+  <div class="field col-12 md:col-4">
+    <label>Tipo de Sustancia</label>
+    <Dropdown 
+      v-model="newSubstance.substanceType" 
+      :options="substancesTypes"
+      optionLabel="name"
+      optionValue="id"
+      placeholder="Seleccione sustancia"
+      class="w-full"
+      :filter="true"
+    />
+  </div>
 
-            <div class="field col-12 md:col-2">
-              <label>Peso (gr)</label>
-              <InputNumber 
-                v-model="newSubstance.weight" 
-                :min="0" 
-                mode="decimal"
-                :maxFractionDigits="2"
-                class="p-inputtext-lg w-full"
-                
-              />
-            </div>
+  <div class="field col-12 md:col-4">
+    <label>Contenedor</label>
+    <Dropdown
+      v-model="newSubstance.packaging"
+      :options="packagings"
+      optionLabel="name"
+      optionValue="id"
+      placeholder="Seleccione contenedor"
+      class="w-full"
+      :filter="true"
+    />
+  </div>
 
-            <div class="field col-12 md:col-3">
-              <label>Packaging</label>
-              <Dropdown
-                v-model="newSubstance.packaging"
-                :options="packagings"
-                optionLabel="name"
-                optionValue="id"
-                placeholder="Seleccione packaging"
-                class="w-full p-inputtext-lg"
-                :filter="true"
-              />
-            </div>
+  <div class="field col-12 md:col-4">
+    <label>Comuna</label>
+    <Dropdown
+      v-model="newSubstance.commune"
+      :options="communes"
+      optionLabel="name"
+      optionValue="id"
+      placeholder="Seleccione comuna"
+      class="w-full"
+      :filter="true"
+    />
+  </div>
+</div>
 
-            <div class="field col-12 md:col-3">
-              <label>Comuna</label>
-              <Dropdown
-                v-model="newSubstance.commune"
-                :options="communes"
-                optionLabel="name"
-                optionValue="id"
-                placeholder="Comuna sustancia"
-                class="w-full p-inputtext-lg"
-                :filter="true"
-              />
-            </div>
-          </div>
+<!-- ⚖️ Segunda fila: pesos y unidad -->
+<div class="grid formgrid p-fluid align-items-end">
+  <div class="field col-12 md:col-3">
+    <label>Peso Bruto (gr)</label>
+    <InputNumber 
+      v-model="newSubstance.weight" 
+      :min="0" 
+      mode="decimal"
+      :maxFractionDigits="2"
+      class="w-full"
+    />
+  </div>
 
-          <!-- Segunda fila: NUE, descripción + botón agregar -->
-          <div class="grid formgrid p-fluid align-items-end mt-2">
-            <div class="field col-12 md:col-4">
-              <label>NUE</label>
-              <InputText 
-                v-model="newSubstance.nue" 
-                placeholder="Número único de evidencia"
-                class="p-inputtext-lg"
-              />
-            </div>
+  <div class="field col-12 md:col-3">
+    <label>Peso Neto (gr)</label>
+    <InputNumber 
+      v-model="newSubstance.weight_net" 
+      :min="0" 
+      mode="decimal"
+      :maxFractionDigits="2"
+      class="w-full"
+    />
+  </div>
 
-            <div class="field col-12 md:col-6">
-              <label>Descripción</label>
-              <Textarea 
-                v-model="newSubstance.description" 
-                rows="3" 
-                autoResize 
-                placeholder="Descripción de la sustancia..."
-              />
-            </div>
+  <div class="field col-12 md:col-3">
+    <label>Unidad</label>
+    <InputText 
+      v-model="newSubstance.unity" 
+      placeholder="Ej: gramos, ml..."
+      class="w-full"
+    />
+  </div>
 
-            <div class="field col-12 md:col-2 text-center">
-              <Button 
-                icon="pi pi-plus" 
-                label="Agregar" 
-                @click="addSubstance"
-                :disabled="!newSubstance.substanceType || !newSubstance.weight"
-                class="mt-4 w-full"
-              />
-            </div>
-          </div>
+  <div class="field col-12 md:col-3">
+    <label>NUE</label>
+    <InputText 
+      v-model="newSubstance.nue" 
+      placeholder="Número único de evidencia"
+      class="w-full"
+    />
+  </div>
+</div>
+
+<!-- 🔢 Tercera fila: NUE y descripción -->
+<div class="grid formgrid p-fluid align-items-end mt-2">
+ 
+
+  <div class="field col-12 md:col-9">
+    <label>Descripción</label>
+    <Textarea 
+      v-model="newSubstance.description" 
+      rows="2" 
+      autoResize 
+      placeholder="Descripción de la sustancia..."
+      class="w-full"
+    />
+  </div>
+    <div class="field col-12 md:col-3 text-center">
+    <Button 
+      icon="pi pi-plus" 
+      label="Agregar" 
+      @click="addSubstance"
+      :disabled="!newSubstance.substanceType || !newSubstance.weight"
+      class="mt-4 w-full"
+    />
+  </div>
+</div>
+
 
           <!-- Tabla de sustancias -->
           <DataTable :value="form.substances" responsiveLayout="scroll" class="mt-3">
@@ -249,7 +270,13 @@
                 {{ slotProps.data.weight?.toFixed(2) }}
               </template>
             </Column>
-            <Column field="packaging" header="Packaging">
+             <Column field="weight_net" header="Peso Neto (gr)">
+              <template #body="slotProps">
+                {{ Number(slotProps.data.weight_net || 0).toFixed(2) }}
+              </template>
+            </Column>
+            <Column field="unity" header="Unidad"></Column>
+            <Column field="packaging" header="Contenedor">
               <template #body="slotProps">
                 {{ getPackagingName(slotProps.data.packaging) }}
               </template>
@@ -272,18 +299,14 @@
             </Column>
           </DataTable>
         </div>
-
-        <template #footer>
-          <div class="dialog-footer">
-            <Button label="Cerrar" severity="secondary" @click="closeDialog" />
-            <Button label="Guardar" icon="pi pi-save" @click="guardarRecepcion" :loading="isSaving" />
-          </div>
+ <template #footer>
+          <Button label="Cerrar" severity="secondary" @click="closeDialog" />
+          <Button label="Guardar" icon="pi pi-save" @click="guardarRecepcion" :loading="isSaving" />
         </template>
       </Dialog>
     </div>
   </div>
 </template>
-
 <script>
 import { ref, reactive, watch, onMounted } from "vue"
 import Calendar from "primevue/calendar"
@@ -296,6 +319,7 @@ import DataTable from "primevue/datatable"
 import Column from "primevue/column"
 import Textarea from "primevue/textarea"
 import ProgressSpinner from "primevue/progressspinner"
+import { useToast } from 'primevue/usetoast'
 
 import recepcionService from "@/services/receptionsService"
 import substancesService from "@/services/substancesService"
@@ -319,12 +343,15 @@ export default {
     Textarea, ProgressSpinner
   },
 
-  setup() {
+  emits: ['created'], // ✅ Agregar emisión de evento
+
+  setup(props, { emit }) { // ✅ Recibir emit
     const visible = ref(false)
     const isLoading = ref(false)
     const isSaving = ref(false)
     const buscandoPolicia = ref(false)
     const rutError = ref("")
+    const toast = useToast()
     
     // Datos para dropdowns
     const institutions = ref([])
@@ -370,6 +397,8 @@ export default {
       nue: "",
       description: "",
       weight: null,
+  weight_net: null,  // 🆕 peso neto
+  unity: "",         // 🆕 unidad de medida
       substanceType: null,
       packaging: null,
       commune: null
@@ -496,6 +525,8 @@ export default {
         weight: null,
         substanceType: null,
         packaging: null,
+        weight_net: null,  // 🆕 peso neto
+        unity: "",      
         commune: null
       })
     }
@@ -506,14 +537,16 @@ export default {
       form.substances.push({ ...newSubstance })
       
       // Limpiar formulario de nueva sustancia
-      Object.assign(newSubstance, {
-        nue: "",
-        description: "",
-        weight: null,
-        substanceType: null,
-        packaging: null,
-        commune: null
-      })
+        Object.assign(newSubstance, {
+          nue: "",
+          description: "",
+          weight: null,
+          weight_net: null,
+          unity: "",
+          substanceType: null,
+          packaging: null,
+          commune: null
+        })
     }
 
     const removeSubstance = (index) => {
@@ -621,10 +654,13 @@ export default {
           nue: substance.nue,
           description: substance.description,
           weight: substance.weight,
+           weight_net: substance.weight_net,   // 🆕
+          unity: substance.unity,             // 🆕
           reception: receptionResponse.data,
           substanceType: substance.substanceType ? { id: substance.substanceType } : null,
           packaging: substance.packaging ? { id: substance.packaging } : null,
-          commune: substance.commune ? { id: substance.commune } : null
+          commune: substance.commune ? { id: substance.commune } : null,
+          
         }
         return substancesService.create(substancePayload)
       })
@@ -643,10 +679,26 @@ export default {
 
         }
 
+        // ✅ EMITIR EVENTO PARA ACTUALIZAR LA TABLA
+        emit('created', receptionResponse.data)
+        
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Recepción creada correctamente',
+          life: 3000
+        })
+
         closeDialog()
         
       } catch (e) {
         console.error("❌ Error al guardar recepción:", e)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo crear la recepción',
+          life: 3000
+        })
       } finally {
         isSaving.value = false
       }
@@ -686,54 +738,8 @@ export default {
 </script>
 
 <style scoped>
-.dialog-header {
-  padding: 0.5rem 0;
-}
 
-.dialog-footer {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-
-.section-title {
-  font-weight: 600;
-  margin: 1.5rem 0 0.75rem 0;
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 0.25rem;
-}
 .field {
   margin-bottom: 1rem;
-}
-.dialog-content {
-  padding: 0.5rem 0;
-}
-
-/* Ajustes adicionales para mejor espaciado */
-:deep(.p-dialog .p-dialog-header) {
-  padding: 1.5rem 1.5rem 0.5rem !important;
-}
-
-:deep(.p-dialog .p-dialog-content) {
-  padding: 0 1.5rem 1rem !important;
-}
-
-:deep(.p-dialog .p-dialog-footer) {
-  padding: 1rem 1.5rem !important;
-}
-
-/* Mejor espaciado en los campos del formulario */
-:deep(.p-field) {
-  margin-bottom: 1.25rem;
-}
-
-/* Espaciado en la tabla */
-:deep(.p-datatable) {
-  margin-top: 1rem;
-}
-
-:deep(.p-datatable .p-datatable-thead > tr > th),
-:deep(.p-datatable .p-datatable-tbody > tr > td) {
-  padding: 0.75rem 1rem;
 }
 </style>

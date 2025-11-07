@@ -22,47 +22,43 @@
                   class="p-datatable-striped p-datatable-gridlines users-table"
                   :loading="loading"
                 >
-                  <Column field="id" header="ID" style="width: 8%"></Column>
-                  <Column field="number" header="N° Acta" style="width: 12%"></Column>
-                  <Column field="of_number" header="N° Oficio" style="width: 12%"></Column>
-                  <Column field="date_reception" header="Fecha Recepción" style="width: 15%">
+                  <Column field="id" header="ID" ></Column>
+                  <Column field="number" header="N° Acta" ></Column>
+                  <Column field="of_number" header="N° Oficio" ></Column>
+                  <Column field="date_reception" header="Fecha Recepción" >
                     <template #body="slotProps">
                       {{ formatDate(slotProps.data.date_reception) }}
                     </template>
                   </Column>
-                  <Column field="of_number_date" header="Fecha Oficio" style="width: 15%">
+                  <Column field="of_number_date" header="Fecha Oficio" >
                     <template #body="slotProps">
                       {{ formatDate(slotProps.data.of_number_date) }}
                     </template>
                   </Column>
-                  <Column field="police" header="Policía" style="width: 20%">
+                  <Column field="police" header="Policía" >
                     <template #body="slotProps">
                       {{ getPoliceName(slotProps.data.police) }}
                     </template>
                   </Column>
-             <Column header="Acciones" style="width: 25%">
-  <template #body="slotProps">
-    <Button 
-      icon="pi pi-eye" 
-      class="p-button-text p-button-info" 
-      v-tooltip="'Ver detalles'"
-      @click="viewReception(slotProps.data)"
-    />
-    <Button 
-      icon="pi pi-file-pdf" 
-      class="p-button-text p-button-help" 
-      v-tooltip="'Generar PDF'"
-      @click="generatePDF(slotProps.data)"
-    />
-    <Button 
-      icon="pi pi-trash" 
-      class="p-button-text p-button-danger" 
-      v-tooltip="'Eliminar'"
-      @click="confirmDelete(slotProps.data)"
-    />
-  </template>
-</Column>
-
+                  <Column header="Acciones" >
+                    <template #body="slotProps">
+                     <div class="flex align-items-center gap-2">
+                      <EditReception 
+                        :reception="slotProps.data" 
+                        @updated="handleReceptionUpdated" 
+                      />
+                       <ViewHistoryReception 
+        :reception="slotProps.data"
+      />
+                      <Button 
+                        icon="pi pi-file-pdf" 
+                        class="p-button-text p-button-help" 
+                        v-tooltip="'Generar PDF'"
+                        @click="generatePDF(slotProps.data)"
+                      />
+                    </div>
+                    </template>
+                  </Column>
                 </DataTable>
               </div>
             </template>
@@ -86,16 +82,20 @@ import Column from 'primevue/column'
 import Button from 'primevue/button'
 import substancesService from '@/services/substancesService.js'
 import { generarActaPDF } from '@/others/generarActaBtn.js'
+import EditReception from '@/components/receptions/EditReception.vue'
+import ViewHistoryReception from '@/components/receptions/ViewHistoryReception.vue'
 
 export default {
   name: 'ReceptionsView',
   components: {
     PlantillaContenido,
     CreateReception,
+    EditReception,
     Card,
     DataTable,
     Column,
-    Button
+    Button,
+    ViewHistoryReception
   },
 
   setup() {
@@ -122,51 +122,59 @@ export default {
         loading.value = false
       }
     }
-const generatePDF = async (reception) => {
-  try {
-    toast.add({
-      severity: 'info',
-      summary: 'Generando PDF...',
-      detail: `Creando acta para recepción #${reception.id}`,
-      life: 2000
-    })
-
-    // 1️⃣ Obtener recepción por ID
-    const { data: receptionData } = await recepcionService.getById(reception.id)
-
-    // 2️⃣ Obtener sustancias (temporal hasta que llegue el endpoint real)
-    const { data: substancesData } = await substancesService.getByReceptionId(reception.id)
-    // filtrar por recepción si existe esa relación
-    const substances = substancesData.filter(s => s.reception?.id === reception.id)
-
-    // 3️⃣ Llamar a la función del PDF
-    generarActaPDF(receptionData, substances)
-
-    toast.add({
-      severity: 'success',
-      summary: 'PDF generado',
-      detail: `Acta de recepción #${reception.number} descargada`,
-      life: 3000
-    })
-  } catch (error) {
-    console.error("❌ Error generando PDF:", error)
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'No se pudo generar el PDF del acta',
-      life: 3000
-    })
+const handleReceptionUpdated = (updatedReception) => {
+  const index = receptions.value.findIndex(r => r.id === updatedReception.id)
+  if (index !== -1) {
+    receptions.value[index] = updatedReception
   }
+  toast.add({ severity: 'success', summary: 'Actualizada', detail: 'Recepción actualizada correctamente', life: 3000 })
 }
 
+    const generatePDF = async (reception) => {
+      try {
+        toast.add({
+          severity: 'info',
+          summary: 'Generando PDF...',
+          detail: `Creando acta para recepción #${reception.id}`,
+          life: 2000
+        })
+
+        // 1️⃣ Obtener recepción por ID
+        const { data: receptionData } = await recepcionService.getById(reception.id)
+
+        // 2️⃣ Obtener sustancias (temporal hasta que llegue el endpoint real)
+        const { data: substancesData } = await substancesService.getByReceptionId(reception.id)
+        // filtrar por recepción si existe esa relación
+        const substances = substancesData.filter(s => s.reception?.id === reception.id)
+
+        // 3️⃣ Llamar a la función del PDF
+        generarActaPDF(receptionData, substances)
+
+        toast.add({
+          severity: 'success',
+          summary: 'PDF generado',
+          detail: `Acta de recepción #${reception.number} descargada`,
+          life: 3000
+        })
+      } catch (error) {
+        console.error("❌ Error generando PDF:", error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo generar el PDF del acta',
+          life: 3000
+        })
+      }
+    }
+
+    // ✅ FUNCIÓN MODIFICADA PARA ACTUALIZAR LA TABLA
     const handleReceptionCreated = (newReception) => {
+      // Agregar la nueva recepción al inicio del array
       receptions.value.unshift(newReception)
-      toast.add({
-        severity: 'success',
-        summary: 'Éxito',
-        detail: 'Recepción creada correctamente',
-        life: 3000
-      })
+      
+      console.log("✅ Nueva recepción agregada a la tabla:", newReception)
+      
+      // El toast ahora se muestra desde el componente CreateReception
     }
 
     const getPoliceName = (police) => {
@@ -237,7 +245,8 @@ const generatePDF = async (reception) => {
       getPoliceName,
       formatDate,
       viewReception,
-      confirmDelete
+      confirmDelete,
+      handleReceptionUpdated
     }
   }
 }
@@ -250,29 +259,6 @@ const generatePDF = async (reception) => {
 
 .table-container {
   margin-top: 1rem;
-}
-
-:deep(.p-datatable-table) {
-  border-spacing: 0 0.5rem !important;
-}
-
-:deep(.p-datatable-thead > tr > th) {
-  background: var(--surface-ground) !important;
-  font-weight: bold;
-  padding: 1rem !important;
-}
-
-:deep(.p-datatable-tbody > tr > td) {
-  padding: 0.5rem !important;
-  background: var(--surface-card);
-}
-
-:deep(.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) > td) {
-  background-color: var(--surface-section) !important;
-}
-
-:deep(.p-datatable .p-paginator) {
-  padding: 0.5rem;
 }
 
 .users-table {
