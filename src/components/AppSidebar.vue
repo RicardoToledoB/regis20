@@ -1,30 +1,29 @@
 <template>
   <div class="app-sidebar" :class="{ 'sidebar-collapsed': collapsed }">
     <!-- Header del Sidebar -->
-    <div class="sidebar-header">
-      <div class="logo-section" v-if="!collapsed">
-        <div>
-          <img src="/ssm/logo-ssm.png" alt="Logo" class="logo" />
-        </div>
-        <div class="brand">
-          <span class="brand-name">REGIS20</span>
-        </div>
-      </div>
-      <Button 
-        v-else
-        class="p-button-text p-button-plain logo-btn"
-        @click="toggleSidebar"
-      >
-        <img src="/ssm/logo-ssm.png" alt="Logo" class="logo-collapsed" />
-      </Button>
-      <Button v-if="!collapsed"
-        @click="toggleSidebar" 
-        class="p-button-text p-button-secondary toggle-btn"
-        v-tooltip="collapsed ? 'Expandir' : 'Contraer'"
-      >
-        <i :class="collapsed ? 'pi pi-chevron-right' : 'pi pi-chevron-left'" />
-      </Button>
-    </div>
+ <div class="sidebar-header">
+  <!-- Versión expandida -->
+  <div class="logo-section" v-if="!collapsed">
+    <img src="/ssm/logo-ssm.png" alt="Logo" class="logo" />
+    <span class="brand-name">REGIS20</span>
+    <Button
+      @click="toggleSidebar"
+      class="p-button-text p-button-secondary toggle-btn-inline"
+      v-tooltip="collapsed ? 'Expandir' : 'Contraer'"
+    >
+      <i :class="collapsed ? 'pi pi-chevron-right' : 'pi pi-chevron-left'" />
+    </Button>
+  </div>
+
+  <!-- Versión colapsada -->
+  <Button 
+    v-else
+    class="p-button-text p-button-plain logo-btn"
+    @click="toggleSidebar"
+  >
+    <img src="/ssm/logo-ssm.png"  class="logo-collapsed" />
+  </Button>
+</div>
 
     <!-- Menú de Navegación -->
     <div class="navigation-section">
@@ -458,6 +457,8 @@ const inventoryMenu = ref([
 
 <style scoped>
 .app-sidebar {
+  display: flex;              /* ya lo tenías, reafirmamos */
+  flex-direction: column;
   width: 270px;
   height: 100vh;
   background: var(--surface-900);
@@ -467,28 +468,42 @@ const inventoryMenu = ref([
   left: 0;
   top: 0;
   z-index: 1000;
-  display: flex;
-  flex-direction: column;
   border-right: 1px solid var(--surface-700);
+  box-sizing: border-box;     /* evitar saltos por padding/border */
+  min-width: 70px;            /* evita colapsos extremos */
 }
 
 .sidebar-collapsed {
   width: 70px;
+  min-width: 70px;
 }
 
 /* Header */
 .sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 1rem;
   border-bottom: 1px solid var(--surface-700);
+  box-sizing: border-box;
+}
+.sidebar-footer {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between; /* distribuye versión a la izquierda y botón a la derecha */
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--surface-border); /* línea sutil arriba */
+  margin-top: auto; /* empuja el footer al final si el contenedor usa flex */
 }
 
+
+/* Logo y título en una sola línea */
 .logo-section {
   display: flex;
   align-items: center;
+  justify-content: space-between; /* logo, texto y botón */
   gap: 0.75rem;
+  width: 100%;
 }
 
 .logo {
@@ -497,7 +512,7 @@ const inventoryMenu = ref([
 }
 
 .logo-collapsed {
-  width: 40px;
+  width: 28px; /* ajusta el tamaño de la imagen dentro */
   height: auto;
 }
 
@@ -507,31 +522,56 @@ const inventoryMenu = ref([
   color: white; /* Texto REGIS20 en blanco */
 }
 
+.toggle-btn-inline:hover {
+  color: var(--surface-0);
+  background: var(--surface-700);
+}
+
+/* Ocultamos la versión antigua del botón lateral */
 .toggle-btn {
-  color: var(--surface-300);
+  display: none;
+}
+/* Botón inline junto al texto */
+.toggle-btn-inline {
+  color: var(--surface-400);
+  margin-left: auto; /* lo empuja a la derecha */
   width: 2rem;
   height: 2rem;
 }
 
 .logo-btn {
-  color: var(--primary-color);
-  width: 2.5rem;
-  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem; /* ← agrega espacio interno */
+  border-radius: 50%; /* opcional, lo hace más circular */
+  width: 48px; /* ancho fijo para centrar la imagen */
+  height: 48px; /* alto fijo */
+}
+
+.logo-btn:hover {
+  background-color: var(--surface-700); /* efecto sutil al pasar el mouse */
 }
 
 /* Navegación */
 .navigation-section {
-  flex: 1;
+  flex: 1 1 auto;            /* ocupa el espacio disponible */
+  min-height: 0;             /* IMPORTANT: permite que el child haga scroll */
   padding: 1rem 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* scroll suave en iOS */
+  scrollbar-gutter: stable both-edges; /* evita que aparezca/desaparezca el gutter */
+  box-sizing: border-box;
 }
 
+/* Asegura que el contenido interno no empuje fuera del contenedor */
 .menu-container {
   display: flex;
   flex-direction: column;
   padding: 0 0.5rem;
+  box-sizing: border-box;
+  padding-bottom: 1rem; /* espacio final para que el último item no quede pegado */
 }
-
 .menu-section {
   padding: 1rem 0.5rem 0.5rem;
 }
@@ -650,29 +690,30 @@ const inventoryMenu = ref([
   font-size: 0.9rem;
 }
 
+/* Asegurar que elementos colapsados no cambien el flujo */
 .collapsed-item {
   justify-content: center;
   padding: 0.75rem;
+  box-sizing: border-box;
 }
 
 .collapsed-item .menu-item-content {
   justify-content: center;
 }
 
-/* Footer */
+/* Footer: que no se encoga ni empuje */
 .sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid var(--surface-700);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex: 0 0 auto;
 }
-
 .app-version {
   font-size: 0.75rem;
   color: var(--surface-400);
 }
-
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* espacio entre botones si agregas más luego */
+}
 .footer-actions .p-button {
   color: var(--surface-400);
   width: 2rem;
@@ -709,18 +750,22 @@ const inventoryMenu = ref([
   font-weight: 500;
 }
 
-/* Scrollbar */
+/* Si quieres que el scrollbar no empuje el contenido al apareces,
+   puedes usar este pequeño padding-right (opcional) */
+.navigation-section {
+  padding-right: 8px; /* deja espacio para el scrollbar sin romper layout */
+}
+
+/* Scrollbar styling (opcionales, no deberían afectar el layout) */
 .navigation-section::-webkit-scrollbar {
-  width: 4px;
+  width: 8px;
 }
-
 .navigation-section::-webkit-scrollbar-track {
-  background: var(--surface-800);
+  background: transparent;
 }
-
 .navigation-section::-webkit-scrollbar-thumb {
-  background: var(--surface-600);
-  border-radius: 2px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
 }
 
 .navigation-section::-webkit-scrollbar-thumb:hover {

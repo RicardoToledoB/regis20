@@ -21,6 +21,7 @@
                   scrollHeight="350px"
                   class="p-datatable-striped p-datatable-gridlines users-table"
                   :loading="loading"
+                  :rowClass="rowClass"
                 >
                   <Column field="id" header="ID" ></Column>
                   <Column field="number" header="N° Acta" ></Column>
@@ -121,6 +122,14 @@ export default {
       } finally {
         loading.value = false
       }
+    }
+    const rowClass = (row) => {
+      // PrimeVue puede pasar directamente el objeto fila o un objeto { data, index }
+      // Normalizamos para aceptar ambos casos y añadimos logging para depuración.
+      const data = row && row.data ? row.data : row
+      //console.log('rowClass received:', row, 'normalized:', data)
+      if (!data) return ''
+      return data.state === 'BORRADOR' ? 'borrador-row' : ''
     }
 const handleReceptionUpdated = (updatedReception) => {
   const index = receptions.value.findIndex(r => r.id === updatedReception.id)
@@ -239,6 +248,7 @@ const handleReceptionUpdated = (updatedReception) => {
     return {
       receptions,
       loading,
+      rowClass,
       generatePDF,
       fetchReceptions,
       handleReceptionCreated,
@@ -259,6 +269,19 @@ const handleReceptionUpdated = (updatedReception) => {
 
 .table-container {
   margin-top: 1rem;
+}
+
+.borrador-row {
+  /* Mantener por compatibilidad: algunos entornos aplican la clase al elemento correcto */
+  background-color: #fff6b8 !important; /* Amarillo pastel suave */
+}
+
+/* Cuando el style está scoped, los elementos generados por PrimeVue a veces no
+   reciben el atributo de scoping en el mismo nodo; usamos :deep() para asegurarnos
+   que la regla alcance las filas (tr) y las celdas (td) creadas por DataTable. */
+:deep(.borrador-row) > td,
+:deep(.borrador-row) td {
+  background-color: #fff6b8 !important;
 }
 
 .users-table {

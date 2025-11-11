@@ -15,7 +15,7 @@
       :style="{ width: '70rem' }"
     >
       <template #header>
-        <span class="text-xl font-semibold">✏️ Editar Recepción</span>
+        <span class="text-xl font-semibold">✏️ Editar Recepción {{flagLabelEdit}}</span>
       </template>
 
       <!-- Loader -->
@@ -344,27 +344,41 @@
 
       </div>
  <div class="w-full mb-1">
-            <label class="font-medium">📝 Descripción del cambio</label>
-            <Textarea 
-            v-model="editDescription"
-            rows="1"
-            placeholder="Describe brevemente el motivo de la edición..."
-            class="w-full"
-            :class="{ 'p-invalid': showValidationError && !editDescription }"
-            />
-            <small v-if="showValidationError && !editDescription" class="p-error">
-            Debes ingresar una descripción antes de guardar.
-            </small>
+        <div v-if="form.state === 'FINALIZADO'||form.state===null " class="w-full mb-1">
+  <label class="font-medium">📝 Descripción del cambio</label>
+  <Textarea 
+    v-model="editDescription"
+    rows="1"
+    placeholder="Describe brevemente el motivo de la edición..."
+    class="w-full"
+    :class="{ 'p-invalid': showValidationError && !editDescription }"
+  />
+  <small v-if="showValidationError && !editDescription" class="p-error">
+    Debes ingresar una descripción antes de guardar.
+  </small>
+</div>
         </div>
       <template #footer>
          
-        <Button label="Cerrar" severity="secondary" @click="closeDialog" />
-       <Button 
-    label="Guardar" 
-    icon="pi pi-save" 
-    @click="guardarEdicion" 
-    :loading="isSaving" 
-    :disabled="!editDescription" 
+       <Button label="Cerrar" severity="secondary" @click="closeDialog" />
+
+  <!-- Botón para guardar borrador -->
+  <Button
+    v-if="form.state === 'BORRADOR'"
+    label="Completar Recepción"
+    icon="pi pi-save"
+    @click="guardarBorrador"
+    :loading="isSaving"
+  />
+
+  <!-- Botón para guardar edición final -->
+  <Button 
+    v-if="form.state === 'FINALIZADO'||form.state===null"
+    label="Guardar edición"
+    icon="pi pi-save"
+    @click="guardarEdicion"
+    :loading="isSaving"
+    :disabled="!editDescription"
   />
       </template>
     </Dialog>
@@ -372,7 +386,7 @@
 </template>
 
 <script>
-import { ref, reactive, watch } from "vue"
+import { ref, reactive, watch, computed } from "vue"
 import Calendar from "primevue/calendar"
 import InputText from "primevue/inputtext"
 import Button from "primevue/button"
@@ -428,6 +442,7 @@ export default {
     const packagings = ref([])
     const editDescription = ref("")      // descripción del cambio
     const showValidationError = ref(false) // bandera si intenta guardar sin descripción
+    
     // formulario (estructura igual al create)
     const form = reactive({
       id: null,
@@ -436,6 +451,7 @@ export default {
       of_number_date: null,
       date_reception: null,
       location: { id: 1 },
+      state:null,
       police: {
         id: null,
         rut: "",
@@ -538,6 +554,8 @@ export default {
         rutError.value = ""
       }
     })
+  
+    
 
     // abrir diálogo: cargar listas y datos de la recepción
     const openDialog = async () => {
@@ -562,6 +580,7 @@ export default {
         of_number_date: null,
         date_reception: null,
         location: { id: 1 },
+        state:null,
         police: {
           id: 0,
           rut: "",
@@ -620,6 +639,7 @@ export default {
         form.of_number_date = data.of_number_date || null
         form.date_reception = data.date_reception || null
         form.location = data.location || { id: 1 }
+        form.state = data.state || null
 
         // policía: si viene como objeto o id — adaptamos
         form.police = data.police ? { ...data.police } : {
@@ -650,6 +670,7 @@ export default {
         isLoading.value = false
       }
     }
+    
 const cargarSustanciasPorRecepcion = async () => {
   try {
     if (!form.id) return
@@ -787,7 +808,8 @@ const cargarSustanciasPorRecepcion = async () => {
 
 const guardarEdicion = async () => {
   // Validación previa: descripción obligatoria
-  if (!editDescription.value || !editDescription.value.trim()) {
+  if (form.state==="FINALIZADO") {
+    if (!editDescription.value || !editDescription.value.trim()) {
     showValidationError.value = true
     toast.add({
       severity: 'warn',
@@ -798,6 +820,8 @@ const guardarEdicion = async () => {
     return
   }
 
+  }
+  
   showValidationError.value = false
   isSaving.value = true
 
@@ -810,6 +834,7 @@ const guardarEdicion = async () => {
       of_number_date: form.of_number_date,
       date_reception: form.date_reception,
       location: form.location && form.location.id ? { id: form.location.id } : null,
+      state:"FINALIZADO",
       police: {
         id: form.police.id,
         rut: form.police.rut,
@@ -907,7 +932,95 @@ const guardarEdicion = async () => {
     isSaving.value = false
   }
 }
+const guardarBorrador = async () => {
+  // Validación previa: descripción obligatoria
+  
+  
+  showValidationError.value = false
+  isSaving.value = true
 
+  try {
+    // 1️⃣ Construir payload completo de la recepción
+    const payload = {
+      id: form.id,
+      number: form.number,
+      of_number: form.of_number,
+      of_number_date: form.of_number_date,
+      date_reception: form.date_reception,
+      location: form.location && form.location.id ? { id: form.location.id } : null,
+      state:"FINALIZADO",
+      police: form.police,
+      user_origin: form.user_origin ? form.user_origin : { id: 1 },
+      user_destination: form.user_destination && form.user_destination.id ? form.user_destination : null
+    }
+
+    const response = await recepcionService.update(payload.id, payload)
+    console.log("✅ Recepción actualizada correctamente:", response.data)
+
+    // 2️⃣ Procesar sustancias (crear/actualizar según tengan id)
+    if (form.substances && form.substances.length > 0) {
+      console.log("💊 Actualizando/creando sustancias asociadas...")
+
+      const promises = form.substances.map(s => {
+        const substancePayload = {
+          ...(s.id ? { id: s.id } : {}), // incluir ID si ya existe
+          nue: s.nue,
+          description: s.description,
+          weight: s.weight !== undefined && s.weight !== null ? Number(s.weight) : null,
+          reception: form,
+          substanceType: s.substanceType ? { id: s.substanceType } : null,
+          packaging: s.packaging ? { id: s.packaging } : null,
+          commune: s.commune ? { id: s.commune } : null,
+          unity: s.unity,
+          weight_net: Number(s.weight_net),
+        }
+
+        // Si tiene ID → update, si no → create
+        if (s.id) {
+          return substancesService.update(s.id, substancePayload)
+        } else {
+          return substancesService.create(substancePayload)
+        }
+      })
+
+      await Promise.all(promises)
+      console.log("✅ Sustancias actualizadas/creadas correctamente")
+    }
+
+   
+
+    // 4️⃣ Emitir evento para recargar la lista principal
+    emit('updated', response.data)
+
+    toast.add({
+      severity: 'success',
+      summary: 'Éxito',
+      detail: 'Recepción y sustancias actualizadas correctamente',
+      life: 3000
+    })
+
+    // limpiar y cerrar
+    editDescription.value = ""
+    showValidationError.value = false
+    closeDialog()
+
+  } catch (error) {
+    console.error("❌ Error al guardar edición:", error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'No se pudo guardar la edición (revisar consola).',
+      life: 5000
+    })
+  } finally {
+    isSaving.value = false
+  }
+}
+const flagLabelEdit = computed(() => {
+  if (form.state === 'BORRADOR') return '(Borrador)'
+  if (form.state === 'FINALIZADO') return '(Finalizado)'
+  return ''
+})
 
 
 
@@ -930,6 +1043,7 @@ const guardarEdicion = async () => {
       openDialog,
       closeDialog,
       buscarPolicia,
+      flagLabelEdit,
       applyEditingSubstance,
       startEditSubstance,
       removeSubstance,
@@ -940,6 +1054,7 @@ const guardarEdicion = async () => {
       getSubstanceWeight,
       editDescription,
 showValidationError,
+guardarBorrador
     }
   }
 }

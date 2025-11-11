@@ -301,6 +301,7 @@
         </div>
  <template #footer>
           <Button label="Cerrar" severity="secondary" @click="closeDialog" />
+          <Button label="Guardar borrador" icon="pi pi-save" severity="info" @click="guardarBorrador" :loading="isSaving" />
           <Button label="Guardar" icon="pi pi-save" @click="guardarRecepcion" :loading="isSaving" />
         </template>
       </Dialog>
@@ -368,6 +369,7 @@ export default {
       of_number_date: null,
       date_reception: null,
       location: { id: 1 }, // ID predeterminado
+      state:null,
       police: {
         id: 0,
         rut: "",
@@ -614,6 +616,98 @@ export default {
       }
     }
 
+
+const guardarBorrador = async () => {
+      try {
+        isSaving.value = true
+
+        // 1. Primero crear la recepción
+          const receptionPayload = {
+          number: form.number,
+          of_number: form.of_number,
+          of_number_date: form.of_number_date,
+          date_reception: form.date_reception,
+          state: "BORRADOR", // 🆕 o como lo maneje tu backend
+          location: form.location.id ? { id: form.location.id } : null,
+          police: {
+            id: form.police.id,
+            rut: form.police.rut,
+            firstName: form.police.firstName,
+            secondName: form.police.secondName,
+            firstLastName: form.police.firstLastName,
+            secondLastName: form.police.secondLastName,
+            email: form.police.email,
+            cellphone: form.police.cellphone,
+            grade: form.police.grade.id ? form.police.grade : null,
+            institution: form.police.institution.id ? form.police.institution : null,
+            institutionType: form.police.institutionType.id ? form.police.institutionType : null
+          },
+          user_origin: { id: 1 },
+          user_destination: form.user_destination.id ? { id: form.user_destination.id } : null
+        }
+
+        console.log("📤 Enviando recepción:", receptionPayload)
+        const receptionResponse = await recepcionService.create(receptionPayload)
+        const receptionId = receptionResponse.data.id
+        console.log("✅ Recepción creada con ID:", receptionId)
+
+        // 2. Luego crear las sustancias asociadas a esta recepción
+       if (form.substances.length > 0) {
+      const substancesPromises = form.substances.map(substance => {
+        const substancePayload = {
+          nue: substance.nue,
+          description: substance.description,
+          weight: substance.weight,
+           weight_net: substance.weight_net,   // 🆕
+          unity: substance.unity,             // 🆕
+          reception: receptionResponse.data,
+          substanceType: substance.substanceType ? { id: substance.substanceType } : null,
+          packaging: substance.packaging ? { id: substance.packaging } : null,
+          commune: substance.commune ? { id: substance.commune } : null,
+          
+        }
+        return substancesService.create(substancePayload)
+      })
+
+      await Promise.all(substancesPromises)
+      console.log("✅ Todas las sustancias creadas correctamente")
+        form.substances = form.substances.map(s => ({
+        ...s,
+        substanceTypeName: getSubstanceName(s.substanceType),
+        packagingName: getPackagingName(s.packaging),
+        communeName: getCommuneName(s.commune)
+      }))
+          console.log(form.substances);
+          console.log("✅ Todas las sustancias creadas correctamente")
+
+        }
+
+        // ✅ EMITIR EVENTO PARA ACTUALIZAR LA TABLA
+        emit('created', receptionResponse.data)
+        
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'La recepción fue guardada como borrador',
+          life: 3000
+        })
+
+        closeDialog()
+        
+      } catch (e) {
+        console.error("❌ Error al guardar borrador:", e)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo guardar el borrador',
+          life: 3000
+        })
+      } finally {
+        isSaving.value = false
+      }
+    }
+
+
     const guardarRecepcion = async () => {
       try {
         isSaving.value = true
@@ -624,6 +718,7 @@ export default {
           of_number: form.of_number,
           of_number_date: form.of_number_date,
           date_reception: form.date_reception,
+          state: "FINALIZADO", // 🆕 o como lo maneje tu backend
           location: form.location.id ? { id: form.location.id } : null,
           police: {
             id: form.police.id,
@@ -731,7 +826,8 @@ export default {
       guardarRecepcion,
       getSubstanceName,
       getPackagingName,
-      getCommuneName
+      getCommuneName,
+      guardarBorrador
     }
   }
 }
