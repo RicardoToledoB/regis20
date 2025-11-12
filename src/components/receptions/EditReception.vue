@@ -412,6 +412,7 @@ import substancesTypesService from "@/services/substancesTypesService"
 import gradesService from '@/services/gradesService'
 import packagingsService from '@/services/packagingsService'
 import receptionsHistoryService from "@/services/receptionsHistoryService"
+import preAnalysisService from "@/services/preAnalysisService" // ✅ Asegúrate de importar esto
 
 export default {
   name: "EditReception",
@@ -808,19 +809,18 @@ const cargarSustanciasPorRecepcion = async () => {
 
 const guardarEdicion = async () => {
   // Validación previa: descripción obligatoria
-  if (form.state==="FINALIZADO") {
-    if (!editDescription.value || !editDescription.value.trim()) {
-    showValidationError.value = true
-    toast.add({
-      severity: 'warn',
-      summary: 'Falta descripción',
-      detail: 'Debes ingresar una breve descripción del motivo de la edición.',
-      life: 3000
-    })
-    return
-  }
-
-  }
+  if (form.state === "FINALIZADO" || form.state === null) {
+        if (!editDescription.value || !editDescription.value.trim()) {
+          showValidationError.value = true
+          toast.add({
+            severity: 'warn',
+            summary: 'Falta descripción',
+            detail: 'Debes ingresar una breve descripción del motivo de la edición.',
+            life: 3000
+          })
+          return
+        }
+      }
   
   showValidationError.value = false
   isSaving.value = true
@@ -828,92 +828,113 @@ const guardarEdicion = async () => {
   try {
     // 1️⃣ Construir payload completo de la recepción
     const payload = {
-      id: form.id,
-      number: form.number,
-      of_number: form.of_number,
-      of_number_date: form.of_number_date,
-      date_reception: form.date_reception,
-      location: form.location && form.location.id ? { id: form.location.id } : null,
-      state:"FINALIZADO",
-      police: {
-        id: form.police.id,
-        rut: form.police.rut,
-        firstName: form.police.firstName,
-        secondName: form.police.secondName,
-        firstLastName: form.police.firstLastName,
-        secondLastName: form.police.secondLastName,
-        email: form.police.email,
-        cellphone: form.police.cellphone,
-        grade: form.police.grade && form.police.grade.id ? form.police.grade : null,
-        institution: form.police.institution && form.police.institution.id ? form.police.institution : null,
-        institutionType: form.police.institutionType && form.police.institutionType.id ? form.police.institutionType : null
-      },
-      user_origin: form.user_origin ? form.user_origin : { id: 1 },
-      user_destination: form.user_destination && form.user_destination.id ? form.user_destination : null
-    }
+          id: form.id,
+          number: form.number,
+          of_number: form.of_number,
+          of_number_date: form.of_number_date,
+          date_reception: form.date_reception,
+          location: form.location && form.location.id ? { id: form.location.id } : null,
+          state: "FINALIZADO",
+          police: {
+            id: form.police.id,
+            rut: form.police.rut,
+            firstName: form.police.firstName,
+            secondName: form.police.secondName,
+            firstLastName: form.police.firstLastName,
+            secondLastName: form.police.secondLastName,
+            email: form.police.email,
+            cellphone: form.police.cellphone,
+            grade: form.police.grade && form.police.grade.id ? form.police.grade : null,
+            institution: form.police.institution && form.police.institution.id ? form.police.institution : null,
+            institutionType: form.police.institutionType && form.police.institutionType.id ? form.police.institutionType : null
+          },
+          user_origin: form.user_origin ? form.user_origin : { id: 1 },
+          user_destination: form.user_destination && form.user_destination.id ? form.user_destination : null
+        }
 
-    console.log("📤 Actualizando recepción:", payload)
-    const response = await recepcionService.update(payload.id, payload)
-    console.log("✅ Recepción actualizada correctamente:", response.data)
+         console.log("📤 Actualizando recepción:", payload)
+        const response = await recepcionService.update(payload.id, payload)
+        console.log("✅ Recepción actualizada correctamente:", response.data)
 
     // 2️⃣ Procesar sustancias (crear/actualizar según tengan id)
+    let createdSubstances = []
     if (form.substances && form.substances.length > 0) {
-      console.log("💊 Actualizando/creando sustancias asociadas...")
+          console.log("💊 Actualizando/creando sustancias asociadas...")
 
-      const promises = form.substances.map(s => {
-        const substancePayload = {
-          ...(s.id ? { id: s.id } : {}), // incluir ID si ya existe
-          nue: s.nue,
-          description: s.description,
-          weight: s.weight !== undefined && s.weight !== null ? Number(s.weight) : null,
-          reception: form,
-          substanceType: s.substanceType ? { id: s.substanceType } : null,
-          packaging: s.packaging ? { id: s.packaging } : null,
-          commune: s.commune ? { id: s.commune } : null,
-          unity: s.unity,
-          weight_net: Number(s.weight_net),
+          const promises = form.substances.map(s => {
+            const substancePayload = {
+              ...(s.id ? { id: s.id } : {}),
+              nue: s.nue,
+              description: s.description,
+              weight: s.weight !== undefined && s.weight !== null ? Number(s.weight) : null,
+              weight_net: s.weight_net !== undefined && s.weight_net !== null ? Number(s.weight_net) : null,
+              unity: s.unity,
+              reception: form,
+              substanceType: s.substanceType ? { id: s.substanceType } : null,
+              packaging: s.packaging ? { id: s.packaging } : null,
+              commune: s.commune ? { id: s.commune } : null,
+            }
+
+            if (s.id) {
+              return substancesService.update(s.id, substancePayload)
+            } else {
+              return substancesService.create(substancePayload)
+            }
+          })
+
+          const results = await Promise.all(promises)
+          createdSubstances = results.map(result => result.data)
+          console.log("✅ Sustancias actualizadas/creadas correctamente")
+        }
+  // 🆕 3️⃣ CREAR PRE-ANÁLISIS PARA NUEVAS SUSTANCIAS EN RECEPCIONES FINALIZADAS
+        if (createdSubstances.length > 0) {
+          console.log("🔬 Creando registros de pre-análisis para nuevas sustancias...")
+          
+          const preAnalysisPromises = createdSubstances.map((substance) => {
+            const preAnalysisPayload = {
+              weight_sampled: substance.weight_net || 0,
+              observation: "Pendiente de análisis",
+              reception: response.data,
+              substance: substance,
+              destination: { id: 1 },
+              methodDestruction: { id: 1 },
+              user: { id: parseInt(localStorage.getItem('user_id')) || 1 }
+            }
+
+            console.log("📤 Creando pre-análisis:", preAnalysisPayload)
+            return preAnalysisService.create(preAnalysisPayload)
+          })
+
+          await Promise.all(preAnalysisPromises)
+          console.log("✅ Pre-análisis creados para nuevas sustancias")
+        }
+    // 4️⃣  Registrar historial de edición SOLO SI todo lo anterior fue exitoso
+  try {
+          await receptionsHistoryService.create({
+            reception: form,
+            user: { id: parseInt(localStorage.getItem('user_id')) },
+            description: editDescription.value.trim()
+          })
+          console.log("🕒 Historial de edición guardado correctamente")
+        } catch (histErr) {
+          console.warn("⚠️ No se pudo registrar el historial:", histErr)
+          toast.add({
+            severity: 'warn',
+            summary: 'Advertencia',
+            detail: 'No se pudo registrar el historial de la edición.',
+            life: 4000
+          })
         }
 
-        // Si tiene ID → update, si no → create
-        if (s.id) {
-          return substancesService.update(s.id, substancePayload)
-        } else {
-          return substancesService.create(substancePayload)
-        }
-      })
+      // 5️⃣ Emitir evento para recargar la lista principal
+        emit('updated', response.data)
 
-      await Promise.all(promises)
-      console.log("✅ Sustancias actualizadas/creadas correctamente")
-    }
-
-    // 3️⃣ Registrar historial de edición SOLO SI todo lo anterior fue exitoso
-    try {
-      await receptionsHistoryService.create({
-        reception: form,
-        user: {id:parseInt(localStorage.getItem('user_id'))},
-        description: editDescription.value.trim()
-      })
-      console.log("🕒 Historial de edición guardado correctamente")
-    } catch (histErr) {
-      // No abortamos todo por un fallo de historial, pero lo reportamos
-      console.warn("⚠️ No se pudo registrar el historial:", histErr)
-      toast.add({
-        severity: 'warn',
-        summary: 'Advertencia',
-        detail: 'No se pudo registrar el historial de la edición.',
-        life: 4000
-      })
-    }
-
-    // 4️⃣ Emitir evento para recargar la lista principal
-    emit('updated', response.data)
-
-    toast.add({
-      severity: 'success',
-      summary: 'Éxito',
-      detail: 'Recepción y sustancias actualizadas correctamente',
-      life: 3000
-    })
+     toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Recepción y sustancias actualizadas correctamente',
+          life: 3000
+        })
 
     // limpiar y cerrar
     editDescription.value = ""
@@ -932,90 +953,107 @@ const guardarEdicion = async () => {
     isSaving.value = false
   }
 }
-const guardarBorrador = async () => {
-  // Validación previa: descripción obligatoria
-  
-  
-  showValidationError.value = false
-  isSaving.value = true
 
-  try {
-    // 1️⃣ Construir payload completo de la recepción
-    const payload = {
-      id: form.id,
-      number: form.number,
-      of_number: form.of_number,
-      of_number_date: form.of_number_date,
-      date_reception: form.date_reception,
-      location: form.location && form.location.id ? { id: form.location.id } : null,
-      state:"FINALIZADO",
-      police: form.police,
-      user_origin: form.user_origin ? form.user_origin : { id: 1 },
-      user_destination: form.user_destination && form.user_destination.id ? form.user_destination : null
-    }
+ const guardarBorrador = async () => {
+      showValidationError.value = false
+      isSaving.value = true
 
-    const response = await recepcionService.update(payload.id, payload)
-    console.log("✅ Recepción actualizada correctamente:", response.data)
-
-    // 2️⃣ Procesar sustancias (crear/actualizar según tengan id)
-    if (form.substances && form.substances.length > 0) {
-      console.log("💊 Actualizando/creando sustancias asociadas...")
-
-      const promises = form.substances.map(s => {
-        const substancePayload = {
-          ...(s.id ? { id: s.id } : {}), // incluir ID si ya existe
-          nue: s.nue,
-          description: s.description,
-          weight: s.weight !== undefined && s.weight !== null ? Number(s.weight) : null,
-          reception: form,
-          substanceType: s.substanceType ? { id: s.substanceType } : null,
-          packaging: s.packaging ? { id: s.packaging } : null,
-          commune: s.commune ? { id: s.commune } : null,
-          unity: s.unity,
-          weight_net: Number(s.weight_net),
+      try {
+        // 1️⃣ Construir payload completo de la recepción
+        const payload = {
+          id: form.id,
+          number: form.number,
+          of_number: form.of_number,
+          of_number_date: form.of_number_date,
+          date_reception: form.date_reception,
+          location: form.location && form.location.id ? { id: form.location.id } : null,
+          state: "FINALIZADO", // ✅ Cambiar de BORRADOR a FINALIZADO
+          police: form.police,
+          user_origin: form.user_origin ? form.user_origin : { id: 1 },
+          user_destination: form.user_destination && form.user_destination.id ? form.user_destination : null
         }
 
-        // Si tiene ID → update, si no → create
-        if (s.id) {
-          return substancesService.update(s.id, substancePayload)
-        } else {
-          return substancesService.create(substancePayload)
-        }
-      })
+        const response = await recepcionService.update(payload.id, payload)
+        console.log("✅ Recepción actualizada correctamente:", response.data)
 
-      await Promise.all(promises)
-      console.log("✅ Sustancias actualizadas/creadas correctamente")
+        // 2️⃣ Procesar sustancias (crear/actualizar según tengan id)
+        let createdSubstances = []
+        if (form.substances && form.substances.length > 0) {
+          console.log("💊 Actualizando/creando sustancias asociadas...")
+          const promises = form.substances.map(s => {
+            const substancePayload = {
+              ...(s.id ? { id: s.id } : {}),
+              nue: s.nue,
+              description: s.description,
+              weight: s.weight !== undefined && s.weight !== null ? Number(s.weight) : null,
+              weight_net: s.weight_net !== undefined && s.weight_net !== null ? Number(s.weight_net) : null,
+              unity: s.unity,
+              reception: form,
+              substanceType: s.substanceType ? { id: s.substanceType } : null,
+              packaging: s.packaging ? { id: s.packaging } : null,
+              commune: s.commune ? { id: s.commune } : null,
+            }
+            if (s.id) {
+              return substancesService.update(s.id, substancePayload)
+            } else {
+              return substancesService.create(substancePayload)
+            }
+          })
+
+          const results = await Promise.all(promises)
+          createdSubstances = results.map(result => result.data)
+          console.log("✅ Sustancias actualizadas/creadas correctamente:", createdSubstances)
+        }
+
+        // 🆕 3️⃣ CREAR PRE-ANÁLISIS SOLO SI SE CAMBIA DE BORRADOR A FINALIZADO
+        if (props.reception.state === 'BORRADOR' && createdSubstances.length > 0) {
+          console.log("🔬 Creando registros de pre-análisis...")
+          
+          const preAnalysisPromises = createdSubstances.map((substance) => {
+            const preAnalysisPayload = {
+              weight_sampled: substance.weight_net || 0,
+              observation: "Pendiente de análisis",
+              reception: response.data,
+              substance: substance,
+              destination: { id: 1 },
+              methodDestruction: { id: 1 },
+              user: { id: parseInt(localStorage.getItem('user_id')) || 1 }
+            }
+
+            console.log("📤 Creando pre-análisis:", preAnalysisPayload)
+            return preAnalysisService.create(preAnalysisPayload)
+          })
+
+          await Promise.all(preAnalysisPromises)
+          console.log("✅ Todos los registros de pre-análisis creados correctamente")
+        }
+
+        // 4️⃣ Emitir evento para recargar la lista principal
+        emit('updated', response.data)
+
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Recepción completada y pre-análisis creados correctamente',
+          life: 3000
+        })
+
+        closeDialog()
+
+      } catch (error) {
+        console.error("❌ Error al guardar edición:", error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo completar la recepción',
+          life: 5000
+        })
+      } finally {
+        isSaving.value = false
+      }
     }
 
-   
 
-    // 4️⃣ Emitir evento para recargar la lista principal
-    emit('updated', response.data)
-
-    toast.add({
-      severity: 'success',
-      summary: 'Éxito',
-      detail: 'Recepción y sustancias actualizadas correctamente',
-      life: 3000
-    })
-
-    // limpiar y cerrar
-    editDescription.value = ""
-    showValidationError.value = false
-    closeDialog()
-
-  } catch (error) {
-    console.error("❌ Error al guardar edición:", error)
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'No se pudo guardar la edición (revisar consola).',
-      life: 5000
-    })
-  } finally {
-    isSaving.value = false
-  }
-}
 const flagLabelEdit = computed(() => {
   if (form.state === 'BORRADOR') return '(Borrador)'
   if (form.state === 'FINALIZADO') return '(Finalizado)'

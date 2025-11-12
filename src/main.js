@@ -75,7 +75,19 @@ library.add(
 const app = createApp(App)
 app.config.globalProperties.$axios = axiosClient // ya incluye el interceptor
 
-app.use(PrimeVue)
+app.use(PrimeVue, {
+    locale: {
+        firstDayOfWeek: 1, // Lunes como primer día de la semana
+        dayNames: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+        dayNamesShort: ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'],
+        dayNamesMin: ['D', 'L', 'M', 'X', 'J', 'V', 'S'],
+        monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+        monthNamesShort: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'],
+        today: 'Hoy',
+        clear: 'Limpiar',
+        weekHeader: 'Sem'
+    }
+})
 app.component('font-awesome-icon', FontAwesomeIcon)
 
 app.use(ToastService)

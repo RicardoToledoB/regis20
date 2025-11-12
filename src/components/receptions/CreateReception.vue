@@ -334,6 +334,7 @@ import locationsService from '@/services/locationsService'
 import substancesTypesService from "@/services/substancesTypesService"
 import gradesService from '@/services/gradesService'
 import packagingsService from '@/services/packagingsService'
+import preAnalysisService from "@/services/preAnalysisService"
 import { generarActaPDF } from "@/others/generarActa"
 
 export default {
@@ -570,51 +571,51 @@ export default {
         const data = datos.data.content[0]
       
          if (data) {
-    // Actualizar todos los campos del policía
-    form.police.id = data.id || 0
-    form.police.firstName = data.firstName || ""
-    form.police.secondName = data.secondName || ""
-    form.police.firstLastName = data.firstLastName || ""
-    form.police.secondLastName = data.secondLastName || ""
-    form.police.email = data.email || ""
-    form.police.cellphone = data.cellphone || ""
-    
-    // Actualizar user_origin con datos del policía
-   
+          // Actualizar todos los campos del policía
+          form.police.id = data.id || 0
+          form.police.firstName = data.firstName || ""
+          form.police.secondName = data.secondName || ""
+          form.police.firstLastName = data.firstLastName || ""
+          form.police.secondLastName = data.secondLastName || ""
+          form.police.email = data.email || ""
+          form.police.cellphone = data.cellphone || ""
+          
+          // Actualizar user_origin con datos del policía
+        
 
-    // Actualizar grado si existe (con nombre)
-    if (data.grade && data.grade.id) {
-      form.police.grade = data.grade
-     
-    }
+          // Actualizar grado si existe (con nombre)
+          if (data.grade && data.grade.id) {
+            form.police.grade = data.grade
+          
+          }
 
-    // Actualizar institución si existe (con nombre)
-    if (data.institutionType && data.institutionType.institution && data.institutionType.institution.id) {
-      form.police.institution = data.institutionType.institution
-  
-    }
+          // Actualizar institución si existe (con nombre)
+          if (data.institutionType && data.institutionType.institution && data.institutionType.institution.id) {
+            form.police.institution = data.institutionType.institution
+        
+          }
 
-    // Actualizar tipo de institución si existe (con nombre y comuna)
-    if (data.institutionType && data.institutionType.id) {
-      form.police.institutionType = data.institutionType
-   
-      
-      // Actualizar comuna si existe
-      if (data.institutionType.commune && data.institutionType.commune.id) {
-        form.police.institutionType.commune= data.institutionType.commune
-      }
-    }
+          // Actualizar tipo de institución si existe (con nombre y comuna)
+          if (data.institutionType && data.institutionType.id) {
+            form.police.institutionType = data.institutionType
+        
+            
+            // Actualizar comuna si existe
+            if (data.institutionType.commune && data.institutionType.commune.id) {
+              form.police.institutionType.commune= data.institutionType.commune
+            }
+          }
 
-    console.log("✅ Campos actualizados correctamente")
-  } else {
-          console.warn("⚠️ No se encontró policía con ese RUT")
-        }
-      } catch (e) {
-        console.error("❌ Error al buscar policía:", e)
-      } finally {
-        buscandoPolicia.value = false
-      }
-    }
+          console.log("✅ Campos actualizados correctamente")
+        } else {
+                console.warn("⚠️ No se encontró policía con ese RUT")
+              }
+            } catch (e) {
+              console.error("❌ Error al buscar policía:", e)
+            } finally {
+              buscandoPolicia.value = false
+            }
+          }
 
 
 const guardarBorrador = async () => {
@@ -658,7 +659,7 @@ const guardarBorrador = async () => {
           nue: substance.nue,
           description: substance.description,
           weight: substance.weight,
-           weight_net: substance.weight_net,   // 🆕
+          weight_net: substance.weight_net,   // 🆕
           unity: substance.unity,             // 🆕
           reception: receptionResponse.data,
           substanceType: substance.substanceType ? { id: substance.substanceType } : null,
@@ -711,7 +712,6 @@ const guardarBorrador = async () => {
     const guardarRecepcion = async () => {
       try {
         isSaving.value = true
-
         // 1. Primero crear la recepción
           const receptionPayload = {
           number: form.number,
@@ -742,9 +742,10 @@ const guardarBorrador = async () => {
         const receptionId = receptionResponse.data.id
         console.log("✅ Recepción creada con ID:", receptionId)
 
-        // 2. Luego crear las sustancias asociadas a esta recepción
-       if (form.substances.length > 0) {
-      const substancesPromises = form.substances.map(substance => {
+       // 2️⃣ Crear las sustancias asociadas
+        let createdSubstances = [];
+        if (form.substances.length > 0) {
+        const substancesPromises = form.substances.map(substance => {
         const substancePayload = {
           nue: substance.nue,
           description: substance.description,
@@ -760,16 +761,35 @@ const guardarBorrador = async () => {
         return substancesService.create(substancePayload)
       })
 
-      await Promise.all(substancesPromises)
-      console.log("✅ Todas las sustancias creadas correctamente")
-        form.substances = form.substances.map(s => ({
-        ...s,
-        substanceTypeName: getSubstanceName(s.substanceType),
-        packagingName: getPackagingName(s.packaging),
-        communeName: getCommuneName(s.commune)
-      }))
-          console.log(form.substances);
-          console.log("✅ Todas las sustancias creadas correctamente")
+          createdSubstances = await Promise.all(substancesPromises);
+              console.log("✅ Sustancias creadas correctamente:", createdSubstances);
+            // 3️⃣ Crear registros en pre-análisis para cada sustancia creada
+              const preAnalysisPromises = createdSubstances.map((sub) => {
+                const preAnalysisPayload = {
+                  weight_sampled: sub.data.weight_net, // o como corresponda
+                  observation: "Pendiente de análisis", // puedes ajustar este texto
+                  reception: receptionResponse.data,
+                  substance: sub.data,
+                  destination: {id:1},
+                  methodDestruction: {id:1}, // si todavía no aplica
+                  user: { id: localStorage.getItem('user_id') } // o el usuario actual logueado
+                };
+
+                console.log("📤 Creando pre-análisis:", preAnalysisPayload);
+                return preAnalysisService.create(preAnalysisPayload);
+              });
+
+              await Promise.all(preAnalysisPromises);
+              console.log("✅ Todos los registros de pre-análisis creados correctamente");
+
+            form.substances = form.substances.map(s => ({
+            ...s,
+            substanceTypeName: getSubstanceName(s.substanceType),
+            packagingName: getPackagingName(s.packaging),
+            communeName: getCommuneName(s.commune)
+          }))
+
+          //Generar el PDF automáticamente
           generarActaPDF(form, receptionResponse)
 
         }

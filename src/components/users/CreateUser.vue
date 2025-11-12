@@ -9,10 +9,7 @@
     <Dialog 
       v-model:visible="visible"
        :style="{ width: '30rem' }"
-
       modal
-     
-       
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>

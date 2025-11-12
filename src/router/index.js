@@ -15,6 +15,7 @@ import Roles from '@/views/roles/RolesView.vue'
 import InstitutionTypes from '@/views/institutionTypes/InstitutionTypesView.vue'
 import Grades from '@/views/grades/GradesView.vue'
 import Destinations from '@/views/destinations/DestinationsView.vue'
+import PreAnalisis from '@/views/preanalysis/PreAnalysis.vue'
 import Login from '@/views/Login.vue'
 const routes = [
   {
@@ -97,7 +98,11 @@ const routes = [
     name: 'Packagings',
     component: Packagings
   },
-  
+  {
+    path: '/pre-analysis',
+    name: 'PreAnalisis',
+    component: PreAnalisis
+  },
 
   {
   path: '/',

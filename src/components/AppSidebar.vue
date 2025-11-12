@@ -370,6 +370,16 @@ const mainMenu = ref([
     icon: 'pi pi-inbox',
     to: '/receptions',
   },
+   {
+    label: 'Pre-Análisis',
+    icon: 'pi pi-file-edit',
+    to: '/pre-analysis',
+  },
+   {
+    label: 'Análisis',
+    icon: 'pi pi-file-check',
+    to: '/analysis',
+  },
 ])
 
 // Seguridad y Usuarios

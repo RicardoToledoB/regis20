@@ -12,118 +12,36 @@
             <template #content>
               <div class="table-container">
                 <DataTable
-                  v-model:filters="filters"
                   :value="receptions"
                   paginator
-                  size="small"
-                  :rows="10"
+                  size="large"
+                  :rows="5"
                   :rowsPerPageOptions="[5,10,20,50]"
                   scrollable
+                  scrollHeight="350px"
                   class="p-datatable-striped p-datatable-gridlines users-table"
                   :loading="loading"
                   :rowClass="rowClass"
-                  dataKey="id"
-                  :globalFilterFields="['id', 'number', 'of_number', 'date_reception', 'of_number_date', 'police.firstName', 'police.firstLastName']"
                 >
-                  <template #header>
-                    <div class="flex justify-content-end">
-                      <IconField iconPosition="left">
-                        <InputIcon>
-                          <i class="pi pi-search" />
-                        </InputIcon>
-                        <InputText 
-                          v-model="filters['global'].value" 
-                          placeholder="Buscar en todos los campos..." 
-                        />
-                      </IconField>
-                    </div>
-                  </template>
-                  
-                  <template #empty> No se encontraron recepciones. </template>
-                  <template #loading> Cargando recepciones. Por favor espere. </template>
-
-                  <Column field="id" header="ID">
-                    <template #filter="{ filterModel, filterCallback }">
-                      <InputText 
-                        v-model="filterModel.value" 
-                        type="text" 
-                        @input="filterCallback()" 
-                        class="p-column-filter" 
-                        placeholder="Buscar por ID" 
-                      />
-                    </template>
-                  </Column>
-
-                  <Column field="number" header="N° Acta">
-                    <template #filter="{ filterModel, filterCallback }">
-                      <InputText 
-                        v-model="filterModel.value" 
-                        type="text" 
-                        @input="filterCallback()" 
-                        class="p-column-filter" 
-                        placeholder="Buscar por N° Acta" 
-                      />
-                    </template>
-                  </Column>
-
-                  <Column field="of_number" header="N° Oficio">
-                    <template #filter="{ filterModel, filterCallback }">
-                      <InputText 
-                        v-model="filterModel.value" 
-                        type="text" 
-                        @input="filterCallback()" 
-                        class="p-column-filter" 
-                        placeholder="Buscar por N° Oficio" 
-                      />
-                    </template>
-                  </Column>
-
-                  <Column field="date_reception" header="Fecha Recepción">
+                  <Column field="id" header="ID" ></Column>
+                  <Column field="number" header="N° Acta" ></Column>
+                  <Column field="of_number" header="N° Oficio" ></Column>
+                  <Column field="date_reception" header="Fecha Recepción" >
                     <template #body="slotProps">
                       {{ formatDate(slotProps.data.date_reception) }}
                     </template>
-                    <template #filter="{ filterModel, filterCallback }">
-                      <InputText 
-                        v-model="filterModel.value" 
-                        type="text" 
-                        @input="filterCallback()" 
-                        class="p-column-filter" 
-                        placeholder="Buscar por fecha recepción" 
-                      />
-                    </template>
                   </Column>
-
-                  <Column field="of_number_date" header="Fecha Oficio">
+                  <Column field="of_number_date" header="Fecha Oficio" >
                     <template #body="slotProps">
                       {{ formatDate(slotProps.data.of_number_date) }}
                     </template>
-                    <template #filter="{ filterModel, filterCallback }">
-                      <InputText 
-                        v-model="filterModel.value" 
-                        type="text" 
-                        @input="filterCallback()" 
-                        class="p-column-filter" 
-                        placeholder="Buscar por fecha oficio" 
-                      />
-                    </template>
                   </Column>
-
-                  <Column field="police" header="Policía">
+                  <Column field="police" header="Policía" >
                     <template #body="slotProps">
                       {{ getPoliceName(slotProps.data.police) }}
                     </template>
-                    <template #filter="{ filterModel, filterCallback }">
-                      <InputText 
-                        v-model="filterModel.value" 
-                        type="text" 
-                        @input="filterCallback()" 
-                        class="p-column-filter" 
-                        placeholder="Buscar por policía" 
-                      />
-                    </template>
                   </Column>
-
-                  <Column header="Acciones">
+                  <Column header="Acciones" >
                     <template #body="slotProps">
                      <div class="flex align-items-center gap-2">
                       <EditReception 
@@ -131,8 +49,8 @@
                         @updated="handleReceptionUpdated" 
                       />
                        <ViewHistoryReception 
-                        :reception="slotProps.data"
-                      />
+        :reception="slotProps.data"
+      />
                       <Button 
                         icon="pi pi-file-pdf" 
                         class="p-button-text p-button-help" 
@@ -156,7 +74,6 @@
 import { ref, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
-import { FilterMatchMode } from 'primevue/api'
 import PlantillaContenido from '../template/PlantillaContenido.vue'
 import recepcionService from '@/services/receptionsService.js'
 import CreateReception from '@/components/receptions/CreateReception.vue'
@@ -164,9 +81,6 @@ import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
-import IconField from 'primevue/iconfield'
-import InputIcon from 'primevue/inputicon'
 import substancesService from '@/services/substancesService.js'
 import { generarActaPDF } from '@/others/generarActaBtn.js'
 import EditReception from '@/components/receptions/EditReception.vue'
@@ -182,10 +96,7 @@ export default {
     DataTable,
     Column,
     Button,
-    ViewHistoryReception,
-    InputText,
-    IconField,
-    InputIcon
+    ViewHistoryReception
   },
 
   setup() {
@@ -193,17 +104,6 @@ export default {
     const loading = ref(false)
     const toast = useToast()
     const confirm = useConfirm()
-
-    // Definir los filtros
-    const filters = ref({
-      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      id: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-      number: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      of_number: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      date_reception: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      of_number_date: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      police: { value: null, matchMode: FilterMatchMode.CONTAINS }
-    })
 
     const fetchReceptions = async () => {
       try {
@@ -223,25 +123,21 @@ export default {
         loading.value = false
       }
     }
-
     const rowClass = (row) => {
+      // PrimeVue puede pasar directamente el objeto fila o un objeto { data, index }
+      // Normalizamos para aceptar ambos casos y añadimos logging para depuración.
       const data = row && row.data ? row.data : row
+      //console.log('rowClass received:', row, 'normalized:', data)
       if (!data) return ''
       return data.state === 'BORRADOR' ? 'borrador-row' : ''
     }
-
-    const handleReceptionUpdated = (updatedReception) => {
-      const index = receptions.value.findIndex(r => r.id === updatedReception.id)
-      if (index !== -1) {
-        receptions.value[index] = updatedReception
-      }
-      toast.add({ 
-        severity: 'success', 
-        summary: 'Actualizada', 
-        detail: 'Recepción actualizada correctamente', 
-        life: 3000 
-      })
-    }
+const handleReceptionUpdated = (updatedReception) => {
+  const index = receptions.value.findIndex(r => r.id === updatedReception.id)
+  if (index !== -1) {
+    receptions.value[index] = updatedReception
+  }
+  toast.add({ severity: 'success', summary: 'Actualizada', detail: 'Recepción actualizada correctamente', life: 3000 })
+}
 
     const generatePDF = async (reception) => {
       try {
@@ -280,9 +176,14 @@ export default {
       }
     }
 
+    // ✅ FUNCIÓN MODIFICADA PARA ACTUALIZAR LA TABLA
     const handleReceptionCreated = (newReception) => {
+      // Agregar la nueva recepción al inicio del array
       receptions.value.unshift(newReception)
+      
       console.log("✅ Nueva recepción agregada a la tabla:", newReception)
+      
+      // El toast ahora se muestra desde el componente CreateReception
     }
 
     const getPoliceName = (police) => {
@@ -297,6 +198,7 @@ export default {
     }
 
     const viewReception = (reception) => {
+      // Aquí puedes implementar la vista de detalles
       console.log("Ver recepción:", reception)
       toast.add({
         severity: 'info',
@@ -346,7 +248,6 @@ export default {
     return {
       receptions,
       loading,
-      filters,
       rowClass,
       generatePDF,
       fetchReceptions,
@@ -371,9 +272,13 @@ export default {
 }
 
 .borrador-row {
-  background-color: #fff6b8 !important;
+  /* Mantener por compatibilidad: algunos entornos aplican la clase al elemento correcto */
+  background-color: #fff6b8 !important; /* Amarillo pastel suave */
 }
 
+/* Cuando el style está scoped, los elementos generados por PrimeVue a veces no
+   reciben el atributo de scoping en el mismo nodo; usamos :deep() para asegurarnos
+   que la regla alcance las filas (tr) y las celdas (td) creadas por DataTable. */
 :deep(.borrador-row) > td,
 :deep(.borrador-row) td {
   background-color: #fff6b8 !important;
@@ -382,14 +287,5 @@ export default {
 .users-table {
   width: 100%;
   border-collapse: collapse;
-}
-
-/* Estilos para los filtros */
-:deep(.p-column-filter) {
-  width: 100%;
-}
-
-:deep(.p-datatable-filter-row td) {
-  padding: 0.5rem;
 }
 </style>
