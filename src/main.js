@@ -22,29 +22,30 @@ import InputText from 'primevue/inputtext'
 import Toast from 'primevue/toast'
 import Avatar from 'primevue/avatar'
 import Badge from 'primevue/badge'
-import Image from 'primevue/image';
-import Dialog from 'primevue/dialog';
+import Image from 'primevue/image'
+import Dialog from 'primevue/dialog'
 import Fieldset from 'primevue/fieldset'
-import Splitter from 'primevue/splitter';
-import Calendar from 'primevue/calendar';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import ColumnGroup from 'primevue/columngroup';   // optional
-import Row from 'primevue/row';                   // optional
+import Splitter from 'primevue/splitter'
+import Calendar from 'primevue/calendar'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import ColumnGroup from 'primevue/columngroup' // optional
+import Row from 'primevue/row' // optional
 import ProgressSpinner from 'primevue/progressspinner'
-import Textarea from "primevue/textarea"
+import Textarea from 'primevue/textarea'
 import ConfirmationService from 'primevue/confirmationservice'
-
+import TabView from 'primevue/tabview'
+import TabPanel from 'primevue/tabpanel'
 
 import axiosClient from '@/services/axiosClient'
 
 //iconos
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { 
-  faHome, 
-  faInbox, 
-  faUsers, 
+import {
+  faHome,
+  faInbox,
+  faUsers,
   faWarehouse,
   faCapsules,
   faShieldHalved, // Para policía
@@ -53,40 +54,66 @@ import {
   faSignOutAlt,
   faChevronLeft, // ← Singular
   faChevronRight, // ← Singular
-  faPlus  
+  faPlus,
 } from '@fortawesome/free-solid-svg-icons'
 
 // Agregar iconos a la librería
 library.add(
-  faHome, 
-  faInbox, 
-  faUsers, 
-  faWarehouse, 
-  faCapsules, 
-  faShieldHalved, 
-  faBuilding, 
-  faGem, 
-  faSignOutAlt, 
-  faChevronLeft, 
+  faHome,
+  faInbox,
+  faUsers,
+  faWarehouse,
+  faCapsules,
+  faShieldHalved,
+  faBuilding,
+  faGem,
+  faSignOutAlt,
+  faChevronLeft,
   faChevronRight,
-  faPlus  
+  faPlus,
 )
 
 const app = createApp(App)
 app.config.globalProperties.$axios = axiosClient // ya incluye el interceptor
 
 app.use(PrimeVue, {
-    locale: {
-        firstDayOfWeek: 1, // Lunes como primer día de la semana
-        dayNames: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
-        dayNamesShort: ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'],
-        dayNamesMin: ['D', 'L', 'M', 'X', 'J', 'V', 'S'],
-        monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-        monthNamesShort: ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'],
-        today: 'Hoy',
-        clear: 'Limpiar',
-        weekHeader: 'Sem'
-    }
+  locale: {
+    firstDayOfWeek: 1, // Lunes como primer día de la semana
+    dayNames: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+    dayNamesShort: ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'],
+    dayNamesMin: ['D', 'L', 'M', 'X', 'J', 'V', 'S'],
+    monthNames: [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ],
+    monthNamesShort: [
+      'ENE',
+      'FEB',
+      'MAR',
+      'ABR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AGO',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DIC',
+    ],
+    today: 'Hoy',
+    clear: 'Limpiar',
+    weekHeader: 'Sem',
+  },
 })
 app.component('font-awesome-icon', FontAwesomeIcon)
 
@@ -113,10 +140,11 @@ app.component('Splitter', Splitter)
 app.component('Calendar', Calendar)
 app.component('DataTable', DataTable)
 app.component('Column', Column)
-app.component('ColumnGroup',ColumnGroup)
-app.component('Row',Row)
-app.component('ProgressSpinner',ProgressSpinner)
-app.component('Textarea',Textarea)
-
+app.component('ColumnGroup', ColumnGroup)
+app.component('Row', Row)
+app.component('ProgressSpinner', ProgressSpinner)
+app.component('Textarea', Textarea)
+app.component('TabView', TabView)
+app.component('TabPanel', TabPanel)
 
 app.mount('#app')

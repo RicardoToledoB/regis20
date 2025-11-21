@@ -16,104 +16,116 @@ import InstitutionTypes from '@/views/institutionTypes/InstitutionTypesView.vue'
 import Grades from '@/views/grades/GradesView.vue'
 import Destinations from '@/views/destinations/DestinationsView.vue'
 import PreAnalisis from '@/views/preanalysis/PreAnalysis.vue'
+import Analysis from '@/views/analysis/Analysis.vue'
+import Storage from '@/views/storages/Storage.vue'
 import Login from '@/views/Login.vue'
 const routes = [
   {
     path: '/inicio',
     name: 'Home',
-    component: Home
+    component: Home,
+  },
+  {
+    path: '/analysis',
+    name: 'Analysis',
+    component: Analysis,
+  },
+  {
+    path: '/storage',
+    name: 'Storage',
+    component: Storage,
   },
   {
     path: '/grades',
     name: 'Grades',
-    component: Grades
+    component: Grades,
   },
-   {
+  {
     path: '/destinations',
     name: 'Destinations',
-    component: Destinations
+    component: Destinations,
   },
   {
     path: '/institution-type',
     name: 'InstitutionTypes',
-    component: InstitutionTypes
+    component: InstitutionTypes,
   },
   {
     path: '/roles',
     name: 'Roles',
-    component: Roles
+    component: Roles,
   },
   {
     path: '/users',
     name: 'Users',
-    component: Users
+    component: Users,
   },
   {
     path: '/receptions',
     name: 'Receptions',
-    component: Receptions
+    component: Receptions,
   },
   {
     path: '/polices',
     name: 'Polices',
-    component: Polices
+    component: Polices,
   },
   {
     path: '/institutions',
     name: 'Institutions',
-    component: Institutions
+    component: Institutions,
   },
-   {
+  {
     path: '/storages',
     name: 'Storages',
-    component: Storages
+    component: Storages,
   },
   {
     path: '/types-substances',
     name: 'TypesSubstances',
-    component: TypesSubstances
+    component: TypesSubstances,
   },
   {
     path: '/unities',
     name: 'Unities',
-    component: Unities
+    component: Unities,
   },
-   {
+  {
     path: '/communes',
     name: 'Communes',
-    component: Communes
+    component: Communes,
   },
-   {
+  {
     path: '/locations',
     name: 'Locations',
-    component: Locations
+    component: Locations,
   },
-   {
+  {
     path: '/methods-destructions',
     name: 'MethodsDestructions',
-    component: MethodsDestructions
+    component: MethodsDestructions,
   },
   {
     path: '/packagings',
     name: 'Packagings',
-    component: Packagings
+    component: Packagings,
   },
   {
     path: '/pre-analysis',
     name: 'PreAnalisis',
-    component: PreAnalisis
+    component: PreAnalisis,
   },
 
   {
-  path: '/',
-  name: 'login',
-  component: Login
-}
+    path: '/',
+    name: 'login',
+    component: Login,
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 })
 
 export default router

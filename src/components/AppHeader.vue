@@ -5,17 +5,15 @@
       <div class="header-left">
         <span class="page-title">{{ currentPageTitle }}</span>
       </div>
-      
+
       <!-- Información de sesión al centro -->
       <div class="header-center">
         <div class="session-timer" :class="timerClass">
           <i class="pi pi-clock timer-icon" />
-          <span class="timer-text">
-            Sesión: {{ formattedTime }}
-          </span>
+          <span class="timer-text"> Sesión: {{ formattedTime }} </span>
         </div>
       </div>
-      
+
       <!-- Información de usuario a la derecha -->
       <div class="header-right">
         <div class="user-info">
@@ -67,20 +65,22 @@ const formattedTime = computed(() => {
 const currentPageTitle = computed(() => {
   const routeName = route.name
   const titles = {
-    'Home': 'Inicio',
-    'Users': 'Gestión de Usuarios',
-    'Receptions': 'Recepción',
-    'Polices': 'Policía',
-    'Institutions': 'Institución',
-    'Storages': 'Ubicación de Bodegas',
-    'TypesSubstances': 'Tipo de Sustancia',
-    'Unities': 'Unidades',
-    'Communes': 'Comunas',
-    'Locations': 'Locaciones',
-    'Packagings': 'Tipos de Contenedor',
-    'MethodsDestructions': 'Métodos de Destrucción',
-    'Grades': 'Grados',
-    'Destinations': 'Destinos'
+    Home: 'Inicio',
+    Users: 'Gestión de Usuarios',
+    Receptions: 'Recepción',
+    Polices: 'Policía',
+    Institutions: 'Institución',
+    Storages: 'Ubicación de Bodegas',
+    TypesSubstances: 'Tipo de Sustancia',
+    Unities: 'Unidades',
+    Communes: 'Comunas',
+    Locations: 'Locaciones',
+    Packagings: 'Tipos de Contenedor',
+    MethodsDestructions: 'Métodos de Destrucción',
+    Grades: 'Grados',
+    Destinations: 'Destinos',
+    Storage: 'Almacenamiento',
+    PreAnalisis: 'Preanálisis',
   }
   return titles[routeName] || ' '
 })
@@ -89,16 +89,16 @@ const currentPageTitle = computed(() => {
 const updateTimer = () => {
   const now = Date.now()
   const elapsed = Math.floor((now - lastUpdateTime) / 1000)
-  
+
   if (elapsed > 0) {
     remainingTime.value = Math.max(0, remainingTime.value - elapsed)
     lastUpdateTime = now
     saveTimerState()
-    
+
     // Verificar estados críticos
     checkCriticalStates()
   }
-  
+
   animationFrameId = requestAnimationFrame(updateTimer)
 }
 
@@ -123,7 +123,7 @@ const showSessionWarning = (message, severity = 'warn') => {
     summary: 'Sesión',
     detail: message,
     life: 10000, // 10 segundos
-    closable: true
+    closable: true,
   })
 }
 
@@ -132,7 +132,7 @@ const initTimer = () => {
   // Cargar estado guardado
   const savedTime = localStorage.getItem('sessionTime')
   const savedLastUpdate = localStorage.getItem('sessionLastUpdate')
-  
+
   if (savedTime && savedLastUpdate) {
     const elapsed = Math.floor((Date.now() - parseInt(savedLastUpdate)) / 1000)
     remainingTime.value = Math.max(0, parseInt(savedTime) - elapsed)
@@ -141,10 +141,10 @@ const initTimer = () => {
     remainingTime.value = SESSION_DURATION
     console.log('⏰ Nueva sesión iniciada: 1 hora')
   }
-  
+
   lastUpdateTime = Date.now()
   saveTimerState()
-  
+
   // Iniciar sistema de tiempo preciso
   animationFrameId = requestAnimationFrame(updateTimer)
 }
@@ -158,29 +158,36 @@ const saveTimerState = () => {
 // Cerrar sesión del usuario
 const logoutUser = () => {
   console.log('🔒 Cerrando sesión por tiempo expirado')
-  
+
   // Limpiar recursos
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId)
   }
-  
+
   // Limpiar localStorage
   const sessionKeys = [
-    'userName', 'sessionTime', 'sessionLastUpdate', 
-    'token', 'userRole', 'userId', 'userEmail', 'userRut', 'userData'
+    'userName',
+    'sessionTime',
+    'sessionLastUpdate',
+    'token',
+    'userRole',
+    'userId',
+    'userEmail',
+    'userRut',
+    'userData',
   ]
-  
-  sessionKeys.forEach(key => localStorage.removeItem(key))
+
+  sessionKeys.forEach((key) => localStorage.removeItem(key))
   sessionStorage.clear()
-  
+
   // Mostrar mensaje final
   toast.add({
     severity: 'info',
     summary: 'Sesión Expirada',
     detail: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',
-    life: 5000
+    life: 5000,
   })
-  
+
   // Redirigir al login después de un breve delay
   setTimeout(() => {
     window.location.href = '/'
@@ -301,9 +308,15 @@ onUnmounted(() => {
 
 /* Animación de pulso para estados críticos */
 @keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.7; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 /* Estilos de información de usuario */
@@ -336,7 +349,7 @@ onUnmounted(() => {
     padding: 0.5rem;
     gap: 0.5rem;
   }
-  
+
   .header-left,
   .header-center,
   .header-right {
@@ -344,12 +357,12 @@ onUnmounted(() => {
     justify-content: center;
     width: 100%;
   }
-  
+
   .page-title {
     font-size: 1.1rem;
     text-align: center;
   }
-  
+
   .session-timer,
   .user-info {
     padding: 0.4rem 0.8rem;

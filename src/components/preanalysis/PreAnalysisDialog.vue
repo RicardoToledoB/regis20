@@ -1,0 +1,179 @@
+<template>
+  <Dialog
+    :visible="visible"
+    modal
+    header="Enviar a Pre-Análisis"
+    :style="{ width: '500px' }"
+    @update:visible="$emit('update:visible', $event)"
+  >
+    <div class="p-fluid">
+      <div class="field">
+        <label for="destination">Destino *</label>
+        <Dropdown
+          id="destination"
+          v-model="formData.destination"
+          :options="destinations"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Seleccione destino"
+          class="w-full"
+          :loading="loadingDestinations"
+        />
+      </div>
+
+      <div class="field">
+        <label for="weight">Peso a muestrear (gr) *</label>
+        <InputNumber
+          id="weight"
+          v-model="formData.weight_sampled"
+          mode="decimal"
+          :min="0"
+          :max="selectedSubstance?.weight || 0"
+          :fractionDigits="2"
+          class="w-full"
+        />
+        <small class="p-error" v-if="formData.weight_sampled > (selectedSubstance?.weight || 0)">
+          El peso no puede ser mayor al peso total de la sustancia ({{ selectedSubstance?.weight }}
+          gr)
+        </small>
+      </div>
+
+      <div class="field">
+        <label for="method">Método de Destrucción</label>
+        <Dropdown
+          id="method"
+          v-model="formData.methodDestruction"
+          :options="methodsDestruction"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Seleccione método"
+          class="w-full"
+          :loading="loadingMethodsDestruction"
+        />
+      </div>
+
+      <div class="field">
+        <label for="observation">Observación</label>
+        <Textarea
+          id="observation"
+          v-model="formData.observation"
+          rows="3"
+          placeholder="Observaciones adicionales..."
+          class="w-full"
+        />
+      </div>
+    </div>
+
+    <template #footer>
+      <Button label="Cancelar" icon="pi pi-times" @click="closeDialog" class="p-button-text" />
+      <Button
+        label="Enviar"
+        icon="pi pi-send"
+        @click="submitForm"
+        :loading="loading"
+        :disabled="!isFormValid"
+      />
+    </template>
+  </Dialog>
+</template>
+
+<script>
+import { ref, computed, watch } from 'vue'
+import Dialog from 'primevue/dialog'
+import Dropdown from 'primevue/dropdown'
+import InputNumber from 'primevue/inputnumber'
+import Textarea from 'primevue/textarea'
+import Button from 'primevue/button'
+
+export default {
+  name: 'PreAnalysisDialog',
+  components: {
+    Dialog,
+    Dropdown,
+    InputNumber,
+    Textarea,
+    Button,
+  },
+  props: {
+    visible: {
+      type: Boolean,
+      required: true,
+    },
+    selectedSubstance: {
+      type: Object,
+      default: null,
+    },
+    destinations: {
+      type: Array,
+      default: () => [],
+    },
+    methodsDestruction: {
+      type: Array,
+      default: () => [],
+    },
+    loadingDestinations: {
+      type: Boolean,
+      default: false,
+    },
+    loadingMethodsDestruction: {
+      type: Boolean,
+      default: false,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  emits: ['update:visible', 'submit', 'cancel'],
+  setup(props, { emit }) {
+    const formData = ref({
+      destination: null,
+      weight_sampled: null,
+      methodDestruction: null,
+      observation: '',
+    })
+
+    const isFormValid = computed(() => {
+      return (
+        formData.value.destination &&
+        formData.value.weight_sampled &&
+        formData.value.weight_sampled > 0 &&
+        formData.value.weight_sampled <= (props.selectedSubstance?.weight || 0)
+      )
+    })
+
+    const closeDialog = () => {
+      emit('update:visible', false)
+      emit('cancel')
+    }
+
+    const submitForm = () => {
+      if (isFormValid.value) {
+        emit('submit', formData.value)
+      }
+    }
+
+    // Resetear formulario cuando se abre el diálogo
+    watch(
+      () => props.visible,
+      (newVal) => {
+        if (newVal) {
+          formData.value = {
+            destination: null,
+            weight_sampled: null,
+            methodDestruction: null,
+            observation: '',
+          }
+        }
+      },
+    )
+
+    return {
+      formData,
+      isFormValid,
+      closeDialog,
+      submitForm,
+    }
+  },
+}
+</script>

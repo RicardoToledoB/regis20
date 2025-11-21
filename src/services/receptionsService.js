@@ -24,5 +24,13 @@ export default {
   // ✅ Eliminar usuario
   delete(id) {
     return axiosClient.delete(`/api/v1/receptions/${id}`)
-  }
+  },
+  getAllPaginatedByState() {
+    return axiosClient.delete(`/api/v1/receptions/getAllPaginated`)
+  },
+  getAllPaginatedByState(state, page, size, sort) {
+    return axiosClient.get(
+      `/api/v1/receptions/getAllPaginatedByState?state=${state}&page=${page}&size=${size}&sort=${sort}`,
+    )
+  },
 }

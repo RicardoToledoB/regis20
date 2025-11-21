@@ -6,21 +6,23 @@
       </template>
     </Button>
 
-    <Dialog 
+    <Dialog
       v-model:visible="visible"
-       :style="{ width: '30rem' }"
-
+      :style="{ width: '30rem' }"
       modal
       :headerStyle="{ padding: '1rem 1.5rem' }"
-       
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
-        <span class="text-xl font-semibold">Crear Locacion</span>
+        <span class="text-xl font-semibold">Crear Institución</span>
       </template>
 
       <!-- Spinner mientras se guarda -->
-      <div v-if="isLoading" class="flex justify-content-center align-items-center" style="height:200px;">
+      <div
+        v-if="isLoading"
+        class="flex justify-content-center align-items-center"
+        style="height: 200px"
+      >
         <ProgressSpinner />
       </div>
 
@@ -30,13 +32,11 @@
           <label>Nombre</label>
           <InputText v-model="form.name" class=" " />
         </div>
-
-    
       </div>
 
       <template #footer>
-        <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading"/>
-        <Button label="Guardar" @click="saveInstitution" :loading="isLoading"/>
+        <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading" />
+        <Button label="Guardar" @click="saveInstitution" :loading="isLoading" />
       </template>
     </Dialog>
   </div>
@@ -51,26 +51,27 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 
 export default {
-  name: "CreateInstitution",
-  components: {  InputText, Password, Button, Dialog },
-  emits: ["created"],
+  name: 'CreateInstitution',
+  components: { InputText, Password, Button, Dialog },
+  emits: ['created'],
 
   setup(props, { emit }) {
     const visible = ref(false)
     const isLoading = ref(false)
 
     const form = reactive({
-     name:""
+      name: '',
     })
 
-
-
-    const openDialog = () => { visible.value = true }
-    const closeDialog = () => { visible.value = false }
+    const openDialog = () => {
+      visible.value = true
+    }
+    const closeDialog = () => {
+      visible.value = false
+    }
 
     const resetForm = () => {
-      form.name=""
-   
+      form.name = ''
     }
 
     const saveInstitution = async () => {
@@ -79,12 +80,12 @@ export default {
         const payload = { ...form }
         const { data } = await institutions.create(payload)
 
-        emit("created", data) // actualiza la tabla Users.vue
+        emit('created', data) // actualiza la tabla Users.vue
 
         resetForm()
         closeDialog()
       } catch (e) {
-        console.error("❌ Error al crear la sustancia:", e)
+        console.error('❌ Error al crear la sustancia:', e)
       } finally {
         isLoading.value = false
       }
@@ -96,9 +97,9 @@ export default {
       isLoading,
       openDialog,
       closeDialog,
-      saveInstitution
+      saveInstitution,
     }
-  }
+  },
 }
 </script>
 

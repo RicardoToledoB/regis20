@@ -17,13 +17,21 @@
                   paginator
                   size="small"
                   :rows="10"
-                  :rowsPerPageOptions="[5,10,20,50]"
+                  :rowsPerPageOptions="[5, 10, 20, 50]"
                   scrollable
                   class="p-datatable-striped p-datatable-gridlines users-table"
                   :loading="loading"
                   :rowClass="rowClass"
                   dataKey="id"
-                  :globalFilterFields="['id', 'number', 'of_number', 'date_reception', 'of_number_date', 'police.firstName', 'police.firstLastName']"
+                  :globalFilterFields="[
+                    'id',
+                    'number',
+                    'of_number',
+                    'date_reception',
+                    'of_number_date',
+                    'police.firstName',
+                    'police.firstLastName',
+                  ]"
                 >
                   <template #header>
                     <div class="flex justify-content-end">
@@ -31,49 +39,49 @@
                         <InputIcon>
                           <i class="pi pi-search" />
                         </InputIcon>
-                        <InputText 
-                          v-model="filters['global'].value" 
-                          placeholder="Buscar en todos los campos..." 
+                        <InputText
+                          v-model="filters['global'].value"
+                          placeholder="Buscar en todos los campos..."
                         />
                       </IconField>
                     </div>
                   </template>
-                  
+
                   <template #empty> No se encontraron recepciones. </template>
                   <template #loading> Cargando recepciones. Por favor espere. </template>
 
                   <Column field="id" header="ID">
                     <template #filter="{ filterModel, filterCallback }">
-                      <InputText 
-                        v-model="filterModel.value" 
-                        type="text" 
-                        @input="filterCallback()" 
-                        class="p-column-filter" 
-                        placeholder="Buscar por ID" 
+                      <InputText
+                        v-model="filterModel.value"
+                        type="text"
+                        @input="filterCallback()"
+                        class="p-column-filter"
+                        placeholder="Buscar por ID"
                       />
                     </template>
                   </Column>
 
                   <Column field="number" header="N° Acta">
                     <template #filter="{ filterModel, filterCallback }">
-                      <InputText 
-                        v-model="filterModel.value" 
-                        type="text" 
-                        @input="filterCallback()" 
-                        class="p-column-filter" 
-                        placeholder="Buscar por N° Acta" 
+                      <InputText
+                        v-model="filterModel.value"
+                        type="text"
+                        @input="filterCallback()"
+                        class="p-column-filter"
+                        placeholder="Buscar por N° Acta"
                       />
                     </template>
                   </Column>
 
                   <Column field="of_number" header="N° Oficio">
                     <template #filter="{ filterModel, filterCallback }">
-                      <InputText 
-                        v-model="filterModel.value" 
-                        type="text" 
-                        @input="filterCallback()" 
-                        class="p-column-filter" 
-                        placeholder="Buscar por N° Oficio" 
+                      <InputText
+                        v-model="filterModel.value"
+                        type="text"
+                        @input="filterCallback()"
+                        class="p-column-filter"
+                        placeholder="Buscar por N° Oficio"
                       />
                     </template>
                   </Column>
@@ -83,12 +91,12 @@
                       {{ formatDate(slotProps.data.date_reception) }}
                     </template>
                     <template #filter="{ filterModel, filterCallback }">
-                      <InputText 
-                        v-model="filterModel.value" 
-                        type="text" 
-                        @input="filterCallback()" 
-                        class="p-column-filter" 
-                        placeholder="Buscar por fecha recepción" 
+                      <InputText
+                        v-model="filterModel.value"
+                        type="text"
+                        @input="filterCallback()"
+                        class="p-column-filter"
+                        placeholder="Buscar por fecha recepción"
                       />
                     </template>
                   </Column>
@@ -98,12 +106,12 @@
                       {{ formatDate(slotProps.data.of_number_date) }}
                     </template>
                     <template #filter="{ filterModel, filterCallback }">
-                      <InputText 
-                        v-model="filterModel.value" 
-                        type="text" 
-                        @input="filterCallback()" 
-                        class="p-column-filter" 
-                        placeholder="Buscar por fecha oficio" 
+                      <InputText
+                        v-model="filterModel.value"
+                        type="text"
+                        @input="filterCallback()"
+                        class="p-column-filter"
+                        placeholder="Buscar por fecha oficio"
                       />
                     </template>
                   </Column>
@@ -113,33 +121,43 @@
                       {{ getPoliceName(slotProps.data.police) }}
                     </template>
                     <template #filter="{ filterModel, filterCallback }">
-                      <InputText 
-                        v-model="filterModel.value" 
-                        type="text" 
-                        @input="filterCallback()" 
-                        class="p-column-filter" 
-                        placeholder="Buscar por policía" 
+                      <InputText
+                        v-model="filterModel.value"
+                        type="text"
+                        @input="filterCallback()"
+                        class="p-column-filter"
+                        placeholder="Buscar por policía"
                       />
                     </template>
                   </Column>
 
                   <Column header="Acciones">
                     <template #body="slotProps">
-                     <div class="flex align-items-center gap-2">
-                      <EditReception 
-                        :reception="slotProps.data" 
-                        @updated="handleReceptionUpdated" 
-                      />
-                       <ViewHistoryReception 
-                        :reception="slotProps.data"
-                      />
-                      <Button 
-                        icon="pi pi-file-pdf" 
-                        class="p-button-text p-button-help" 
-                        v-tooltip="'Generar PDF'"
-                        @click="generatePDF(slotProps.data)"
-                      />
-                    </div>
+                      <div class="flex align-items-center gap-2">
+                        <ViewHistoryReception :reception="slotProps.data" />
+                        <Button
+                          icon="pi pi-file-pdf"
+                          class="p-button-text p-button-help"
+                          v-tooltip="'Generar PDF'"
+                          @click="generatePDF(slotProps.data)"
+                        />
+                        <EditReceptionUnlock
+                          v-if="
+                            slotProps.data.is_editable !== 'SI' &&
+                            slotProps.data.state !== 'BORRADOR'
+                          "
+                          :reception="slotProps.data"
+                          @updated="handleReceptionUpdated"
+                        />
+                        <EditReception
+                          v-if="
+                            slotProps.data.is_editable === 'SI' ||
+                            slotProps.data.state === 'BORRADOR'
+                          "
+                          :reception="slotProps.data"
+                          @updated="handleReceptionUpdated"
+                        />
+                      </div>
                     </template>
                   </Column>
                 </DataTable>
@@ -171,7 +189,7 @@ import substancesService from '@/services/substancesService.js'
 import { generarActaPDF } from '@/others/generarActaBtn.js'
 import EditReception from '@/components/receptions/EditReception.vue'
 import ViewHistoryReception from '@/components/receptions/ViewHistoryReception.vue'
-
+import EditReceptionUnlock from '@/components/receptions/EditReceptionUnlock.vue'
 export default {
   name: 'ReceptionsView',
   components: {
@@ -185,7 +203,8 @@ export default {
     ViewHistoryReception,
     InputText,
     IconField,
-    InputIcon
+    InputIcon,
+    EditReceptionUnlock,
   },
 
   setup() {
@@ -202,7 +221,7 @@ export default {
       of_number: { value: null, matchMode: FilterMatchMode.CONTAINS },
       date_reception: { value: null, matchMode: FilterMatchMode.CONTAINS },
       of_number_date: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      police: { value: null, matchMode: FilterMatchMode.CONTAINS }
+      police: { value: null, matchMode: FilterMatchMode.CONTAINS },
     })
 
     const fetchReceptions = async () => {
@@ -210,14 +229,14 @@ export default {
         loading.value = true
         const { data } = await recepcionService.getAll()
         receptions.value = data.content || data || []
-        console.log("✅ Recepciones cargadas:", receptions.value)
+        console.log('✅ Recepciones cargadas:', receptions.value)
       } catch (error) {
-        console.error("❌ Error cargando recepciones:", error)
+        console.error('❌ Error cargando recepciones:', error)
         toast.add({
           severity: 'error',
           summary: 'Error',
           detail: 'No se pudieron cargar las recepciones',
-          life: 3000
+          life: 3000,
         })
       } finally {
         loading.value = false
@@ -230,17 +249,33 @@ export default {
       return data.state === 'BORRADOR' ? 'borrador-row' : ''
     }
 
-    const handleReceptionUpdated = (updatedReception) => {
-      const index = receptions.value.findIndex(r => r.id === updatedReception.id)
-      if (index !== -1) {
-        receptions.value[index] = updatedReception
+    const handleReceptionUpdated = (payload) => {
+      // El componente hijo puede emitir directamente la recepción o un objeto { reception, message }
+      const updated = payload && payload.reception ? payload.reception : payload
+
+      if (!updated || !updated.id) {
+        // Si no hay un objeto válido, recargar la lista como fallback
+        fetchReceptions()
+        toast.add({
+          severity: 'warn',
+          summary: 'Atención',
+          detail: 'No se recibió la recepción actualizada',
+          life: 3000,
+        })
+        return
       }
-      toast.add({ 
-        severity: 'success', 
-        summary: 'Actualizada', 
-        detail: 'Recepción actualizada correctamente', 
-        life: 3000 
-      })
+
+      const index = receptions.value.findIndex((r) => r.id === updated.id)
+      if (index !== -1) {
+        // Reemplazar el elemento existente (preserva reactividad)
+        receptions.value.splice(index, 1, updated)
+      } else {
+        // Si no estaba en la lista, recargar para sincronizar
+        fetchReceptions()
+      }
+
+      const message = (payload && payload.message) || 'Recepción actualizada correctamente'
+      toast.add({ severity: 'success', summary: 'Actualizada', detail: message, life: 3000 })
     }
 
     const generatePDF = async (reception) => {
@@ -249,7 +284,7 @@ export default {
           severity: 'info',
           summary: 'Generando PDF...',
           detail: `Creando acta para recepción #${reception.id}`,
-          life: 2000
+          life: 2000,
         })
 
         // 1️⃣ Obtener recepción por ID
@@ -258,7 +293,7 @@ export default {
         // 2️⃣ Obtener sustancias (temporal hasta que llegue el endpoint real)
         const { data: substancesData } = await substancesService.getByReceptionId(reception.id)
         // filtrar por recepción si existe esa relación
-        const substances = substancesData.filter(s => s.reception?.id === reception.id)
+        const substances = substancesData.filter((s) => s.reception?.id === reception.id)
 
         // 3️⃣ Llamar a la función del PDF
         generarActaPDF(receptionData, substances)
@@ -267,22 +302,22 @@ export default {
           severity: 'success',
           summary: 'PDF generado',
           detail: `Acta de recepción #${reception.number} descargada`,
-          life: 3000
+          life: 3000,
         })
       } catch (error) {
-        console.error("❌ Error generando PDF:", error)
+        console.error('❌ Error generando PDF:', error)
         toast.add({
           severity: 'error',
           summary: 'Error',
           detail: 'No se pudo generar el PDF del acta',
-          life: 3000
+          life: 3000,
         })
       }
     }
 
     const handleReceptionCreated = (newReception) => {
       receptions.value.unshift(newReception)
-      console.log("✅ Nueva recepción agregada a la tabla:", newReception)
+      console.log('✅ Nueva recepción agregada a la tabla:', newReception)
     }
 
     const getPoliceName = (police) => {
@@ -297,12 +332,12 @@ export default {
     }
 
     const viewReception = (reception) => {
-      console.log("Ver recepción:", reception)
+      console.log('Ver recepción:', reception)
       toast.add({
         severity: 'info',
         summary: 'Ver recepción',
         detail: `Viendo recepción #${reception.id}`,
-        life: 2000
+        life: 2000,
       })
     }
 
@@ -313,33 +348,33 @@ export default {
         icon: 'pi pi-exclamation-triangle',
         accept: () => {
           deleteReception(reception.id)
-        }
+        },
       })
     }
 
     const deleteReception = async (id) => {
       try {
         await recepcionService.delete(id)
-        receptions.value = receptions.value.filter(r => r.id !== id)
+        receptions.value = receptions.value.filter((r) => r.id !== id)
         toast.add({
           severity: 'success',
           summary: 'Éxito',
           detail: 'Recepción eliminada correctamente',
-          life: 3000
+          life: 3000,
         })
       } catch (error) {
-        console.error("❌ Error eliminando recepción:", error)
+        console.error('❌ Error eliminando recepción:', error)
         toast.add({
           severity: 'error',
           summary: 'Error',
           detail: 'No se pudo eliminar la recepción',
-          life: 3000
+          life: 3000,
         })
       }
     }
 
     onMounted(() => {
-      console.log("✅ Vista de recepciones cargada")
+      console.log('✅ Vista de recepciones cargada')
       fetchReceptions()
     })
 
@@ -355,9 +390,9 @@ export default {
       formatDate,
       viewReception,
       confirmDelete,
-      handleReceptionUpdated
+      handleReceptionUpdated,
     }
-  }
+  },
 }
 </script>
 

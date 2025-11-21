@@ -1,29 +1,25 @@
 <template>
   <div class="app-sidebar" :class="{ 'sidebar-collapsed': collapsed }">
     <!-- Header del Sidebar -->
- <div class="sidebar-header">
-  <!-- Versión expandida -->
-  <div class="logo-section" v-if="!collapsed">
-    <img src="/ssm/logo-ssm.png" alt="Logo" class="logo" />
-    <span class="brand-name">REGIS20</span>
-    <Button
-      @click="toggleSidebar"
-      class="p-button-text p-button-secondary toggle-btn-inline"
-      v-tooltip="collapsed ? 'Expandir' : 'Contraer'"
-    >
-      <i :class="collapsed ? 'pi pi-chevron-right' : 'pi pi-chevron-left'" />
-    </Button>
-  </div>
+    <div class="sidebar-header">
+      <!-- Versión expandida -->
+      <div class="logo-section" v-if="!collapsed">
+        <img src="/ssm/logo-ssm.png" alt="Logo" class="logo" />
+        <span class="brand-name">REGIS20</span>
+        <Button
+          @click="toggleSidebar"
+          class="p-button-text p-button-secondary toggle-btn-inline"
+          v-tooltip="collapsed ? 'Expandir' : 'Contraer'"
+        >
+          <i :class="collapsed ? 'pi pi-chevron-right' : 'pi pi-chevron-left'" />
+        </Button>
+      </div>
 
-  <!-- Versión colapsada -->
-  <Button 
-    v-else
-    class="p-button-text p-button-plain logo-btn"
-    @click="toggleSidebar"
-  >
-    <img src="/ssm/logo-ssm.png"  class="logo-collapsed" />
-  </Button>
-</div>
+      <!-- Versión colapsada -->
+      <Button v-else class="p-button-text p-button-plain logo-btn" @click="toggleSidebar">
+        <img src="/ssm/logo-ssm.png" class="logo-collapsed" />
+      </Button>
+    </div>
 
     <!-- Menú de Navegación -->
     <div class="navigation-section">
@@ -32,14 +28,14 @@
         <div class="menu-section" v-if="!collapsed">
           <span class="section-label">Principal</span>
         </div>
-        <router-link 
-          v-for="item in mainMenu" 
+        <router-link
+          v-for="item in mainMenu"
           :key="item.to"
-          :to="item.to" 
+          :to="item.to"
           class="menu-item"
-          :class="{ 
+          :class="{
             'active-route': $route.path === item.to,
-            'collapsed-item': collapsed
+            'collapsed-item': collapsed,
           }"
         >
           <div class="menu-item-content">
@@ -47,40 +43,34 @@
             <span class="menu-text" v-if="!collapsed">{{ item.label }}</span>
           </div>
         </router-link>
-        
+
         <div v-if="!collapsed">
-          <hr>
+          <hr />
           <div class="menu-section">
             <span class="section-label">Mantenedores</span>
           </div>
         </div>
         <div v-else>
-          <hr>
+          <hr />
         </div>
 
         <!-- Seguridad y Usuarios -->
         <div class="menu-dropdown" v-if="!collapsed">
-          <div 
-            class="dropdown-header"
-            @click="toggleDropdown('security')"
-          >
+          <div class="dropdown-header" @click="toggleDropdown('security')">
             <div class="dropdown-header-content">
               <i class="pi pi-shield menu-icon" />
               <span class="menu-text">Seguridad y Usuarios</span>
             </div>
-            <i 
-              :class="openDropdowns.security ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" 
+            <i
+              :class="openDropdowns.security ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
               class="dropdown-arrow"
             />
           </div>
-          <div 
-            class="dropdown-content" 
-            :class="{ 'dropdown-open': openDropdowns.security }"
-          >
-            <router-link 
-              v-for="item in securityMenu" 
+          <div class="dropdown-content" :class="{ 'dropdown-open': openDropdowns.security }">
+            <router-link
+              v-for="item in securityMenu"
               :key="item.to"
-              :to="item.to" 
+              :to="item.to"
               class="dropdown-item"
               :class="{ 'active-route': $route.path === item.to }"
             >
@@ -92,10 +82,10 @@
 
         <!-- Versión colapsada para Seguridad -->
         <template v-else>
-          <router-link 
-            v-for="item in securityMenu" 
+          <router-link
+            v-for="item in securityMenu"
             :key="item.to"
-            :to="item.to" 
+            :to="item.to"
             class="menu-item collapsed-item"
             :class="{ 'active-route': $route.path === item.to }"
           >
@@ -107,27 +97,21 @@
 
         <!-- Geografía y Ubicaciones -->
         <div class="menu-dropdown" v-if="!collapsed">
-          <div 
-            class="dropdown-header"
-            @click="toggleDropdown('geography')"
-          >
+          <div class="dropdown-header" @click="toggleDropdown('geography')">
             <div class="dropdown-header-content">
               <i class="pi pi-map-marker menu-icon" />
               <span class="menu-text">Geografía y Ubicaciones</span>
             </div>
-            <i 
-              :class="openDropdowns.geography ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" 
+            <i
+              :class="openDropdowns.geography ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
               class="dropdown-arrow"
             />
           </div>
-          <div 
-            class="dropdown-content" 
-            :class="{ 'dropdown-open': openDropdowns.geography }"
-          >
-            <router-link 
-              v-for="item in geographyMenu" 
+          <div class="dropdown-content" :class="{ 'dropdown-open': openDropdowns.geography }">
+            <router-link
+              v-for="item in geographyMenu"
               :key="item.to"
-              :to="item.to" 
+              :to="item.to"
               class="dropdown-item"
               :class="{ 'active-route': $route.path === item.to }"
             >
@@ -139,10 +123,10 @@
 
         <!-- Versión colapsada para Geografía -->
         <template v-else>
-          <router-link 
-            v-for="item in geographyMenu" 
+          <router-link
+            v-for="item in geographyMenu"
             :key="item.to"
-            :to="item.to" 
+            :to="item.to"
             class="menu-item collapsed-item"
             :class="{ 'active-route': $route.path === item.to }"
           >
@@ -154,27 +138,21 @@
 
         <!-- Instituciones y Personal -->
         <div class="menu-dropdown" v-if="!collapsed">
-          <div 
-            class="dropdown-header"
-            @click="toggleDropdown('institutions')"
-          >
+          <div class="dropdown-header" @click="toggleDropdown('institutions')">
             <div class="dropdown-header-content">
               <i class="pi pi-building menu-icon" />
               <span class="menu-text">Instituciones y Personal</span>
             </div>
-            <i 
-              :class="openDropdowns.institutions ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" 
+            <i
+              :class="openDropdowns.institutions ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
               class="dropdown-arrow"
             />
           </div>
-          <div 
-            class="dropdown-content" 
-            :class="{ 'dropdown-open': openDropdowns.institutions }"
-          >
-            <router-link 
-              v-for="item in institutionsMenu" 
+          <div class="dropdown-content" :class="{ 'dropdown-open': openDropdowns.institutions }">
+            <router-link
+              v-for="item in institutionsMenu"
               :key="item.to"
-              :to="item.to" 
+              :to="item.to"
               class="dropdown-item"
               :class="{ 'active-route': $route.path === item.to }"
             >
@@ -186,10 +164,10 @@
 
         <!-- Versión colapsada para Instituciones -->
         <template v-else>
-          <router-link 
-            v-for="item in institutionsMenu" 
+          <router-link
+            v-for="item in institutionsMenu"
             :key="item.to"
-            :to="item.to" 
+            :to="item.to"
             class="menu-item collapsed-item"
             :class="{ 'active-route': $route.path === item.to }"
           >
@@ -201,27 +179,21 @@
 
         <!-- Inventario y Sustancias -->
         <div class="menu-dropdown" v-if="!collapsed">
-          <div 
-            class="dropdown-header"
-            @click="toggleDropdown('inventory')"
-          >
+          <div class="dropdown-header" @click="toggleDropdown('inventory')">
             <div class="dropdown-header-content">
               <i class="pi pi-box menu-icon" />
               <span class="menu-text">Inventario y Sustancias</span>
             </div>
-            <i 
-              :class="openDropdowns.inventory ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" 
+            <i
+              :class="openDropdowns.inventory ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
               class="dropdown-arrow"
             />
           </div>
-          <div 
-            class="dropdown-content" 
-            :class="{ 'dropdown-open': openDropdowns.inventory }"
-          >
-            <router-link 
-              v-for="item in inventoryMenu" 
+          <div class="dropdown-content" :class="{ 'dropdown-open': openDropdowns.inventory }">
+            <router-link
+              v-for="item in inventoryMenu"
               :key="item.to"
-              :to="item.to" 
+              :to="item.to"
               class="dropdown-item"
               :class="{ 'active-route': $route.path === item.to }"
             >
@@ -233,10 +205,10 @@
 
         <!-- Versión colapsada para Inventario -->
         <template v-else>
-          <router-link 
-            v-for="item in inventoryMenu" 
+          <router-link
+            v-for="item in inventoryMenu"
             :key="item.to"
-            :to="item.to" 
+            :to="item.to"
             class="menu-item collapsed-item"
             :class="{ 'active-route': $route.path === item.to }"
           >
@@ -249,13 +221,13 @@
     </div>
 
     <!-- Footer del Sidebar -->
-    <hr>
+    <hr />
     <div class="sidebar-footer" v-if="!collapsed">
       <div class="app-version">
         <span>v1.0.0</span>
       </div>
       <div class="footer-actions">
-        <Button 
+        <Button
           class="p-button-text p-button-plain"
           v-tooltip="'Cerrar Sesión'"
           @click="showLogoutConfirmation"
@@ -266,8 +238,8 @@
     </div>
 
     <!-- Diálogo de Confirmación de Cierre de Sesión -->
-    <Dialog 
-      v-model:visible="showLogoutDialog" 
+    <Dialog
+      v-model:visible="showLogoutDialog"
       modal
       :style="{ width: '400px' }"
       header="Confirmar Cierre de Sesión"
@@ -283,18 +255,13 @@
         </div>
       </div>
       <template #footer>
-        <Button 
-          label="Cancelar" 
-          severity="secondary" 
-          @click="showLogoutDialog = false" 
+        <Button
+          label="Cancelar"
+          severity="secondary"
+          @click="showLogoutDialog = false"
           class="p-button-text"
         />
-        <Button 
-          label="Sí, Cerrar Sesión" 
-          severity="danger" 
-          @click="confirmLogout" 
-          autofocus
-        />
+        <Button label="Sí, Cerrar Sesión" severity="danger" @click="confirmLogout" autofocus />
       </template>
     </Dialog>
   </div>
@@ -316,7 +283,7 @@ const openDropdowns = reactive({
   security: false,
   geography: false,
   institutions: false,
-  inventory: false
+  inventory: false,
 })
 
 const toggleSidebar = () => {
@@ -337,23 +304,23 @@ const confirmLogout = () => {
   // Limpiar todas las variables del localStorage relacionadas con la sesión
   const sessionKeys = [
     'userName',
-    'sessionTime', 
+    'sessionTime',
     'sessionLastUpdate',
     'token',
     'userRole',
-    'userId'
+    'userId',
   ]
-  
-  sessionKeys.forEach(key => {
+
+  sessionKeys.forEach((key) => {
     localStorage.removeItem(key)
   })
-  
+
   // También limpiar sessionStorage por si acaso
   sessionStorage.clear()
-  
+
   // Cerrar el diálogo
   showLogoutDialog.value = false
-  
+
   // Redirigir al login
   router.push('/')
 }
@@ -370,15 +337,20 @@ const mainMenu = ref([
     icon: 'pi pi-inbox',
     to: '/receptions',
   },
-   {
+  {
     label: 'Pre-Análisis',
     icon: 'pi pi-file-edit',
     to: '/pre-analysis',
   },
-   {
+  {
     label: 'Análisis',
     icon: 'pi pi-file-check',
     to: '/analysis',
+  },
+  {
+    label: 'Almacenamiento',
+    icon: 'pi pi-file-check',
+    to: '/storage',
   },
 ])
 
@@ -427,7 +399,7 @@ const institutionsMenu = ref([
     icon: 'pi pi-building',
     to: '/institution-type',
   },
-  
+
   {
     label: 'Grados',
     icon: 'pi pi-star',
@@ -467,7 +439,7 @@ const inventoryMenu = ref([
 
 <style scoped>
 .app-sidebar {
-  display: flex;              /* ya lo tenías, reafirmamos */
+  display: flex; /* ya lo tenías, reafirmamos */
   flex-direction: column;
   width: 270px;
   height: 100vh;
@@ -479,8 +451,8 @@ const inventoryMenu = ref([
   top: 0;
   z-index: 1000;
   border-right: 1px solid var(--surface-700);
-  box-sizing: border-box;     /* evitar saltos por padding/border */
-  min-width: 70px;            /* evita colapsos extremos */
+  box-sizing: border-box; /* evitar saltos por padding/border */
+  min-width: 70px; /* evita colapsos extremos */
 }
 
 .sidebar-collapsed {
@@ -505,7 +477,6 @@ const inventoryMenu = ref([
   border-top: 1px solid var(--surface-border); /* línea sutil arriba */
   margin-top: auto; /* empuja el footer al final si el contenedor usa flex */
 }
-
 
 /* Logo y título en una sola línea */
 .logo-section {
@@ -565,8 +536,8 @@ const inventoryMenu = ref([
 
 /* Navegación */
 .navigation-section {
-  flex: 1 1 auto;            /* ocupa el espacio disponible */
-  min-height: 0;             /* IMPORTANT: permite que el child haga scroll */
+  flex: 1 1 auto; /* ocupa el espacio disponible */
+  min-height: 0; /* IMPORTANT: permite que el child haga scroll */
   padding: 1rem 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* scroll suave en iOS */
@@ -774,7 +745,7 @@ const inventoryMenu = ref([
   background: transparent;
 }
 .navigation-section::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 8px;
 }
 
