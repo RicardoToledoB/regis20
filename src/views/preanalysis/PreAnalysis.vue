@@ -82,8 +82,9 @@
                         <!-- BOTÓN PARA ACEPTAR RECEPCIÓN (solo si no es editable) -->
                         <Button
                           v-if="
-                            slotProps.data.is_editable !== 'SI' &&
-                            slotProps.data.state === 'FINALIZADO'
+                            (slotProps.data.is_editable !== 'SI' &&
+                              slotProps.data.state === 'FINALIZADO') ||
+                            slotProps.data.state === 'EDITADO'
                           "
                           icon="pi pi-check"
                           class="p-button-text p-button-success"
@@ -425,7 +426,7 @@ export default {
     const isRowSelectable = (data) => {
       console.log(data.state)
       console.log(data.reception.state)
-      if (data.state != 'EN_PRE_ANALISIS' && data.reception.state === 'ACEPTADO') {
+      if (data.state != 'DERIVADO' && data.reception.state === 'ACEPTADO') {
         return ''
       } else {
         return 'p-disabled'
@@ -451,11 +452,35 @@ export default {
     const fetchReceptions = async () => {
       try {
         loading.value = true
+
+        // Preserve expanded rows before refreshing
+        const expandedBefore = { ...expandedRows.value }
+
         const { data } = await recepcionService.getAllPaginatedByState('', 0, 10, 'asc')
         receptions.value = data.content || data || []
 
-        // Verificar pre-análisis existentes para cada sustancia
-        await checkExistingPreAnalysis()
+        // If there were expanded rows, reload substances for them so UI doesn't disappear
+        const reloadPromises = []
+        const expandedKeys = Object.keys(expandedBefore || {})
+        if (expandedKeys.length > 0) {
+          for (const key of expandedKeys) {
+            const recId = Number(key)
+            const reception = receptions.value.find((r) => Number(r.id) === recId)
+            if (reception) {
+              reloadPromises.push(loadSubstancesForReception(reception))
+            }
+          }
+          // Wait for all expanded receptions to load their substances
+          await Promise.all(reloadPromises)
+        } else {
+          // If no expanded rows, still ensure pre-analysis mapping is up-to-date
+          await checkExistingPreAnalysis()
+        }
+
+        // Clean selectedSubstances to only keep those still present in receptions
+        selectedSubstances.value = selectedSubstances.value.filter((ss) =>
+          receptions.value.some((r) => r.substances && r.substances.some((s) => s.id === ss.id)),
+        )
       } catch (e) {
         toast.add({
           severity: 'error',
@@ -464,6 +489,23 @@ export default {
         })
       } finally {
         loading.value = false
+      }
+    }
+
+    // Helper: carga sustancias para una recepción y marca loading
+    const loadSubstancesForReception = async (reception) => {
+      if (!reception) return
+      try {
+        loadingSubstances.value = reception.id
+        const { data } = await substancesService.getByReceptionId(reception.id)
+        reception.substances = data.content || data || []
+
+        // Verificar si cada sustancia tiene pre-análisis (actualiza flags)
+        await checkExistingPreAnalysis()
+      } catch (err) {
+        console.error('Error cargando sustancias para recepción:', reception.id, err)
+      } finally {
+        loadingSubstances.value = null
       }
     }
     const fetchDropdownData = async () => {
@@ -606,7 +648,7 @@ export default {
             micro: null,
             state: 'PENDIENTE',
             user: { id: parseInt(localStorage.getItem('user_id')) || 1 },
-            template: null,
+            template: { id: 1 }, // Plantilla por defecto
             preAnalysis: { id: createdPre.id || createdPre?.data?.id || createdPre },
           }
 
@@ -624,7 +666,7 @@ export default {
         // Actualizar estado de la sustancia
         await substancesService.update(selectedSubstance.value.id, {
           ...selectedSubstance.value,
-          state: 'EN_PRE_ANALISIS',
+          state: 'DERIVADO',
         })
 
         toast.add({
@@ -744,7 +786,7 @@ export default {
                 micro: null,
                 state: 'PENDIENTE',
                 user: { id: parseInt(localStorage.getItem('user_id')) || 1 },
-                template: null,
+                template: { id: 1 }, // Plantilla por defecto
                 preAnalysis: createdPre,
               }
 
@@ -775,7 +817,7 @@ export default {
             // Actualizar estado de la sustancia
             const payloadSubstance = {
               ...substance,
-              state: 'EN_PRE_ANALISIS',
+              state: 'DERIVADO',
             }
             await substancesService.update(substance.id, payloadSubstance)
 
@@ -871,21 +913,8 @@ export default {
     }
 
     const onRowExpand = async (event) => {
-      const reception = event.data
-      loadingSubstances.value = reception.id
-
-      try {
-        const { data } = await substancesService.getByReceptionId(reception.id)
-        reception.substances = data.content || data || []
-        console.log(data)
-
-        // Verificar si cada sustancia tiene pre-análisis
-        await checkExistingPreAnalysis()
-      } catch (err) {
-        console.error('Error cargando sustancias:', err)
-      } finally {
-        loadingSubstances.value = null
-      }
+      // Use the helper so the same logic is reused when we refresh receptions
+      await loadSubstancesForReception(event.data)
     }
 
     const onRowCollapse = (event) => {

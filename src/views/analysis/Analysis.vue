@@ -177,9 +177,25 @@
                       }}
                     </template>
                   </Column>
+                  <Column field="state" header="Estado">
+                    <template #body="slotProps">
+                      {{ slotProps.data.state }}
+                    </template>
+                  </Column>
                   <Column field="createdAt" header="Fecha">
                     <template #body="slotProps">
                       {{ formatDate(slotProps.data.createdAt) }}
+                    </template>
+                  </Column>
+                  <Column header="Acciones">
+                    <template #body="slotProps">
+                      <div class="flex align-items-center gap-2">
+                        <CompleteAnalysis
+                          v-if="slotProps.data.state === 'PENDIENTE'"
+                          :analysis="slotProps.data"
+                          @processed="fetchAnalyses"
+                        />
+                      </div>
                     </template>
                   </Column>
                 </DataTable>
@@ -248,6 +264,7 @@ import storagesService from '@/services/storagesService.js'
 
 import PreAnalysisDialog from '@/components/preanalysis/PreAnalysisDialog.vue'
 import BulkPreAnalysisDialog from '@/components/preanalysis/BulkPreAnalysisDialog.vue'
+import CompleteAnalysis from '@/components/analysis/CompleteAnalysis.vue'
 export default {
   name: 'PreAnalysisView',
   components: {
@@ -270,6 +287,7 @@ export default {
     EditReceptionUnlock,
     PreAnalysisDialog,
     BulkPreAnalysisDialog,
+    CompleteAnalysis,
   },
 
   setup() {
@@ -329,7 +347,7 @@ export default {
     const isRowSelectable = (data) => {
       console.log(data.state)
       console.log(data.reception.state)
-      if (data.state != 'EN_PRE_ANALISIS' && data.reception.state === 'ACEPTADO') {
+      if (data.state != 'DERIVADO' && data.reception.state === 'ACEPTADO') {
         return ''
       } else {
         return 'p-disabled'
@@ -513,7 +531,7 @@ export default {
           preAnalysisService.create(payload),
           substancesService.update(selectedSubstance.value.id, {
             ...selectedSubstance.value,
-            state: 'EN_PRE_ANALISIS',
+            state: 'DERIVADO',
           }),
         ])
 
@@ -638,7 +656,7 @@ export default {
             // Actualizar estado de la sustancia
             const payloadSubstance = {
               ...substance,
-              state: 'EN_PRE_ANALISIS',
+              state: 'DERIVADO',
             }
             await substancesService.update(substance.id, payloadSubstance)
 
@@ -794,6 +812,18 @@ export default {
       return destination?.name || '—'
     }
 
+    const formatDate = (dateString) => {
+      if (!dateString) return '—'
+      const date = new Date(dateString)
+      try {
+        return date.toLocaleDateString('es-CL')
+      } catch (e) {
+        return date.toISOString().split('T')[0]
+      }
+    }
+
+    // Processing of analyses is handled by the per-row `CompleteAnalysis` component
+
     const viewReceptionDetail = (reception) => {
       console.log('👁️ Ver recepción:', reception)
       toast.add({
@@ -884,6 +914,7 @@ export default {
       viewPreAnalysis,
       generatePDF,
       handleReceptionUpdated,
+      formatDate,
       destinations,
       methodsDestruction,
       loadingDestinations,
