@@ -1,0 +1,77 @@
+[
+  {
+    "name": "Comisaría",
+    "description": "Unidad policial local",
+    "commune": {
+      "id": 1,
+      "name": "Punta Arenas"
+    },
+    "institution": {
+      "id": 1,
+      "name": "Carabineros de Chile"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Brigada de Droga",
+    "description": "Unidad especializada en drogas",
+    "commune": {
+      "id": 1,
+      "name": "Punta Arenas"
+    },
+    "institution": {
+      "id": 2,
+      "name": "Policía de Investigaciones"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Central de Policía",
+    "description": "Oficina central",
+    "commune": {
+      "id": 1,
+      "name": "Punta Arenas"
+    },
+    "institution": {
+      "id": 1,
+      "name": "Carabineros de Chile"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Delegación PDI",
+    "description": "Delegación regional",
+    "commune": {
+      "id": 1,
+      "name": "Punta Arenas"
+    },
+    "institution": {
+      "id": 3,
+      "name": "PDI"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Sección de Laboratorio",
+    "description": "Laboratorio forense",
+    "commune": {
+      "id": 1,
+      "name": "Punta Arenas"
+    },
+    "institution": {
+      "id": 5,
+      "name": "Servicio de Salud Magallanes"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  }
+]

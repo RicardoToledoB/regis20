@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Administrador",
+    "description": "Acceso total al sistema",
+    "permissions": ["create", "read", "update", "delete"],
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Operador",
+    "description": "Acceso para crear y editar recepciones",
+    "permissions": ["create", "read", "update"],
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Analista",
+    "description": "Acceso para realizar análisis",
+    "permissions": ["read", "update"],
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Visualizador",
+    "description": "Acceso solo lectura",
+    "permissions": ["read"],
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Supervisor",
+    "description": "Acceso para supervisar operaciones",
+    "permissions": ["read", "update"],
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  }
+]

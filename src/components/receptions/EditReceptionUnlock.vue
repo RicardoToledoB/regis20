@@ -110,6 +110,19 @@ export default {
     ProgressSpinner,
   },
   setup(props, { emit }) {
+    // Helper para formato DD-MM-YYYY
+    const formatDateOnly = (date) => {
+      if (!date) return null
+      let d = date
+      if (typeof date === 'string') {
+        d = new Date(date)
+        if (isNaN(d)) return date // fallback: return as is
+      }
+      const day = String(d.getDate()).padStart(2, '0')
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const year = d.getFullYear()
+      return `${day}-${month}-${year}`
+    }
     const visible = ref(false)
     const isLoading = ref(false)
     const isSaving = ref(false)
@@ -563,8 +576,8 @@ export default {
           id: form.id,
           number: form.number,
           of_number: form.of_number,
-          of_number_date: form.of_number_date,
-          date_reception: form.date_reception,
+          of_number_date: formatDateOnly(form.of_number_date),
+          date_reception: formatDateOnly(form.date_reception),
           location: form.location && form.location.id ? { id: form.location.id } : null,
           state: 'EDITABLE',
           is_editable: 'SI',

@@ -1,0 +1,86 @@
+[
+  {
+    "rut": "15.555.555-5",
+    "firstName": "Carlos",
+    "secondName": "Antonio",
+    "firstLastName": "Martinez",
+    "secondLastName": "Silva",
+    "email": "carlos.martinez@carabineros.cl",
+    "cellphone": "912555555",
+    "grade": {
+      "id": 1,
+      "name": "Subteniente"
+    },
+    "institution": {
+      "id": 1,
+      "name": "Carabineros de Chile"
+    },
+    "institutionType": {
+      "id": 1,
+      "name": "Comisaría",
+      "commune": {
+        "id": 1,
+        "name": "Punta Arenas"
+      }
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "rut": "16.666.666-6",
+    "firstName": "Roberto",
+    "secondName": "Felipe",
+    "firstLastName": "Gutiérrez",
+    "secondLastName": "Morales",
+    "email": "roberto.gutierrez@pdi.cl",
+    "cellphone": "912666666",
+    "grade": {
+      "id": 4,
+      "name": "Inspector"
+    },
+    "institution": {
+      "id": 2,
+      "name": "Policía de Investigaciones"
+    },
+    "institutionType": {
+      "id": 2,
+      "name": "Brigada de Droga",
+      "commune": {
+        "id": 1,
+        "name": "Punta Arenas"
+      }
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "rut": "17.777.777-7",
+    "firstName": "Patricia",
+    "secondName": "Alejandra",
+    "firstLastName": "Villalobos",
+    "secondLastName": "Paez",
+    "email": "patricia.villalobos@pdi.cl",
+    "cellphone": "912777777",
+    "grade": {
+      "id": 5,
+      "name": "Detective"
+    },
+    "institution": {
+      "id": 3,
+      "name": "PDI"
+    },
+    "institutionType": {
+      "id": 4,
+      "name": "Delegación PDI",
+      "commune": {
+        "id": 1,
+        "name": "Punta Arenas"
+      }
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  }
+]

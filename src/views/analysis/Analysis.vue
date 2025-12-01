@@ -5,108 +5,18 @@
         <div class="page-content">
           <div class="flex justify-content-between align-items-center mb-0">
             <h1>Gestión de Análisis</h1>
+            <Button
+              v-if="selectedAnalysis.length > 0"
+              icon="pi pi-file-pdf"
+              label="Generar Informe Consolidado"
+              class="p-button-success"
+              @click="generateConsolidatedReport"
+              v-tooltip.top="
+                `Generar informe con ${selectedAnalysis.length} análisis seleccionado(s)`
+              "
+            />
           </div>
           <TabView>
-            <TabPanel header="Pre-Análisis">
-              <div class="table-container">
-                <DataTable
-                  v-model:filters="filters"
-                  v-model:selection="selectedPreAnalysis"
-                  :value="preAnalysisList"
-                  paginator
-                  size="small"
-                  :rows="10"
-                  :loading="loadingPreAnalysis"
-                  dataKey="id"
-                  scrollable
-                  class="p-datatable-striped p-datatable-gridlines users-table"
-                  :globalFilterFields="[
-                    'id',
-                    'substance.substanceType.name',
-                    'reception.number',
-                    'weight_sampled',
-                    'observation',
-                    'destination.name',
-                    'methodDestruction.name',
-                    'user.firstName',
-                    'user.lastName',
-                  ]"
-                  :rowClass="rowClassPreAnalysis"
-                >
-                  <!-- BOTONES SUPERIORES -->
-                  <template #header>
-                    <div class="flex justify-content-between align-items-center w-full">
-                      <IconField iconPosition="left">
-                        <InputIcon><i class="pi pi-search" /></InputIcon>
-                        <InputText
-                          v-model="filtersReception.global.value"
-                          placeholder="Buscar..."
-                        />
-                      </IconField>
-                    </div>
-                  </template>
-
-                  <template #empty> No se encontraron recepciones. </template>
-
-                  <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-
-                  <Column field="reception" header="N° de Acta">
-                    <template #body="slotProps">
-                      #{{ slotProps.data.reception?.number || '—' }}
-                    </template>
-                  </Column>
-                  <Column field="substance" header="Sustancia">
-                    <template #body="slotProps">
-                      {{ getSubstanceName(slotProps.data.substance) }}
-                    </template>
-                  </Column>
-
-                  <Column field="weight_sampled" header="Peso(gr)">
-                    <template #body="slotProps">
-                      {{ slotProps.data.weight_sampled ?? '—' }}
-                    </template>
-                  </Column>
-
-                  <Column field="observation" header="Observación">
-                    <template #body="slotProps">
-                      {{ slotProps.data.observation || 'Sin observación' }}
-                    </template>
-                  </Column>
-
-                  <Column field="destination" header="Destino">
-                    <template #body="slotProps">
-                      {{ getDestinationName(slotProps.data.destination?.id) }}
-                    </template>
-                  </Column>
-
-                  <Column field="methodDestruction" header="Mét. Destrucción">
-                    <template #body="slotProps">
-                      {{ slotProps.data.methodDestruction?.name || '—' }}
-                    </template>
-                  </Column>
-
-                  <Column header="Acciones">
-                    <template #body="slotProps">
-                      <div class="flex align-items-center gap-2">
-                        <Button
-                          icon="pi pi-eye"
-                          class="p-button-text p-button-info"
-                          v-tooltip="'Ver Detalle'"
-                          @click="viewPreAnalysis(slotProps.data)"
-                        />
-                        <Button
-                          icon="pi pi-file-pdf"
-                          class="p-button-text p-button-help"
-                          v-tooltip="'Generar Informe PDF'"
-                          @click="generatePDF(slotProps.data)"
-                        />
-                      </div>
-                    </template>
-                  </Column>
-                </DataTable>
-              </div>
-            </TabPanel>
-
             <TabPanel header="Análisis">
               <div class="table-container">
                 <DataTable
@@ -145,8 +55,18 @@
                     </div>
                   </template>
 
-                  <template #empty> No se encontraron pre-análisis. </template>
-                  <template #loading> Cargando pre-análisis. Por favor espere. </template>
+                  <template #empty> No se encontraron análisis. </template>
+                  <template #loading> Cargando análisis. Por favor espere. </template>
+                  <Column headerStyle="width: 3rem; text-align:center;">
+                    <template #body="slotProps">
+                      <Checkbox
+                        :binary="true"
+                        :disabled="!canSelectAnalysis(slotProps.data)"
+                        :modelValue="isAnalysisSelected(slotProps.data)"
+                        @change="toggleAnalysisSelection(slotProps.data)"
+                      />
+                    </template>
+                  </Column>
                   <Column field="id" header="ID" />
                   <Column field="preAnalysis.reception" header="N° Acta">
                     <template #body="slotProps">
@@ -161,11 +81,6 @@
                   <Column field="result" header="Resultado">
                     <template #body="slotProps">
                       {{ slotProps.data.result || '—' }}
-                    </template>
-                  </Column>
-                  <Column field="observation" header="Observación">
-                    <template #body="slotProps">
-                      {{ slotProps.data.observation || '—' }}
                     </template>
                   </Column>
                   <Column field="user" header="Analista">
@@ -190,10 +105,27 @@
                   <Column header="Acciones">
                     <template #body="slotProps">
                       <div class="flex align-items-center gap-2">
+                        <Button
+                          icon="pi pi-microscope"
+                          class="p-button-rounded p-button-info p-button-outlined"
+                          @click="openMicroanalysisDialog(slotProps.data)"
+                          v-tooltip.top="'Microanálisis'"
+                        />
                         <CompleteAnalysis
                           v-if="slotProps.data.state === 'PENDIENTE'"
                           :analysis="slotProps.data"
                           @processed="fetchAnalyses"
+                        />
+                        <Button
+                          icon="pi pi-file-pdf"
+                          class="p-button-rounded p-button-warning p-button-outlined"
+                          :disabled="(slotProps.data.state || '').toUpperCase() === 'PENDIENTE'"
+                          @click="generateAnalysisReport(slotProps.data)"
+                          v-tooltip.top="
+                            (slotProps.data.state || '').toUpperCase() === 'PENDIENTE'
+                              ? 'Disponible solo cuando el análisis está COMPLETADO'
+                              : 'Generar Reporte'
+                          "
                         />
                       </div>
                     </template>
@@ -229,6 +161,12 @@
     @submit="sendBulkToPreAnalysis"
     @cancel="handleBulkPreAnalysisCancel"
   />
+
+  <MicroanalysisDialog
+    v-model:visible="showMicroanalysisDialog"
+    :analysis="selectedAnalysisForMicroanalysis"
+    @saved="fetchAnalyses"
+  />
 </template>
 
 <script>
@@ -255,6 +193,8 @@ import TabPanel from 'primevue/tabpanel'
 import preAnalysisService from '@/services/preAnalysisService.js'
 import analysisService from '@/services/analysisService.js'
 import { generarActaPDF } from '@/others/generarActaBtn.js'
+import { generarReporteAnalisisPDF } from '@/others/generarReporteAnalisis.js'
+import { generarInformeConsolidadoPDF } from '@/others/generarInformeConsolidado.js'
 import recepcionService from '@/services/receptionsService.js'
 import substancesService from '@/services/substancesService.js'
 import EditReceptionUnlock from '@/components/receptions/EditReceptionUnlock.vue'
@@ -265,6 +205,7 @@ import storagesService from '@/services/storagesService.js'
 import PreAnalysisDialog from '@/components/preanalysis/PreAnalysisDialog.vue'
 import BulkPreAnalysisDialog from '@/components/preanalysis/BulkPreAnalysisDialog.vue'
 import CompleteAnalysis from '@/components/analysis/CompleteAnalysis.vue'
+import MicroanalysisDialog from '@/components/analysis/MicroanalysisDialog.vue'
 export default {
   name: 'PreAnalysisView',
   components: {
@@ -288,6 +229,7 @@ export default {
     PreAnalysisDialog,
     BulkPreAnalysisDialog,
     CompleteAnalysis,
+    MicroanalysisDialog,
   },
 
   setup() {
@@ -305,6 +247,11 @@ export default {
     const analysisList = ref([])
     const loadingAnalysis = ref(false)
     const selectedAnalysis = ref([])
+    const selectedAnalysisActNumber = ref(null)
+
+    // Dialog de microanálisis
+    const showMicroanalysisDialog = ref(false)
+    const selectedAnalysisForMicroanalysis = ref(null)
 
     // Diálogo de pre-análisis individual
     const showPreAnalysisDialog = ref(false)
@@ -325,6 +272,62 @@ export default {
     const filtersReception = ref({
       global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     })
+
+    // Helpers para selección restringida por Nº de acta
+    const getActNumber = (row) => {
+      return row?.preAnalysis?.reception?.number ?? row?.reception?.number ?? null
+    }
+
+    const isAnalysisSelected = (row) => {
+      return selectedAnalysis.value.some((r) => r.id === row.id)
+    }
+
+    const canSelectAnalysis = (row) => {
+      const current = selectedAnalysisActNumber.value
+      const rowAct = getActNumber(row)
+      const isCompleted = (row.state || '').toUpperCase() === 'COMPLETADO'
+
+      if (!isCompleted) return false
+      if (current == null) return true
+      return rowAct === current
+    }
+
+    const toggleAnalysisSelection = (row) => {
+      if (!canSelectAnalysis(row)) {
+        const isCompleted = (row.state || '').toUpperCase() === 'COMPLETADO'
+        if (!isCompleted) {
+          toast.add({
+            severity: 'warn',
+            summary: 'Selección no permitida',
+            detail: 'Solo puede seleccionar análisis con estado COMPLETADO',
+            life: 2000,
+          })
+          return
+        }
+
+        const act = selectedAnalysisActNumber.value
+        toast.add({
+          severity: 'warn',
+          summary: 'Selección limitada',
+          detail: `Solo puede seleccionar análisis del Nº de acta ${act}`,
+          life: 2000,
+        })
+        return
+      }
+
+      const idx = selectedAnalysis.value.findIndex((r) => r.id === row.id)
+      if (idx >= 0) {
+        selectedAnalysis.value.splice(idx, 1)
+      } else {
+        selectedAnalysis.value.push(row)
+      }
+
+      if (selectedAnalysis.value.length === 0) {
+        selectedAnalysisActNumber.value = null
+      } else if (selectedAnalysis.value.length === 1) {
+        selectedAnalysisActNumber.value = getActNumber(selectedAnalysis.value[0])
+      }
+    }
 
     const filters = ref({
       global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -610,6 +613,7 @@ export default {
 
         let successCount = 0
         let errorCount = 0
+        const newlyCreatedAnalyses = []
 
         // Procesar cada sustancia individualmente
         for (const substance of selectedSubstances.value) {
@@ -635,18 +639,38 @@ export default {
               user: { id: parseInt(localStorage.getItem('user_id')) || 1 },
             }
 
-            await preAnalysisService.create(payload)
+            const { data: createdPre } = await preAnalysisService.create(payload)
+
+            // Crear análisis asociado al pre-análisis y agregarlo a una lista local
+            try {
+              const analysisPayload = {
+                number_protocol: null,
+                description: formData.observation || '',
+                date_analysis: new Date().toISOString(),
+                result: null,
+                macro: null,
+                micro: null,
+                state: 'PENDIENTE',
+                user: { id: parseInt(localStorage.getItem('user_id')) || 1 },
+                template: { id: 1 },
+                preAnalysis: createdPre,
+              }
+              const { data: createdAnalysis } = await analysisService.create(analysisPayload)
+              if (createdAnalysis) newlyCreatedAnalyses.push(createdAnalysis)
+            } catch (analysisErr) {
+              console.warn('No se pudo crear el análisis automáticamente (bulk):', analysisErr)
+            }
 
             // Si hay contramuestra, crear registro de almacenamiento
             if (contraWeight > 0) {
               try {
                 await storagesService.create({
+                  entry_date: new Date().toISOString().split('T')[0],
+                  sample_quantity: 0,
+                  counter_sample_quantity: contraWeight,
+                  description: formData.observation || '',
                   substance: substance,
-                  reception: selectedReceptionForBulk.value,
-                  weight: contraWeight,
                   storageLocation: { id: 1 },
-                  observation: formData.observation,
-                  user: { id: parseInt(localStorage.getItem('user_id')) || 1 },
                 })
               } catch (storErr) {
                 console.warn('No se pudo crear registro de almacenamiento:', storErr)
@@ -682,11 +706,17 @@ export default {
             life: 5000,
           })
         }
+        // Inserción inmediata (optimista) al principio de la lista actual
+        if (newlyCreatedAnalyses.length > 0) {
+          analysisList.value = [...newlyCreatedAnalyses.reverse(), ...analysisList.value]
+        }
+        console.log('sakldjalkjdsalkjdalks')
+
+        // Pequeño delay para asegurar persistencia en backend antes del refetch completo
+        await new Promise((r) => setTimeout(r, 200))
 
         closeBulkDialog()
         selectedSubstances.value = []
-        await fetchReceptions()
-        await fetchPreAnalysis()
       } catch (error) {
         console.error('❌ Error en procesamiento masivo:', error)
         toast.add({
@@ -755,7 +785,12 @@ export default {
       try {
         loadingAnalysis.value = true
         const { data } = await analysisService.getAll()
-        analysisList.value = data.content || data || []
+        const raw = data.content || data || []
+        analysisList.value = [...raw].sort((a, b) => {
+          const da = new Date(a.createdAt || a.date_analysis || 0)
+          const db = new Date(b.createdAt || b.date_analysis || 0)
+          return db - da
+        })
       } catch (e) {
         console.error('Error cargando análisis:', e)
         toast.add({
@@ -866,12 +901,98 @@ export default {
       generarActaPDF(reception, [substance])
     }
 
+    const generateAnalysisReport = (analysis) => {
+      try {
+        if (!analysis || !analysis.preAnalysis) {
+          toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pueden generar el reporte sin datos de análisis',
+            life: 3000,
+          })
+          return
+        }
+
+        if ((analysis.state || '').toUpperCase() === 'PENDIENTE') {
+          toast.add({
+            severity: 'warn',
+            summary: 'No disponible',
+            detail: 'No se puede generar reporte para un análisis pendiente',
+            life: 3000,
+          })
+          return
+        }
+
+        generarReporteAnalisisPDF(analysis)
+
+        toast.add({
+          severity: 'success',
+          summary: 'Reporte generado',
+          detail: 'El reporte de análisis se ha generado correctamente',
+          life: 3000,
+        })
+      } catch (error) {
+        console.error('Error generando reporte de análisis:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo generar el reporte de análisis',
+          life: 3000,
+        })
+      }
+    }
+
+    const handleAnalysisCompleted = async () => {
+      await fetchAnalyses()
+    }
+
+    const generateConsolidatedReport = () => {
+      if (!selectedAnalysis.value.length) {
+        toast.add({
+          severity: 'warn',
+          summary: 'Sin selección',
+          detail: 'Debe seleccionar al menos un análisis',
+          life: 2500,
+        })
+        return
+      }
+
+      try {
+        generarInformeConsolidadoPDF(selectedAnalysis.value)
+        toast.add({
+          severity: 'success',
+          summary: 'Informe generado',
+          detail: `Informe consolidado con ${selectedAnalysis.value.length} análisis generado correctamente`,
+          life: 3000,
+        })
+      } catch (error) {
+        console.error('Error generando informe consolidado:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo generar el informe consolidado',
+          life: 3000,
+        })
+      }
+    }
+
+    const openMicroanalysisDialog = (analysis) => {
+      selectedAnalysisForMicroanalysis.value = analysis
+      showMicroanalysisDialog.value = true
+    }
+
     onMounted(() => {
       console.log('✅ Vista de pre-análisis cargada')
       fetchPreAnalysis()
       fetchReceptions()
       fetchAnalyses()
       fetchDropdownData() // ← Agregar esta línea
+
+      // Escuchar evento personalizado cuando PreAnalysis procesa sustancias
+      window.addEventListener('analysisUpdated', () => {
+        console.log('📊 Actualizando tabla de análisis desde PreAnalysis...')
+        fetchAnalyses()
+      })
     })
 
     return {
@@ -919,17 +1040,26 @@ export default {
       methodsDestruction,
       loadingDestinations,
       loadingMethodsDestruction,
-      sendToPreAnalysis,
-      sendBulkToPreAnalysis,
+
       handlePreAnalysisCancel,
       handleBulkPreAnalysisCancel,
       selectedPreAnalysis,
       analysisList,
       loadingAnalysis,
       selectedAnalysis,
+      canSelectAnalysis,
+      isAnalysisSelected,
+      toggleAnalysisSelection,
 
       isRowSelectable,
       rowClassPreAnalysis,
+      generateAnalysisReport,
+      handleAnalysisCompleted,
+      fetchAnalyses,
+      generateConsolidatedReport,
+      showMicroanalysisDialog,
+      selectedAnalysisForMicroanalysis,
+      openMicroanalysisDialog,
     }
   },
 }

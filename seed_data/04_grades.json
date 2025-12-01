@@ -1,0 +1,68 @@
+[
+  {
+    "name": "Subteniente",
+    "description": "Oficial de rango medio",
+    "institutionType": {
+      "id": 1,
+      "name": "Comisaría"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Sargento",
+    "description": "Suboficial profesional",
+    "institutionType": {
+      "id": 1,
+      "name": "Comisaría"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Cabo",
+    "description": "Suboficial de rango inferior",
+    "institutionType": {
+      "id": 1,
+      "name": "Comisaría"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Inspector",
+    "description": "Oficial de investigación",
+    "institutionType": {
+      "id": 2,
+      "name": "Brigada de Droga"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Detective",
+    "description": "Profesional investigador",
+    "institutionType": {
+      "id": 4,
+      "name": "Delegación PDI"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "name": "Técnico",
+    "description": "Personal técnico",
+    "institutionType": {
+      "id": 5,
+      "name": "Sección de Laboratorio"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  }
+]

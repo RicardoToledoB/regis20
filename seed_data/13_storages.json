@@ -1,0 +1,70 @@
+[
+  {
+    "entry_date": "2025-11-25",
+    "sample_quantity": 100,
+    "counter_sample_quantity": 50,
+    "description": "Muestra de cocaína decomisada",
+    "substance": {
+      "id": 1,
+      "name": "Cocaína"
+    },
+    "storageLocation": {
+      "id": 1,
+      "name": "Ubicación 001"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "entry_date": "2025-11-25",
+    "sample_quantity": 75,
+    "counter_sample_quantity": 35,
+    "description": "Muestra de marihuana decomisada",
+    "substance": {
+      "id": 2,
+      "name": "Marihuana"
+    },
+    "storageLocation": {
+      "id": 2,
+      "name": "Ubicación 002"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "entry_date": "2025-11-25",
+    "sample_quantity": 50,
+    "counter_sample_quantity": 25,
+    "description": "Muestra de heroína decomisada",
+    "substance": {
+      "id": 4,
+      "name": "Heroína"
+    },
+    "storageLocation": {
+      "id": 3,
+      "name": "Ubicación 003"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "entry_date": "2025-11-25",
+    "sample_quantity": 120,
+    "counter_sample_quantity": 60,
+    "description": "Muestra de pasta base decomisada",
+    "substance": {
+      "id": 3,
+      "name": "Pasta base"
+    },
+    "storageLocation": {
+      "id": 4,
+      "name": "Ubicación 004"
+    },
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  }
+]

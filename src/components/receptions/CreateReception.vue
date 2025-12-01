@@ -257,6 +257,7 @@
 
           <!-- Tabla de sustancias -->
           <DataTable :value="form.substances" responsiveLayout="scroll" class="mt-3">
+            <Column field="nsubstance" header="N°"></Column>
             <Column field="nue" header="NUE"></Column>
             <Column field="substanceType" header="Tipo de Sustancia">
               <template #body="slotProps">
@@ -489,10 +490,12 @@ export default {
           await fetchDropdownData()
         }
 
-        // Autocompletar número de acta: siguiente número del año actual
+        // Autocompletar número de acta: siguiente número del año actual con formato NN/YYYY
         try {
-          const next = await getNextReceptionNumberForYear(new Date().getFullYear())
-          form.number = String(next)
+          const currentYear = new Date().getFullYear()
+          const next = await getNextReceptionNumberForYear(currentYear)
+          // Formato: 01/2025, 10/2025, etc.
+          form.number = `${String(next).padStart(2, '0')}/${currentYear}`
           // establecer fecha de recepción por defecto hoy
           form.date_reception = new Date()
         } catch (err) {
@@ -553,36 +556,64 @@ export default {
       isNewPolice.value = false
     }
 
-    // Obtener siguiente número de acta para un año dado
+    // Parsear fecha en formato dd-mm-yyyy a objeto Date
+    const parseDateDDMMYYYY = (dateStr) => {
+      if (!dateStr || typeof dateStr !== 'string') return null
+      const parts = dateStr.split('-')
+      if (parts.length !== 3) return null
+      const [dayStr, monthStr, yearStr] = parts
+      const day = parseInt(dayStr, 10)
+      const month = parseInt(monthStr, 10)
+      const year = parseInt(yearStr, 10)
+      if (!Number.isFinite(day) || !Number.isFinite(month) || !Number.isFinite(year)) return null
+      const d = new Date(year, month - 1, day)
+      return Number.isNaN(d.getTime()) ? null : d
+    }
+
+    // Obtener siguiente número de acta por año
+    // Acepta números en formato "NN/YYYY" o solo número
     const getNextReceptionNumberForYear = async (year) => {
       try {
-        // Obtener todas las recepciones y filtrar por año de date_reception
         const { data } = await recepcionService.getAll()
         const list = data.content || data || []
+
         const numbersThisYear = list
           .map((r) => {
-            const date = r.date_reception ? new Date(r.date_reception) : null
-            return { number: r.number, date }
+            const date = r.date_reception ? parseDateDDMMYYYY(r.date_reception) : null
+            // Extraer el número del formato "NN/YYYY" o usar como está
+            let numValue = null
+            if (r.number && typeof r.number === 'string') {
+              // Si tiene formato "NN/YYYY", extraer la parte numérica
+              const parts = r.number.split('/')
+              if (parts.length === 2) {
+                numValue = parseInt(parts[0], 10)
+              } else {
+                numValue = parseInt(r.number, 10)
+              }
+            } else if (typeof r.number === 'number') {
+              numValue = r.number
+            }
+            return { number: numValue, date }
           })
           .filter((r) => r.date && r.date.getFullYear() === Number(year))
-          .map((r) => {
-            const n = parseInt(r.number, 10)
-            return Number.isFinite(n) ? n : null
-          })
-          .filter((n) => n !== null)
+          .map((r) => r.number)
+          .filter((n) => Number.isFinite(n) && n !== null)
 
         if (numbersThisYear.length === 0) return 1
         const max = Math.max(...numbersThisYear)
         return max + 1
       } catch (err) {
-        console.error('Error calculando siguiente número de acta:', err)
+        console.error('Error calculando siguiente número de acta por año:', err)
         return 1
       }
     }
 
     const addSubstance = () => {
       if (!newSubstance.substanceType || !newSubstance.weight) return
-      form.substances.push({ ...newSubstance })
+
+      // Asignar número correlativo a la sustancia
+      const nsubstance = form.substances.length + 1
+      form.substances.push({ ...newSubstance, nsubstance })
 
       // Limpiar formulario de nueva sustancia
       Object.assign(newSubstance, {
@@ -599,6 +630,11 @@ export default {
 
     const removeSubstance = (index) => {
       form.substances.splice(index, 1)
+
+      // Renumerar todas las sustancias restantes
+      form.substances.forEach((substance, idx) => {
+        substance.nsubstance = idx + 1
+      })
     }
 
     const buscarPolicia = async () => {
@@ -680,6 +716,19 @@ export default {
       }
     }
 
+    const formatDateOnly = (date) => {
+      if (!date) return null
+      let d = date
+      if (typeof date === 'string') {
+        d = new Date(date)
+        if (isNaN(d)) return date // fallback: return as is
+      }
+      const day = String(d.getDate()).padStart(2, '0')
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const year = d.getFullYear()
+      return `${day}-${month}-${year}`
+    }
+
     const guardarBorrador = async () => {
       try {
         isSaving.value = true
@@ -688,9 +737,9 @@ export default {
         const receptionPayload = {
           number: form.number,
           of_number: form.of_number,
-          of_number_date: form.of_number_date,
-          date_reception: form.date_reception,
-          state: 'BORRADOR', // 🆕 o como lo maneje tu backend
+          of_number_date: formatDateOnly(form.of_number_date),
+          date_reception: formatDateOnly(form.date_reception),
+          state: 'BORRADOR',
           location: form.location.id ? { id: form.location.id } : null,
           police: {
             id: form.police.id,
@@ -718,6 +767,7 @@ export default {
         if (form.substances.length > 0) {
           const substancesPromises = form.substances.map((substance) => {
             const substancePayload = {
+              nsubstance: substance.nsubstance,
               nue: substance.nue,
               description: substance.description,
               weight: substance.weight,
@@ -777,9 +827,9 @@ export default {
         const receptionPayload = {
           number: form.number,
           of_number: form.of_number,
-          of_number_date: form.of_number_date,
-          date_reception: form.date_reception,
-          state: 'FINALIZADO', // 🆕 o como lo maneje tu backend
+          of_number_date: formatDateOnly(form.of_number_date),
+          date_reception: formatDateOnly(form.date_reception),
+          state: 'FINALIZADO',
           location: form.location.id ? { id: form.location.id } : null,
           police: form.police,
           is_editable: 'NO',
@@ -796,6 +846,7 @@ export default {
         if (form.substances.length > 0) {
           const substancesPromises = form.substances.map((substance) => {
             const substancePayload = {
+              nsubstance: substance.nsubstance,
               nue: substance.nue,
               description: substance.description,
               weight: substance.weight,
@@ -891,6 +942,7 @@ export default {
       removeSubstance,
       buscarPolicia,
       guardarRecepcion,
+      formatDateOnly,
       getSubstanceName,
       getPackagingName,
       getCommuneName,

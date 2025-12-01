@@ -88,7 +88,7 @@
 
                   <Column field="date_reception" header="Fecha Recepción">
                     <template #body="slotProps">
-                      {{ formatDate(slotProps.data.date_reception) }}
+                      {{ slotProps.data.date_reception }}
                     </template>
                     <template #filter="{ filterModel, filterCallback }">
                       <InputText
@@ -103,7 +103,7 @@
 
                   <Column field="of_number_date" header="Fecha Oficio">
                     <template #body="slotProps">
-                      {{ formatDate(slotProps.data.of_number_date) }}
+                      {{ slotProps.data.of_number_date }}
                     </template>
                     <template #filter="{ filterModel, filterCallback }">
                       <InputText

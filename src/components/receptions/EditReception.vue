@@ -49,8 +49,8 @@
         </div>
 
         <!-- Datos del Policía -->
-        <div class="section-title">👮‍♂️ Datos del Policía</div>
-        <div class="grid formgrid p-fluid">
+        <div v-if="form.state === 'BORRADOR'" class="section-title">👮‍♂️ Datos del Policía</div>
+        <div v-if="form.state === 'BORRADOR'" class="grid formgrid p-fluid">
           <div class="field col-12 md:col-3">
             <label>RUT</label>
             <div class="p-inputgroup">
@@ -146,13 +146,67 @@
           </div>
         </div>
 
-        <!-- 💊 Sustancias Asociadas -->
-        <div class="section-title mt-4 mb-3 text-lg font-semibold flex items-center gap-2">
+        <!-- Datos del Policía (solo lectura si es FINALIZADO) -->
+        <div v-if="form.state !== 'BORRADOR'" class="section-title">
+          👮‍♂️ Datos del Policía (Solo Lectura)
+        </div>
+        <div v-if="form.state !== 'BORRADOR'" class="grid formgrid p-fluid">
+          <div class="field col-12 md:col-3">
+            <label>RUT</label>
+            <InputText v-model="form.police.rut" readonly />
+          </div>
+          <div class="field col-12 md:col-3">
+            <label>Nombre</label>
+            <InputText v-model="form.police.firstName" readonly />
+          </div>
+          <div class="field col-12 md:col-3">
+            <label>Segundo Nombre</label>
+            <InputText v-model="form.police.secondName" readonly />
+          </div>
+          <div class="field col-12 md:col-3">
+            <label>Apellido Paterno</label>
+            <InputText v-model="form.police.firstLastName" readonly />
+          </div>
+          <div class="field col-12 md:col-3">
+            <label>Apellido Materno</label>
+            <InputText v-model="form.police.secondLastName" readonly />
+          </div>
+          <div class="field col-12 md:col-3">
+            <label>Correo</label>
+            <InputText v-model="form.police.email" readonly />
+          </div>
+          <div class="field col-12 md:col-3">
+            <label>Teléfono</label>
+            <InputText v-model="form.police.cellphone" readonly />
+          </div>
+          <div class="field col-12 md:col-3">
+            <label>Grado</label>
+            <InputText :value="form.police.grade?.name || ''" readonly />
+          </div>
+          <div class="field col-12">
+            <label>Institución</label>
+            <InputText :value="form.police.institutionType.institution?.name || ''" readonly />
+          </div>
+          <div class="field col-12 md:col-6">
+            <label>Tipo de Institución</label>
+            <InputText :value="form.police.institutionType?.name || ''" readonly />
+          </div>
+          <div class="field col-12 md:col-6">
+            <label>Comuna</label>
+            <InputText :value="form.police.institutionType?.commune?.name || ''" readonly />
+          </div>
+        </div>
+
+        <!-- 💊 Sustancias Asociadas (solo editable si es BORRADOR) -->
+        <div
+          v-if="form.state === 'BORRADOR'"
+          class="section-title mt-4 mb-3 text-lg font-semibold flex items-center gap-2"
+        >
           💊 Sustancias Asociadas
         </div>
 
-        <!-- 🧩 Fila principal: Tipo, Pesos, Unidad, Packaging, Comuna -->
-        <div class="grid formgrid p-fluid align-items-end">
+        <!-- 🧩 Formulario para agregar/editar sustancias (solo si es BORRADOR) -->
+        <div v-if="form.state === 'BORRADOR'" class="grid formgrid p-fluid align-items-end">
           <!-- Tipo de sustancia -->
           <div class="field col-12 md:col-3">
             <label>Tipo de Sustancia</label>
@@ -216,8 +270,8 @@
           </div>
         </div>
 
-        <!-- 🧩 Fila 2: Comuna, NUE, Descripción, Botón -->
-        <div class="grid formgrid p-fluid align-items-end mt-3">
+        <!-- 🧩 Fila 2: Comuna, NUE, Descripción, Botón (solo si es BORRADOR) -->
+        <div v-if="form.state === 'BORRADOR'" class="grid formgrid p-fluid align-items-end mt-3">
           <!-- Comuna -->
           <div class="field col-12 md:col-3">
             <label>Comuna</label>
@@ -266,8 +320,19 @@
           </div>
         </div>
 
-        <!-- 🧾 Tabla de sustancias (editable: se pueden eliminar y seleccionar para editar) -->
+        <!-- 💊 Sustancias (solo lectura si es FINALIZADO) -->
+        <div
+          v-if="form.state !== 'BORRADOR'"
+          class="section-title mt-4 mb-3 text-lg font-semibold flex items-center gap-2"
+        >
+          💊 Sustancias Asociadas (Solo Lectura)
+        </div>
+
+        <!-- Tabla de sustancias (editable si es BORRADOR, lectura si es FINALIZADO) -->
         <DataTable :value="form.substances" responsiveLayout="scroll" class="mt-3">
+          <!-- N° -->
+          <Column field="nsubstance" header="N°"></Column>
+
           <!-- NUE -->
           <Column field="nue" header="NUE"></Column>
 
@@ -320,8 +385,12 @@
             </template>
           </Column>
 
-          <!-- Acciones -->
-          <Column header="Acciones" bodyStyle="text-align:center; white-space: nowrap;">
+          <!-- Acciones (solo si es BORRADOR) -->
+          <Column
+            v-if="form.state === 'BORRADOR'"
+            header="Acciones"
+            bodyStyle="text-align:center; white-space: nowrap;"
+          >
             <template #body="slotProps">
               <Button
                 icon="pi pi-pencil"
@@ -432,6 +501,19 @@ export default {
     ProgressSpinner,
   },
   setup(props, { emit }) {
+    // Helper para formato DD-MM-YYYY
+    const formatDateOnly = (date) => {
+      if (!date) return null
+      let d = date
+      if (typeof date === 'string') {
+        d = new Date(date)
+        if (isNaN(d)) return date // fallback: return as is
+      }
+      const day = String(d.getDate()).padStart(2, '0')
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const year = d.getFullYear()
+      return `${day}-${month}-${year}`
+    }
     const visible = ref(false)
     const isLoading = ref(false)
     const isSaving = ref(false)
@@ -487,6 +569,7 @@ export default {
     // edición/creación de una sustancia en el pequeño formulario
     const editingSubstance = reactive({
       id: null,
+      nsubstance: null,
       nue: '',
       description: '',
       weight: null,
@@ -495,8 +578,6 @@ export default {
       substanceType: null,
       packaging: null,
       commune: null,
-      weight_net: null, // 👈 nuevo
-      unity: '', // 👈 nuevo
     })
     const editingSubstanceIndex = ref(null) // null = nueva, otherwise index en form.substances
 
@@ -684,6 +765,7 @@ export default {
         // sustancias: si cada sustancia viene con nested ids (substanceType:{id:..}) — convertimos a la forma manejada por el formulario:
         form.substances = (data.substances || []).map((s) => ({
           id: s.id ?? null,
+          nsubstance: s.nsubstance ?? null,
           nue: s.nue ?? s.nue ?? '',
           description: s.description ?? '',
           weight: s.weight ?? null,
@@ -712,6 +794,7 @@ export default {
         const { data } = await substancesService.getByReceptionId(form.id)
         form.substances = (data || []).map((s) => ({
           id: s.id,
+          nsubstance: s.nsubstance ?? null,
           nue: s.nue ?? '',
           description: s.description ?? '',
           weight: s.weight ?? null,
@@ -790,6 +873,7 @@ export default {
       // validación mínima ya manejada por disabled del botón
       const sub = {
         id: editingSubstance.id ?? null,
+        nsubstance: editingSubstance.nsubstance ?? null,
         nue: editingSubstance.nue,
         description: editingSubstance.description,
         weight: editingSubstance.weight,
@@ -801,7 +885,9 @@ export default {
       }
 
       if (editingSubstanceIndex.value === null) {
-        // nueva
+        // nueva - asignar siguiente número correlativo
+        const nsubstance = form.substances.length + 1
+        sub.nsubstance = nsubstance
         form.substances.push(sub)
       } else {
         // actualizar existente en la posición index
@@ -811,6 +897,7 @@ export default {
       // limpiar editor
       Object.assign(editingSubstance, {
         id: null,
+        nsubstance: null,
         nue: '',
         description: '',
         weight: null,
@@ -827,6 +914,7 @@ export default {
     const startEditSubstance = (index) => {
       const s = form.substances[index]
       editingSubstance.id = s.id ?? null
+      editingSubstance.nsubstance = s.nsubstance ?? null
       editingSubstance.nue = s.nue ?? ''
       editingSubstance.description = s.description ?? ''
       editingSubstance.weight = s.weight ?? null
@@ -842,13 +930,22 @@ export default {
 
     const removeSubstance = (index) => {
       form.substances.splice(index, 1)
+
+      // Renumerar todas las sustancias restantes
+      form.substances.forEach((substance, idx) => {
+        substance.nsubstance = idx + 1
+      })
+
       // si se estaba editando esa fila, resetear el editor
       if (editingSubstanceIndex.value === index) {
         Object.assign(editingSubstance, {
           id: null,
+          nsubstance: null,
           nue: '',
           description: '',
           weight: null,
+          weight_net: null,
+          unity: null,
           substanceType: null,
           packaging: null,
           commune: null,
@@ -885,8 +982,8 @@ export default {
           id: form.id,
           number: form.number,
           of_number: form.of_number,
-          of_number_date: form.of_number_date,
-          date_reception: form.date_reception,
+          of_number_date: formatDateOnly(form.of_number_date),
+          date_reception: formatDateOnly(form.date_reception),
           location: form.location && form.location.id ? { id: form.location.id } : null,
           state: 'EDITADO',
           police: {
@@ -925,6 +1022,7 @@ export default {
           const promises = form.substances.map((s) => {
             const substancePayload = {
               ...(s.id ? { id: s.id } : {}),
+              nsubstance: s.nsubstance ?? null,
               nue: s.nue,
               description: s.description,
               weight: s.weight !== undefined && s.weight !== null ? Number(s.weight) : null,
@@ -1025,8 +1123,8 @@ export default {
           id: form.id,
           number: form.number,
           of_number: form.of_number,
-          of_number_date: form.of_number_date,
-          date_reception: form.date_reception,
+          of_number_date: formatDateOnly(form.of_number_date),
+          date_reception: formatDateOnly(form.date_reception),
           location: form.location && form.location.id ? { id: form.location.id } : null,
           state: 'FINALIZADO', // ✅ Cambiar de BORRADOR a FINALIZADO
           police: form.police,
@@ -1045,6 +1143,7 @@ export default {
           const promises = form.substances.map((s) => {
             const substancePayload = {
               ...(s.id ? { id: s.id } : {}),
+              nsubstance: s.nsubstance ?? null,
               nue: s.nue,
               description: s.description,
               weight: s.weight !== undefined && s.weight !== null ? Number(s.weight) : null,

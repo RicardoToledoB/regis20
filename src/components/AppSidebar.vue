@@ -352,6 +352,11 @@ const mainMenu = ref([
     icon: 'pi pi-file-check',
     to: '/storage',
   },
+  {
+    label: 'Destrucción',
+    icon: 'pi pi-ban',
+    to: '/destructions',
+  },
 ])
 
 // Seguridad y Usuarios

@@ -6,7 +6,6 @@ import Polices from '@/views/police/Polices.vue'
 import Institutions from '@/views/institution/InstitutionsView.vue'
 import Storages from '@/views/storageLocation/StoragesLocationsView.vue'
 import TypesSubstances from '@/views/typeSubstance/TypesSubstances.vue'
-import Unities from '@/views/unities/Unities.vue'
 import Communes from '@/views/communes/CommunesView.vue'
 import Locations from '@/views/locations/LocationsView.vue'
 import MethodsDestructions from '@/views/methodsDestructions/MethodsDestructionsView.vue'
@@ -18,6 +17,7 @@ import Destinations from '@/views/destinations/DestinationsView.vue'
 import PreAnalisis from '@/views/preanalysis/PreAnalysis.vue'
 import Analysis from '@/views/analysis/Analysis.vue'
 import Storage from '@/views/storages/Storage.vue'
+import Destructions from '@/views/destructions/Destructions.vue'
 import Login from '@/views/Login.vue'
 const routes = [
   {
@@ -86,11 +86,6 @@ const routes = [
     component: TypesSubstances,
   },
   {
-    path: '/unities',
-    name: 'Unities',
-    component: Unities,
-  },
-  {
     path: '/communes',
     name: 'Communes',
     component: Communes,
@@ -114,6 +109,11 @@ const routes = [
     path: '/pre-analysis',
     name: 'PreAnalisis',
     component: PreAnalisis,
+  },
+  {
+    path: '/destructions',
+    name: 'Destructions',
+    component: Destructions,
   },
 
   {

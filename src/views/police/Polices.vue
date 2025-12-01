@@ -26,24 +26,25 @@
                       {{ getFullName(slotProps.data) }}
                     </template>
                   </Column>
-                  <Column field="rut" header="RUT" />
+                  <Column header="RUT">
+                    <template #body="slotProps">
+                      {{ formatRut(slotProps.data?.rut) }}
+                    </template>
+                  </Column>
                   <Column field="email" header="Email" />
                   <Column field="cellphone" header="Celular" />
                   <Column field="institutionType.name" header="Tipo Institución" />
                   <Column field="grade.name" header="Grado" />
-                  
+
                   <Column header="Fecha Creación">
                     <template #body="slotProps">
                       {{ formatDate(slotProps.data.createdAt) }}
                     </template>
                   </Column>
 
-                  <Column header="Acciones" >
+                  <Column header="Acciones">
                     <template #body="slotProps">
-                      <EditPolice
-                        :police="slotProps.data"
-                        @updated="handlePoliceUpdated"
-                      />
+                      <EditPolice :police="slotProps.data" @updated="handlePoliceUpdated" />
                     </template>
                   </Column>
                 </DataTable>
@@ -62,6 +63,7 @@ import PlantillaContenido from '../template/PlantillaContenido.vue'
 import CreatePolice from '@/components/polices/CreatePolice.vue'
 import EditPolice from '@/components/polices/EditPolice.vue'
 import policeService from '@/services/policesService'
+import { formatRut } from '@/others/verificationRut'
 
 export default {
   name: 'PoliceView',
@@ -69,7 +71,7 @@ export default {
   components: {
     PlantillaContenido,
     CreatePolice,
-    EditPolice
+    EditPolice,
   },
 
   setup() {
@@ -100,7 +102,9 @@ export default {
 
     const getFullName = (policeData) => {
       const names = [policeData.firstName, policeData.secondName].filter(Boolean).join(' ')
-      const lastNames = [policeData.firstLastName, policeData.secondLastName].filter(Boolean).join(' ')
+      const lastNames = [policeData.firstLastName, policeData.secondLastName]
+        .filter(Boolean)
+        .join(' ')
       return `${names} ${lastNames}`
     }
 
@@ -120,9 +124,10 @@ export default {
       handlePoliceCreated,
       handlePoliceUpdated,
       getFullName,
-      formatDate
+      formatDate,
+      formatRut,
     }
-  }
+  },
 }
 </script>
 
@@ -134,7 +139,4 @@ export default {
 .table-container {
   overflow-x: auto;
 }
-
-
-
 </style>

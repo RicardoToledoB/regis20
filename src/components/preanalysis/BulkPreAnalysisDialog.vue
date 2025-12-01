@@ -16,7 +16,7 @@
           <Chip
             v-for="substance in selectedSubstances"
             :key="substance.id"
-            :label="`${substance.nue} - ${substance.substanceType?.name || 'Sin tipo'}`"
+            :label="`${substance.nsubstance} - ${substance.substanceType?.name || 'Sin tipo'}`"
             class="mr-2 mb-2"
           />
         </div>
@@ -67,11 +67,21 @@
             class="flex align-items-center gap-2 mb-2 p-2 border-round"
             style="background: #f8f9fa"
           >
+            <div style="width: 80px">
+              <div class="text-xs text-500 mb-1">N° Sustancia</div>
+              <div class="text-sm font-bold">{{ substance.nsubstance }}</div>
+            </div>
+
+            <div style="width: 100px">
+              <div class="text-xs text-500 mb-1">NUE</div>
+              <div class="text-sm">{{ substance.nue }}</div>
+            </div>
+
             <div class="flex-1">
               <div class="text-sm">
-                <strong>{{ substance.nue }}</strong> - {{ substance.substanceType?.name }}
+                <strong>{{ substance.substanceType?.name }}</strong>
               </div>
-              <div class="text-xs text-500">Peso total: {{ substance.weight }} gr</div>
+              <div class="text-xs text-500">Peso total: {{ substance.weight_net }} gr</div>
             </div>
 
             <div style="width: 120px">
@@ -80,7 +90,7 @@
                 v-model="formData.individualWeights[substance.id].sample"
                 mode="decimal"
                 :min="0"
-                :max="substance.weight"
+                :max="substance.weight_net"
                 :fractionDigits="2"
                 decimalSeparator="."
                 :useGrouping="false"
@@ -96,7 +106,7 @@
                 v-model="formData.individualWeights[substance.id].contra"
                 mode="decimal"
                 :min="0"
-                :max="substance.weight"
+                :max="substance.weight_net"
                 :fractionDigits="2"
                 decimalSeparator="."
                 :useGrouping="false"
@@ -190,7 +200,7 @@ export default {
         const obj = formData.value.individualWeights[substance.id] || {}
         const sample = Number(obj.sample) || 0
         const contra = Number(obj.contra) || 0
-        return sample > 0 && sample + contra <= Number(substance.weight || 0)
+        return sample > 0 && sample + contra <= Number(substance.weight_net || 0)
       })
     })
 
@@ -250,7 +260,7 @@ export default {
       const obj = formData.value.individualWeights[substance.id] || {}
       const sample = Number(obj.sample || 0)
       const contra = Number(obj.contra || 0)
-      const restante = Number(substance.weight || 0) - sample - contra
+      const restante = Number(substance.weight_net || 0) - sample - contra
       return restante > 0 ? restante.toFixed(2) : '0.00'
     }
 

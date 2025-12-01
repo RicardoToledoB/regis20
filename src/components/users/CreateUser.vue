@@ -6,9 +6,9 @@
       </template>
     </Button>
 
-    <Dialog 
+    <Dialog
       v-model:visible="visible"
-       :style="{ width: '30rem' }"
+      :style="{ width: '30rem' }"
       modal
       :transition-options="{ name: 'fade', duration: 300 }"
     >
@@ -17,7 +17,11 @@
       </template>
 
       <!-- Spinner mientras se guarda -->
-      <div v-if="isLoading" class="flex justify-content-center align-items-center" style="height:200px;">
+      <div
+        v-if="isLoading"
+        class="flex justify-content-center align-items-center"
+        style="height: 200px"
+      >
         <ProgressSpinner />
       </div>
 
@@ -51,11 +55,12 @@
         <div class="flex flex-column gap-2 mb-2">
           <label>RUT</label>
           <InputText v-model="form.rut" class=" " />
+          <small v-if="rutError" class="p-error">{{ rutError }}</small>
         </div>
 
         <div class="flex flex-column">
           <label>Contraseña</label>
-          <Password 
+          <Password
             v-model="form.password"
             promptLabel="Selecciona una contraseña"
             weakLabel="Muy débil"
@@ -67,73 +72,107 @@
       </div>
 
       <template #footer>
-        <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading"/>
-        <Button label="Guardar" @click="saveUser" :loading="isLoading"/>
+        <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading" />
+        <Button label="Guardar" @click="saveUser" :loading="isLoading" />
       </template>
     </Dialog>
   </div>
 </template>
 
 <script>
-import { reactive, ref, computed } from 'vue'
+import { reactive, ref, computed, watch } from 'vue'
 import userService from '@/services/usersService'
+import { formatRut } from '@/others/verificationRut'
+import { validateRut } from '@/others/verificationRut'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 
 export default {
-  name: "CreateUser",
-  components: {  InputText, Password, Button, Dialog },
-  emits: ["created"],
+  name: 'CreateUser',
+  components: { InputText, Password, Button, Dialog },
+  emits: ['created'],
 
   setup(props, { emit }) {
     const visible = ref(false)
     const isLoading = ref(false)
 
     const form = reactive({
-      firstName: "",
-      secondName: "",
-      firstLastName: "",
-      secondLastName: "",
-      email: "",
-      rut: "",
-      password: ""
+      firstName: '',
+      secondName: '',
+      firstLastName: '',
+      secondLastName: '',
+      email: '',
+      rut: '',
+      password: '',
     })
+
+    const cleanRut = (value) =>
+      (value || '')
+        .toString()
+        .replace(/^0+|[^0-9kK]+/g, '')
+        .toUpperCase()
+
+    const rutError = ref('')
+
+    // Formatear visualmente el RUT mientras el usuario escribe
+    watch(
+      () => form.rut,
+      (newVal) => {
+        if (!newVal) return
+        const formatted = formatRut(newVal)
+        if (formatted !== newVal) {
+          form.rut = formatted
+        }
+        // limpiar posible error cuando el usuario edita
+        rutError.value = ''
+      },
+    )
 
     const username = computed(() => {
-      return [
-        form.firstName,
-        form.firstLastName,
-        form.secondLastName
-      ].filter(Boolean).join(' ')
+      return [form.firstName, form.firstLastName, form.secondLastName].filter(Boolean).join(' ')
     })
 
-    const openDialog = () => { visible.value = true }
-    const closeDialog = () => { visible.value = false }
+    const openDialog = () => {
+      visible.value = true
+    }
+    const closeDialog = () => {
+      visible.value = false
+    }
 
     const resetForm = () => {
-      form.firstName = ""
-      form.secondName = ""
-      form.firstLastName = ""
-      form.secondLastName = ""
-      form.email = ""
-      form.rut = ""
-      form.password = ""
+      form.firstName = ''
+      form.secondName = ''
+      form.firstLastName = ''
+      form.secondLastName = ''
+      form.email = ''
+      form.rut = ''
+      form.password = ''
     }
 
     const saveUser = async () => {
       try {
         isLoading.value = true
-        const payload = { ...form, username: username.value }
+        // Validar RUT limpio antes de enviar
+        const rutLimpio = cleanRut(form.rut)
+        if (!validateRut(rutLimpio)) {
+          rutError.value = 'RUT inválido'
+          console.error('❌ RUT inválido')
+          isLoading.value = false
+          return
+        }
+
+        // Enviar RUT limpio (sin puntos ni guión)
+        const payload = { ...form, username: username.value, rut: rutLimpio }
         const { data } = await userService.create(payload)
 
-        emit("created", data) // actualiza la tabla Users.vue
+        emit('created', data) // actualiza la tabla Users.vue
 
         resetForm()
         closeDialog()
       } catch (e) {
-        console.error("❌ Error al crear usuario:", e)
+        console.error('❌ Error al crear usuario:', e)
       } finally {
         isLoading.value = false
       }
@@ -145,9 +184,11 @@ export default {
       isLoading,
       openDialog,
       closeDialog,
-      saveUser
+      saveUser,
+      rutError,
+      validateRut,
     }
-  }
+  },
 }
 </script>
 
@@ -155,5 +196,4 @@ export default {
 :deep(.p-password .p-inputtext) {
   width: 100%;
 }
-
 </style>

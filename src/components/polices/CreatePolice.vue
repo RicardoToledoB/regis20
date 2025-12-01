@@ -6,12 +6,11 @@
       </template>
     </Button>
 
-    <Dialog 
+    <Dialog
       v-model:visible="visible"
       :style="{ width: '40rem', padding: '0.5rem' }"
       modal
       :headerStyle="{ padding: '1rem 1.5rem' }"
-       
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
@@ -19,7 +18,11 @@
       </template>
 
       <!-- Spinner mientras se guarda -->
-      <div v-if="isLoading" class="flex justify-content-center align-items-center" style="height:200px;">
+      <div
+        v-if="isLoading"
+        class="flex justify-content-center align-items-center"
+        style="height: 200px"
+      >
         <ProgressSpinner />
       </div>
 
@@ -30,19 +33,19 @@
           <div class="grid grid-nogutter gap-1">
             <div class="col-12 field">
               <label for="firstName">Primer Nombre *</label>
-              <InputText 
+              <InputText
                 id="firstName"
-                v-model="form.firstName" 
-                class="  w-full" 
+                v-model="form.firstName"
+                class="w-full"
                 placeholder="Primer nombre"
               />
             </div>
             <div class="col-12 field">
               <label for="secondName">Segundo Nombre</label>
-              <InputText 
+              <InputText
                 id="secondName"
-                v-model="form.secondName" 
-                class="  w-full" 
+                v-model="form.secondName"
+                class="w-full"
                 placeholder="Segundo nombre"
               />
             </div>
@@ -51,19 +54,19 @@
           <div class="grid grid-nogutter gap-1">
             <div class="col-12 field">
               <label for="firstLastName">Primer Apellido *</label>
-              <InputText 
+              <InputText
                 id="firstLastName"
-                v-model="form.firstLastName" 
-                class="  w-full" 
+                v-model="form.firstLastName"
+                class="w-full"
                 placeholder="Primer apellido"
               />
             </div>
             <div class="col-12 field">
               <label for="secondLastName">Segundo Apellido</label>
-              <InputText 
+              <InputText
                 id="secondLastName"
-                v-model="form.secondLastName" 
-                class="  w-full" 
+                v-model="form.secondLastName"
+                class="w-full"
                 placeholder="Segundo apellido"
               />
             </div>
@@ -72,19 +75,14 @@
           <div class="grid grid-nogutter gap-1">
             <div class="col-12 field">
               <label for="rut">RUT *</label>
-              <InputText 
-                id="rut"
-                v-model="form.rut" 
-                class="  w-full" 
-                placeholder="12345678-9"
-              />
+              <InputText id="rut" v-model="form.rut" class="w-full" placeholder="12345678-9" />
             </div>
             <div class="col-12 field">
               <label for="cellphone">Celular *</label>
-              <InputText 
+              <InputText
                 id="cellphone"
-                v-model="form.cellphone" 
-                class="  w-full" 
+                v-model="form.cellphone"
+                class="w-full"
                 placeholder="912345678"
               />
             </div>
@@ -92,10 +90,10 @@
 
           <div class="field">
             <label for="email">Email *</label>
-            <InputText 
+            <InputText
               id="email"
-              v-model="form.email" 
-              class="  w-full" 
+              v-model="form.email"
+              class="w-full"
               placeholder="correo@ejemplo.cl"
               type="email"
             />
@@ -134,15 +132,15 @@
       </div>
 
       <template #footer>
-        <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading"/>
-        <Button label="Guardar" @click="savePolice" :loading="isLoading"/>
+        <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading" />
+        <Button label="Guardar" @click="savePolice" :loading="isLoading" />
       </template>
     </Dialog>
   </div>
 </template>
 
 <script>
-import { reactive, ref, computed, onMounted } from 'vue'
+import { reactive, ref, computed, onMounted, watch } from 'vue'
 import policeService from '@/services/policesService'
 import institutionTypeService from '@/services/institutionTypesService'
 import gradeService from '@/services/gradesService'
@@ -151,11 +149,12 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Dropdown from 'primevue/dropdown'
 import ProgressSpinner from 'primevue/progressspinner'
+import { formatRut, validateRut } from '@/others/verificationRut'
 
 export default {
-  name: "CreatePolice",
+  name: 'CreatePolice',
   components: { InputText, Button, Dialog, Dropdown, ProgressSpinner },
-  emits: ["created"],
+  emits: ['created'],
 
   setup(props, { emit }) {
     const visible = ref(false)
@@ -164,24 +163,25 @@ export default {
     const allGrades = ref([]) // Almacena todos los grados
 
     const form = reactive({
-      firstName: "",
-      secondName: "",
-      firstLastName: "",
-      secondLastName: "",
-      rut: "",
-      email: "",
-      cellphone: "",
+      firstName: '',
+      secondName: '',
+      firstLastName: '',
+      secondLastName: '',
+      rut: '',
+      email: '',
+      cellphone: '',
       institutionType: null,
-      grade: null
+      grade: null,
     })
 
     // ✅ Computed para filtrar grados por institutionType seleccionado
     const filteredGrades = computed(() => {
       if (!form.institutionType) return []
-      return allGrades.value.filter(grade => 
-        grade.institutionType?.id === form.institutionType.id
+      return allGrades.value.filter(
+        (grade) => grade.institutionType?.id === form.institutionType.id,
       )
     })
+    const cleanRut = (value) => value.replace(/^0+|[^0-9kK]+/g, '').toUpperCase()
 
     const fetchInstitutionTypes = async () => {
       try {
@@ -216,58 +216,80 @@ export default {
       }
     }
 
-    const closeDialog = () => { 
-      visible.value = false 
+    const closeDialog = () => {
+      visible.value = false
       resetForm()
     }
 
     const resetForm = () => {
-      form.firstName = ""
-      form.secondName = ""
-      form.firstLastName = ""
-      form.secondLastName = ""
-      form.rut = ""
-      form.email = ""
-      form.cellphone = ""
+      form.firstName = ''
+      form.secondName = ''
+      form.firstLastName = ''
+      form.secondLastName = ''
+      form.rut = ''
+      form.email = ''
+      form.cellphone = ''
       form.institutionType = null
       form.grade = null
     }
 
     const savePolice = async () => {
-      if (!form.firstName.trim() || !form.firstLastName.trim() || 
-          !form.rut.trim() || !form.email.trim() || !form.cellphone.trim() ||
-          !form.institutionType || !form.grade) {
+      if (
+        !form.firstName.trim() ||
+        !form.firstLastName.trim() ||
+        !form.rut.trim() ||
+        !form.email.trim() ||
+        !form.cellphone.trim() ||
+        !form.institutionType ||
+        !form.grade
+      ) {
         console.error('❌ Todos los campos marcados con * son requeridos')
         return
       }
-
+      const rutLimpio = cleanRut(form.rut)
+      // 🔎 Validación real
+      if (!validateRut(rutLimpio)) {
+        console.error('❌ RUT inválido')
+        return
+      }
       try {
         isLoading.value = true
-        
-        const payload = { 
+
+        const payload = {
           firstName: form.firstName.trim(),
           secondName: form.secondName.trim(),
           firstLastName: form.firstLastName.trim(),
           secondLastName: form.secondLastName.trim(),
-          rut: form.rut.trim(),
+          rut: rutLimpio, // ← SE ENVÍA SIN FORMATO
           email: form.email.trim(),
           cellphone: form.cellphone.trim(),
           institutionType: form.institutionType,
-          grade: form.grade
+          grade: form.grade,
         }
-        
-        console.log('📤 Enviando payload:', payload)
-        const { data } = await policeService.create(payload)
 
-        // ✅ Emitir solo un evento para indicar que se debe recargar
-        emit("created")
+        console.log('📤 Payload enviado:', payload)
+
+        const { data } = await policeService.create(payload)
+        emit('created')
         closeDialog()
       } catch (e) {
-        console.error("❌ Error al crear el policía:", e)
+        console.error('❌ Error al crear policía:', e)
       } finally {
         isLoading.value = false
       }
     }
+
+    // Formatear visualmente el RUT mientras el usuario escribe (se envía sin puntos ni guión)
+    watch(
+      () => form.rut,
+      (newVal) => {
+        if (!newVal) return
+        const formatted = formatRut(newVal)
+        if (formatted !== newVal) {
+          form.rut = formatted
+        }
+      },
+    )
 
     return {
       visible,
@@ -278,9 +300,10 @@ export default {
       openDialog,
       closeDialog,
       savePolice,
-      onInstitutionTypeChange
+      onInstitutionTypeChange,
+      cleanRut,
     }
-  }
+  },
 }
 </script>
 

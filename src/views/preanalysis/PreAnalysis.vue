@@ -163,6 +163,8 @@
                             headerStyle="width: 3rem"
                           >
                           </Column>
+                          <Column field="nsubstance" header="N°" />
+
                           <Column field="nue" header="NUE" />
                           <Column field="unity" header="Unidad" />
                           <Column field="weight" header="Peso (gr)" />
@@ -345,6 +347,7 @@ import destinationsService from '@/services/destinationsService.js'
 import methodsDestructionsService from '@/services/methodsDestructionsService.js'
 import analysisService from '@/services/analysisService.js'
 import storagesService from '@/services/storagesService.js'
+import destructionsService from '@/services/destructionsService.js'
 
 import PreAnalysisDialog from '@/components/preanalysis/PreAnalysisDialog.vue'
 import BulkPreAnalysisDialog from '@/components/preanalysis/BulkPreAnalysisDialog.vue'
@@ -641,7 +644,7 @@ export default {
         try {
           const analysisPayload = {
             number_protocol: null,
-            description: formData.observation || '',
+            description: '',
             date_analysis: new Date().toISOString(),
             result: null,
             macro: null,
@@ -779,7 +782,7 @@ export default {
             try {
               const analysisPayload = {
                 number_protocol: null,
-                description: formData.observation || '',
+                description: '',
                 date_analysis: new Date().toISOString(),
                 result: null,
                 macro: null,
@@ -800,19 +803,34 @@ export default {
               try {
                 // storagesService guarda el registro de almacenamiento
                 await storagesService.create({
+                  entry_date: new Date().toISOString().split('T')[0],
+                  sample_quantity: 0,
+                  counter_sample_quantity: contraWeight,
+                  description: '',
                   substance: substance,
-                  reception: selectedReceptionForBulk.value,
-                  weight: contraWeight,
-                  storageLocation: { id: 1 }, // siempre id 1 según requisito
-                  observation: formData.observation,
-                  user: { id: parseInt(localStorage.getItem('user_id')) || 1 },
+                  storageLocation: { id: 1 },
                 })
               } catch (storErr) {
                 console.warn('No se pudo crear registro de almacenamiento:', storErr)
               }
             }
 
-            // 3) El restante queda para destrucción — por ahora solo registramos en historial si se requiere
+            // 3) El restante queda para destrucción
+            if (restante > 0) {
+              try {
+                await destructionsService.create({
+                  act_number: null,
+                  date_destruction: null,
+                  observation: null,
+                  state: 'PENDIENTE',
+                  weight: restante,
+                  methodDestruction: formData.methodDestruction || null,
+                  user: { id: parseInt(localStorage.getItem('user_id')) || 1 },
+                })
+              } catch (destErr) {
+                console.warn('No se pudo crear registro de destrucción:', destErr)
+              }
+            }
 
             // Actualizar estado de la sustancia
             const payloadSubstance = {
@@ -848,6 +866,9 @@ export default {
         selectedSubstances.value = []
         await fetchReceptions()
         await fetchPreAnalysis()
+
+        // Emitir evento para que Analysis.vue se actualice
+        window.dispatchEvent(new CustomEvent('analysisUpdated'))
       } catch (error) {
         console.error('❌ Error en procesamiento masivo:', error)
         toast.add({
@@ -1037,7 +1058,6 @@ export default {
       loadingDestinations,
       loadingMethodsDestruction,
       sendToPreAnalysis,
-      sendBulkToPreAnalysis,
       handlePreAnalysisCancel,
       handleBulkPreAnalysisCancel,
       selectedPreAnalysis,

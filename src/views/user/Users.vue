@@ -1,35 +1,47 @@
 <template>
   <PlantillaContenido>
     <template #contenido>
-<div class="users-container" slot="contenido">
-    <div class="page-content">
-      <div class="flex justify-content-between align-items-center mb-4">
-        <h1>Gestión de Usuarios</h1>
-        <CreateUser @created="handleUserCreated"></CreateUser>
-      </div>
-      
-      <Card>
-        <template #content>
-          <div class="table-container">
-          <DataTable :value="users" paginator size="large" :rows="5" :rowsPerPageOptions="[5,10,20,50]" scrollable scrollHeight="350px" class="p-datatable-striped p-datatable-gridlines users-table">
-            <Column field="firstName" header="Nombre" style="width: 25%"></Column>
-            <Column field="email" header="Correo" style="width: 30%"></Column>
-            <Column field="rut" header="RUT" style="width: 20%"></Column>
-            <Column field="username" header="Nombre de Usuario" style="width: 15%"></Column>
-            <Column header="Acciones" style="width: 10%">
-              <template #body="slotProps">
-                <EditUser :userId="slotProps.data.id" @updated="updateUserInTable"/>
-              </template>
-            </Column>
-          </DataTable>
+      <div class="users-container" slot="contenido">
+        <div class="page-content">
+          <div class="flex justify-content-between align-items-center mb-4">
+            <h1>Gestión de Usuarios</h1>
+            <CreateUser @created="handleUserCreated"></CreateUser>
           </div>
-        </template>
-      </Card>
-    </div>
-  </div>
+
+          <Card>
+            <template #content>
+              <div class="table-container">
+                <DataTable
+                  :value="users"
+                  paginator
+                  size="large"
+                  :rows="5"
+                  :rowsPerPageOptions="[5, 10, 20, 50]"
+                  scrollable
+                  scrollHeight="350px"
+                  class="p-datatable-striped p-datatable-gridlines users-table"
+                >
+                  <Column field="firstName" header="Nombre" style="width: 25%"></Column>
+                  <Column field="email" header="Correo" style="width: 30%"></Column>
+                  <Column header="RUT" style="width: 20%">
+                    <template #body="slotProps">
+                      {{ formatRut(slotProps.data?.rut) || '-' }}
+                    </template>
+                  </Column>
+                  <Column field="username" header="Nombre de Usuario" style="width: 15%"></Column>
+                  <Column header="Acciones" style="width: 10%">
+                    <template #body="slotProps">
+                      <EditUser :userId="slotProps.data.id" @updated="updateUserInTable" />
+                    </template>
+                  </Column>
+                </DataTable>
+              </div>
+            </template>
+          </Card>
+        </div>
+      </div>
     </template>
   </PlantillaContenido>
-  
 </template>
 
 <script>
@@ -37,27 +49,26 @@ import { ref } from 'vue'
 import PlantillaContenido from '../template/PlantillaContenido.vue'
 import CreateUser from '../../components/users/CreateUser.vue'
 import userService from '@/services/usersService'
+import { formatRut } from '@/others/verificationRut'
 import EditUser from '@/components/users/EditUser.vue'
 export default {
   name: 'UsersView',
 
   components: {
     PlantillaContenido,
-    CreateUser, 
-    EditUser
+    CreateUser,
+    EditUser,
   },
 
   setup() {
-    const users = ref([
- 
-    ])
+    const users = ref([])
 
- const fetchUsers = async () => {
+    const fetchUsers = async () => {
       try {
         const { data } = await userService.getAll()
         users.value = data
       } catch (error) {
-        console.error("❌ Error cargando usuarios:", error)
+        console.error('❌ Error cargando usuarios:', error)
       }
     }
 
@@ -68,23 +79,23 @@ export default {
     return {
       users,
       fetchUsers,
-      handleUserCreated
+      handleUserCreated,
+      formatRut,
     }
   },
 
   mounted() {
-    console.log("✅ Vista de usuarios cargada")
+    console.log('✅ Vista de usuarios cargada')
     this.fetchUsers()
   },
   methods: {
-  updateUserInTable(updatedUser) {
-    const index = this.users.findIndex(u => u.id === updatedUser.id)
-    if(index !== -1) this.users[index] = updatedUser
-  }
-}
+    updateUserInTable(updatedUser) {
+      const index = this.users.findIndex((u) => u.id === updatedUser.id)
+      if (index !== -1) this.users[index] = updatedUser
+    },
+  },
 }
 </script>
-
 
 <style scoped>
 .users-container {
@@ -121,7 +132,6 @@ export default {
 .users-container {
   padding: 1rem;
 }
-
 
 .table-container {
   overflow-x: auto;

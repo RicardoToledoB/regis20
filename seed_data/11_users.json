@@ -1,0 +1,58 @@
+[
+  {
+    "username": "admin",
+    "password": "admin123",
+    "email": "admin@ssm.cl",
+    "rut": "11.111.111-1",
+    "firstName": "Admin",
+    "secondName": "",
+    "firstLastName": "Sistema",
+    "secondLastName": "",
+    "cellphone": "912345678",
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "username": "operador",
+    "password": "operador123",
+    "email": "operador@ssm.cl",
+    "rut": "22.222.222-2",
+    "firstName": "Juan",
+    "secondName": "Carlos",
+    "firstLastName": "Pérez",
+    "secondLastName": "García",
+    "cellphone": "987654321",
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "username": "analista",
+    "password": "analista123",
+    "email": "analista@ssm.cl",
+    "rut": "33.333.333-3",
+    "firstName": "María",
+    "secondName": "José",
+    "firstLastName": "López",
+    "secondLastName": "Rodríguez",
+    "cellphone": "912223333",
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  },
+  {
+    "username": "supervisor",
+    "password": "supervisor123",
+    "email": "supervisor@ssm.cl",
+    "rut": "44.444.444-4",
+    "firstName": "Roberto",
+    "secondName": "Miguel",
+    "firstLastName": "González",
+    "secondLastName": "Fernández",
+    "cellphone": "912334444",
+    "created_at": "2025-11-25T10:00:00Z",
+    "updated_at": "2025-11-25T10:00:00Z",
+    "deleted_at": null
+  }
+]
