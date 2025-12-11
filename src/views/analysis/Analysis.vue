@@ -5,16 +5,31 @@
         <div class="page-content">
           <div class="flex justify-content-between align-items-center mb-0">
             <h1>Gestión de Análisis</h1>
-            <Button
-              v-if="selectedAnalysis.length > 0"
-              icon="pi pi-file-pdf"
-              label="Generar Informe Consolidado"
-              class="p-button-success"
-              @click="generateConsolidatedReport"
-              v-tooltip.top="
-                `Generar informe con ${selectedAnalysis.length} análisis seleccionado(s)`
-              "
-            />
+            <div class="flex gap-2">
+              <!-- Botón para generar informe consolidado (destino = 1) -->
+              <Button
+                v-if="selectedAnalysis.length > 0 && hasOnlyInteriorDestination"
+                icon="pi pi-file-pdf"
+                label="Generar Informe Consolidado"
+                class="p-button-success"
+                @click="generateConsolidatedReport"
+                v-tooltip.top="
+                  `Generar informe con ${selectedAnalysis.length} análisis seleccionado(s)`
+                "
+              />
+
+              <!-- Botón para generar reservados (destino ≠ 1) -->
+              <Button
+                v-if="selectedAnalysis.length > 0 && hasOnlyExteriorDestination"
+                icon="pi pi-file"
+                label="Generar Reservados"
+                class="p-button-info"
+                @click="generateReserveds"
+                v-tooltip.top="
+                  `Generar reservados con ${selectedAnalysis.length} análisis seleccionado(s)`
+                "
+              />
+            </div>
           </div>
           <TabView>
             <TabPanel header="Análisis">
@@ -61,7 +76,9 @@
                     <template #body="slotProps">
                       <Checkbox
                         :binary="true"
-                        :disabled="!canSelectAnalysis(slotProps.data)"
+                        :disabled="
+                          !canSelectAnalysis(slotProps.data) || !canSelectRow(slotProps.data)
+                        "
                         :modelValue="isAnalysisSelected(slotProps.data)"
                         @change="toggleAnalysisSelection(slotProps.data)"
                       />
@@ -80,7 +97,10 @@
                   </Column>
                   <Column field="result" header="Resultado">
                     <template #body="slotProps">
-                      {{ slotProps.data.result || '—' }}
+                      <Tag
+                        :value="getAnalysisResult(slotProps.data)"
+                        :severity="getResultSeverity(getAnalysisResult(slotProps.data))"
+                      />
                     </template>
                   </Column>
                   <Column field="user" header="Analista">
@@ -105,28 +125,67 @@
                   <Column header="Acciones">
                     <template #body="slotProps">
                       <div class="flex align-items-center gap-2">
+                        <!-- Si el estado es RESERVADO, mostrar botones "Imprimir Reservado ISP" y "Imprimir Reservado Fiscalía" -->
                         <Button
-                          icon="pi pi-microscope"
+                          v-if="slotProps.data.state === 'RESERVADO'"
+                          icon="pi pi-print"
                           class="p-button-rounded p-button-info p-button-outlined"
-                          @click="openMicroanalysisDialog(slotProps.data)"
-                          v-tooltip.top="'Microanálisis'"
-                        />
-                        <CompleteAnalysis
-                          v-if="slotProps.data.state === 'PENDIENTE'"
-                          :analysis="slotProps.data"
-                          @processed="fetchAnalyses"
+                          @click="printReserved(slotProps.data)"
+                          v-tooltip.top="'Imprimir Reservado ISP'"
                         />
                         <Button
+                          v-if="slotProps.data.state === 'RESERVADO'"
                           icon="pi pi-file-pdf"
-                          class="p-button-rounded p-button-warning p-button-outlined"
-                          :disabled="(slotProps.data.state || '').toUpperCase() === 'PENDIENTE'"
-                          @click="generateAnalysisReport(slotProps.data)"
-                          v-tooltip.top="
-                            (slotProps.data.state || '').toUpperCase() === 'PENDIENTE'
-                              ? 'Disponible solo cuando el análisis está COMPLETADO'
-                              : 'Generar Reporte'
-                          "
+                          class="p-button-rounded p-button-success p-button-outlined"
+                          @click="printReservedFiscalia(slotProps.data)"
+                          v-tooltip.top="'Imprimir Reservado Fiscalía'"
                         />
+
+                        <!-- Si el destino ES 1 (Interior), mostrar los botones de análisis -->
+                        <template v-else-if="slotProps.data.preAnalysis?.destination?.id === 1">
+                          <!-- Macroanalisis: solo aparece en estado PENDIENTE -->
+                          <CompleteAnalysis
+                            v-if="slotProps.data.state === 'PENDIENTE'"
+                            :analysis="slotProps.data"
+                            @processed="fetchAnalyses"
+                          />
+
+                          <!-- Microanalisis: aparece en estado MACRO_COMPLETADO -->
+                          <Button
+                            v-if="slotProps.data.state === 'MACRO_COMPLETADO'"
+                            icon="pi pi-search"
+                            class="p-button-rounded p-button-info p-button-outlined"
+                            @click="openMicroanalysisDialog(slotProps.data)"
+                            v-tooltip.top="'Microanálisis'"
+                          />
+
+                          <!-- Imprimir Microanálisis: aparece si hay datos de micro -->
+                          <Button
+                            v-if="slotProps.data.micro"
+                            icon="pi pi-file-pdf"
+                            class="p-button-rounded p-button-secondary p-button-outlined"
+                            @click="printMicroanalysis(slotProps.data)"
+                            v-tooltip.top="'Imprimir Microanálisis'"
+                          />
+
+                          <!-- Examen Quimico: aparece en estado MICRO_COMPLETADO -->
+                          <Button
+                            v-if="slotProps.data.state === 'MICRO_COMPLETADO'"
+                            icon="pi pi-file-edit"
+                            class="p-button-rounded p-button-warning p-button-outlined"
+                            @click="openChemicalTestDialog(slotProps.data)"
+                            v-tooltip.top="'Examen Químico'"
+                          />
+
+                          <!-- Generar Reporte: aparece en estado COMPLETADO -->
+                          <Button
+                            v-if="slotProps.data.state === 'COMPLETADO'"
+                            icon="pi pi-file-pdf"
+                            class="p-button-rounded p-button-success p-button-outlined"
+                            @click="generateAnalysisReport(slotProps.data)"
+                            v-tooltip.top="'Generar Reporte'"
+                          />
+                        </template>
                       </div>
                     </template>
                   </Column>
@@ -167,6 +226,98 @@
     :analysis="selectedAnalysisForMicroanalysis"
     @saved="fetchAnalyses"
   />
+
+  <ChemicalTestDialog
+    v-model:visible="showChemicalTestDialog"
+    :analysis="selectedAnalysisForChemicalTest"
+    @saved="fetchAnalyses"
+  />
+
+  <!-- DIÁLOGO PARA NÚMERO RESERVADO -->
+  <Dialog
+    v-model:visible="showReservedNumberDialog"
+    modal
+    header="Ingrese Número Reservado"
+    :style="{ width: '400px' }"
+    :modal="true"
+  >
+    <div class="flex flex-column gap-4">
+      <div class="field">
+        <label for="reserved">Número Reservado</label>
+        <InputNumber
+          id="reserved"
+          v-model="reservedNumber"
+          :useGrouping="false"
+          placeholder="Ingrese el número reservado"
+          autofocus
+        />
+      </div>
+    </div>
+
+    <template #footer>
+      <Button
+        label="Cancelar"
+        severity="secondary"
+        @click="showReservedNumberDialog = false"
+        :disabled="isGeneratingReport"
+      />
+      <Button
+        label="Generar Informe"
+        severity="success"
+        @click="confirmGenerateReport"
+        :loading="isGeneratingReport"
+        :disabled="isGeneratingReport"
+      />
+    </template>
+  </Dialog>
+
+  <!-- DIÁLOGO PARA NÚMEROS DE RESERVADOS (Fiscalía Local e ISP) -->
+  <Dialog
+    v-model:visible="showReservedsDialog"
+    modal
+    header="Ingrese Números de Reservados"
+    :style="{ width: '450px' }"
+    :modal="true"
+  >
+    <div class="flex flex-column gap-4">
+      <div class="field">
+        <label for="fiscaliaLocal">Número Reservado - Fiscalía Local *</label>
+        <InputNumber
+          id="fiscaliaLocal"
+          v-model="reservedsData.fiscaliaLocal"
+          :useGrouping="false"
+          placeholder="Ingrese número de Fiscalía Local"
+          autofocus
+        />
+      </div>
+
+      <div class="field">
+        <label for="isp">Número Reservado - Instituto de Salud Pública *</label>
+        <InputNumber
+          id="isp"
+          v-model="reservedsData.isp"
+          :useGrouping="false"
+          placeholder="Ingrese número de ISP"
+        />
+      </div>
+    </div>
+
+    <template #footer>
+      <Button
+        label="Cancelar"
+        severity="secondary"
+        @click="showReservedsDialog = false"
+        :disabled="isGeneratingReserveds"
+      />
+      <Button
+        label="Generar Reservados"
+        severity="info"
+        @click="confirmGenerateReserveds"
+        :loading="isGeneratingReserveds"
+        :disabled="isGeneratingReserveds"
+      />
+    </template>
+  </Dialog>
 </template>
 
 <script>
@@ -189,23 +340,30 @@ import Chip from 'primevue/chip'
 import Checkbox from 'primevue/checkbox'
 import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
+import Tag from 'primevue/tag'
 
 import preAnalysisService from '@/services/preAnalysisService.js'
 import analysisService from '@/services/analysisService.js'
+import reservedsService from '@/services/reservedsService.js'
 import { generarActaPDF } from '@/others/generarActaBtn.js'
 import { generarReporteAnalisisPDF } from '@/others/generarReporteAnalisis.js'
 import { generarInformeConsolidadoPDF } from '@/others/generarInformeConsolidado.js'
+import { generarReservadoPDF, generarReservadoFiscaliaPDF } from '@/others/generarReservadoPDF.js'
+import { generarReporteMicroanalisisPDF } from '@/others/generarReporteMicroanalisis.js'
 import recepcionService from '@/services/receptionsService.js'
 import substancesService from '@/services/substancesService.js'
 import EditReceptionUnlock from '@/components/receptions/EditReceptionUnlock.vue'
 import destinationsService from '@/services/destinationsService.js'
 import methodsDestructionsService from '@/services/methodsDestructionsService.js'
 import storagesService from '@/services/storagesService.js'
+import destructionsHeaderService from '@/services/destructionsHeaderService.js'
+import destructionDetailsService from '@/services/destructionDetailsService.js'
 
 import PreAnalysisDialog from '@/components/preanalysis/PreAnalysisDialog.vue'
 import BulkPreAnalysisDialog from '@/components/preanalysis/BulkPreAnalysisDialog.vue'
 import CompleteAnalysis from '@/components/analysis/CompleteAnalysis.vue'
 import MicroanalysisDialog from '@/components/analysis/MicroanalysisDialog.vue'
+import ChemicalTestDialog from '@/components/analysis/ChemicalTestDialog.vue'
 export default {
   name: 'PreAnalysisView',
   components: {
@@ -225,11 +383,13 @@ export default {
     Checkbox,
     TabView,
     TabPanel,
+    Tag,
     EditReceptionUnlock,
     PreAnalysisDialog,
     BulkPreAnalysisDialog,
     CompleteAnalysis,
     MicroanalysisDialog,
+    ChemicalTestDialog,
   },
 
   setup() {
@@ -252,6 +412,23 @@ export default {
     // Dialog de microanálisis
     const showMicroanalysisDialog = ref(false)
     const selectedAnalysisForMicroanalysis = ref(null)
+
+    // Dialog de examen químico
+    const showChemicalTestDialog = ref(false)
+    const selectedAnalysisForChemicalTest = ref(null)
+
+    // Dialog para número reservado
+    const showReservedNumberDialog = ref(false)
+    const reservedNumber = ref(null)
+    const isGeneratingReport = ref(false)
+
+    // Dialog para números de reservados (Fiscalía Local e ISP)
+    const showReservedsDialog = ref(false)
+    const reservedsData = ref({
+      fiscaliaLocal: null,
+      isp: null,
+    })
+    const isGeneratingReserveds = ref(false)
 
     // Diálogo de pre-análisis individual
     const showPreAnalysisDialog = ref(false)
@@ -283,6 +460,12 @@ export default {
     }
 
     const canSelectAnalysis = (row) => {
+      // Permitir seleccionar si el destino NO es 1 (Exterior/ISP)
+      if (row.preAnalysis?.destination?.id !== 1) {
+        return true
+      }
+
+      // Para destino 1 (Interior), aplicar la lógica original
       const current = selectedAnalysisActNumber.value
       const rowAct = getActNumber(row)
       const isCompleted = (row.state || '').toUpperCase() === 'COMPLETADO'
@@ -292,7 +475,56 @@ export default {
       return rowAct === current
     }
 
+    const canSelectRow = (row) => {
+      // No permitir seleccionar si el estado es RESERVADO
+      if (row.state === 'RESERVADO') {
+        return false
+      }
+
+      // Si no hay nada seleccionado, permitir
+      if (selectedAnalysis.value.length === 0) {
+        return true
+      }
+
+      // Obtener el acta del primer elemento seleccionado
+      const firstSelectedRow = selectedAnalysis.value[0]
+      const firstSelectedAct = getActNumber(firstSelectedRow)
+      const currentRowAct = getActNumber(row)
+
+      // No permitir si el acta es diferente
+      if (firstSelectedAct !== currentRowAct) {
+        return false
+      }
+
+      return true
+    }
+
+    const hasOnlyInteriorDestination = computed(() => {
+      if (selectedAnalysis.value.length === 0) return false
+      return selectedAnalysis.value.every((analysis) => analysis.preAnalysis?.destination?.id === 1)
+    })
+
+    const hasOnlyExteriorDestination = computed(() => {
+      if (selectedAnalysis.value.length === 0) return false
+      return selectedAnalysis.value.every((analysis) => analysis.preAnalysis?.destination?.id !== 1)
+    })
+
     const toggleAnalysisSelection = (row) => {
+      // Validar si se puede seleccionar esta fila según el acta
+      if (selectedAnalysis.value.length > 0 && !canSelectRow(row)) {
+        const firstSelectedRow = selectedAnalysis.value[0]
+        const firstAct = getActNumber(firstSelectedRow)
+        const currentAct = getActNumber(row)
+
+        toast.add({
+          severity: 'warn',
+          summary: 'Selección no permitida',
+          detail: `No puede mezclar actas distintas. Ya tiene seleccionada acta Nº ${firstAct}`,
+          life: 3000,
+        })
+        return
+      }
+
       if (!canSelectAnalysis(row)) {
         const isCompleted = (row.state || '').toUpperCase() === 'COMPLETADO'
         if (!isCompleted) {
@@ -322,10 +554,13 @@ export default {
         selectedAnalysis.value.push(row)
       }
 
-      if (selectedAnalysis.value.length === 0) {
-        selectedAnalysisActNumber.value = null
-      } else if (selectedAnalysis.value.length === 1) {
-        selectedAnalysisActNumber.value = getActNumber(selectedAnalysis.value[0])
+      // Solo actualizar el acta number si no es un análisis de ISP
+      if (row.preAnalysis?.destination?.id === 1) {
+        if (selectedAnalysis.value.length === 0) {
+          selectedAnalysisActNumber.value = null
+        } else if (selectedAnalysis.value.length === 1) {
+          selectedAnalysisActNumber.value = getActNumber(selectedAnalysis.value[0])
+        }
       }
     }
 
@@ -615,7 +850,40 @@ export default {
         let errorCount = 0
         const newlyCreatedAnalyses = []
 
-        // Procesar cada sustancia individualmente
+        // 1️⃣ CREAR UN SOLO DESTRUCTION HEADER PARA TODAS LAS SUSTANCIAS
+        let destructionHeader = null
+        try {
+          const totalWeight = selectedSubstances.value.reduce((sum, substance) => {
+            const indiv = formData.individualWeights[substance.id] || { sample: null, contra: null }
+            const contraWeight = Number(indiv.contra) || 0
+            return sum + contraWeight
+          }, 0)
+
+          const headerPayload = {
+            act_number: `BULK-${Date.now()}`,
+            date_destruction: new Date().toISOString().split('T')[0],
+            observation: formData.observation || 'Procesamiento masivo',
+            state: 'COMPLETADO',
+            weight: totalWeight,
+            methodDestruction: formData.methodDestruction,
+            user: { id: parseInt(localStorage.getItem('user_id')) || 1 },
+          }
+
+          const { data: createdHeader } = await destructionsHeaderService.create(headerPayload)
+          destructionHeader = createdHeader
+          console.log('✅ Destruction Header creado:', destructionHeader)
+        } catch (headerErr) {
+          console.error('❌ Error creando destruction header:', headerErr)
+          toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo crear el registro de destrucción',
+            life: 3000,
+          })
+          return
+        }
+
+        // 2️⃣ PROCESAR CADA SUSTANCIA INDIVIDUALMENTE
         for (const substance of selectedSubstances.value) {
           try {
             const indiv = formData.individualWeights[substance.id] || { sample: null, contra: null }
@@ -661,10 +929,10 @@ export default {
               console.warn('No se pudo crear el análisis automáticamente (bulk):', analysisErr)
             }
 
-            // Si hay contramuestra, crear registro de almacenamiento
+            // 3️⃣ Si hay contramuestra, crear registro de almacenamiento Y destruction detail
             if (contraWeight > 0) {
               try {
-                await storagesService.create({
+                const { data: createdStorage } = await storagesService.create({
                   entry_date: new Date().toISOString().split('T')[0],
                   sample_quantity: 0,
                   counter_sample_quantity: contraWeight,
@@ -672,8 +940,19 @@ export default {
                   substance: substance,
                   storageLocation: { id: 1 },
                 })
+
+                // 4️⃣ CREAR DESTRUCTION DETAIL usando el mismo header
+                const detailPayload = {
+                  state: 'COMPLETADO',
+                  weight: contraWeight,
+                  destructionHeader: destructionHeader,
+                  substance: substance,
+                  storage: createdStorage,
+                }
+                await destructionDetailsService.create(detailPayload)
+                console.log(`✅ Destruction Detail creado para sustancia ${substance.nue}`)
               } catch (storErr) {
-                console.warn('No se pudo crear registro de almacenamiento:', storErr)
+                console.warn('No se pudo crear registro de almacenamiento/detalle:', storErr)
               }
             }
 
@@ -841,6 +1120,51 @@ export default {
       return substance.substanceType?.name || `Sustancia #${substance.id}`
     }
 
+    const getAnalysisResult = (analysis) => {
+      console.log(analysis)
+
+      // Obtener los tres campos
+      const macro = analysis.macro
+      const micro = analysis.micro
+      const result = analysis.result
+
+      // Contar cuántos campos están llenos
+      const filledCount = (macro ? 1 : 0) + (micro ? 1 : 0) + (result ? 1 : 0)
+      console.log('Campos llenos:', filledCount)
+      // Si no todos los tres están llenos, es EN PROCESO (incluyendo cuando ninguno está lleno)
+      if (filledCount < 3) {
+        return 'EN PROCESO'
+      }
+
+      // Si los tres son POSITIVO
+      if (macro === 'POSITIVO' && micro === 'POSITIVO' && result === 'POSITIVO') {
+        return 'POSITIVO'
+      }
+
+      // Si los tres son NEGATIVO
+      if (macro === 'NEGATIVO' && micro === 'NEGATIVO' && result === 'NEGATIVO') {
+        return 'NEGATIVO'
+      }
+
+      // Si son distintos
+      return 'INDETERMINADO'
+    }
+
+    const getResultSeverity = (resultText) => {
+      switch (resultText) {
+        case 'POSITIVO':
+          return 'danger'
+        case 'NEGATIVO':
+          return 'success'
+        case 'INDETERMINADO':
+          return 'warning'
+        case 'EN PROCESO':
+          return 'info'
+        default:
+          return 'info'
+      }
+    }
+
     const getDestinationName = (destinationId) => {
       if (!destinationId) return '—'
       const destination = destinations.value?.find((d) => d.id === destinationId)
@@ -957,14 +1281,66 @@ export default {
         return
       }
 
+      // Limpiar campo y abrir modal
+      reservedNumber.value = null
+      showReservedNumberDialog.value = true
+    }
+
+    const confirmGenerateReport = async () => {
+      if (!reservedNumber.value || reservedNumber.value.toString().trim() === '') {
+        toast.add({
+          severity: 'warn',
+          summary: 'Número reservado requerido',
+          detail: 'Debe ingresar un número reservado',
+          life: 2500,
+        })
+        return
+      }
+
       try {
-        generarInformeConsolidadoPDF(selectedAnalysis.value)
+        isGeneratingReport.value = true
+
+        let successCount = 0
+        let errorCount = 0
+
+        // Crear un registro de reserved por cada análisis seleccionado
+        for (const analysis of selectedAnalysis.value) {
+          try {
+            const reservedPayload = {
+              number: reservedNumber.value,
+              analysis: analysis,
+              fiscal: true,
+              isp: false,
+            }
+            await reservedsService.create(reservedPayload)
+            successCount++
+          } catch (error) {
+            console.error(`Error creando reservado para análisis ${analysis.id}:`, error)
+            errorCount++
+          }
+        }
+
+        if (errorCount > 0) {
+          toast.add({
+            severity: 'warn',
+            summary: 'Guardado Parcial',
+            detail: `${successCount} reservados creados, ${errorCount} con errores`,
+            life: 3000,
+          })
+        }
+
+        // Generar el PDF con el informe consolidado
+        generarInformeConsolidadoPDF(selectedAnalysis.value, reservedNumber.value)
+
         toast.add({
           severity: 'success',
           summary: 'Informe generado',
           detail: `Informe consolidado con ${selectedAnalysis.value.length} análisis generado correctamente`,
           life: 3000,
         })
+
+        showReservedNumberDialog.value = false
+        reservedNumber.value = null
       } catch (error) {
         console.error('Error generando informe consolidado:', error)
         toast.add({
@@ -973,12 +1349,266 @@ export default {
           detail: 'No se pudo generar el informe consolidado',
           life: 3000,
         })
+      } finally {
+        isGeneratingReport.value = false
+      }
+    }
+
+    const generateReserveds = () => {
+      if (!selectedAnalysis.value.length) {
+        toast.add({
+          severity: 'warn',
+          summary: 'Sin selección',
+          detail: 'Debe seleccionar al menos un análisis',
+          life: 2500,
+        })
+        return
+      }
+
+      // Limpiar campos y abrir modal
+      reservedsData.value = {
+        fiscaliaLocal: null,
+        isp: null,
+      }
+      showReservedsDialog.value = true
+    }
+
+    const confirmGenerateReserveds = async () => {
+      if (
+        !reservedsData.value.fiscaliaLocal ||
+        reservedsData.value.fiscaliaLocal.toString().trim() === ''
+      ) {
+        toast.add({
+          severity: 'warn',
+          summary: 'Número de Fiscalía Local requerido',
+          detail: 'Debe ingresar el número de reservado de Fiscalía Local',
+          life: 2500,
+        })
+        return
+      }
+
+      if (!reservedsData.value.isp || reservedsData.value.isp.toString().trim() === '') {
+        toast.add({
+          severity: 'warn',
+          summary: 'Número de ISP requerido',
+          detail: 'Debe ingresar el número de reservado del Instituto de Salud Pública',
+          life: 2500,
+        })
+        return
+      }
+
+      try {
+        isGeneratingReserveds.value = true
+
+        let successCount = 0
+        let errorCount = 0
+
+        // Crear dos registros por cada análisis
+        for (const analysis of selectedAnalysis.value) {
+          try {
+            // Crear reservado de Fiscalía Local
+            const fiscalPayload = {
+              number: reservedsData.value.fiscaliaLocal,
+              analysis: analysis,
+              fiscal: true,
+              isp: false,
+            }
+            await reservedsService.create(fiscalPayload)
+
+            // Crear reservado de ISP
+            const ispPayload = {
+              number: reservedsData.value.isp,
+              analysis: analysis,
+              fiscal: false,
+              isp: true,
+            }
+            await reservedsService.create(ispPayload)
+
+            // Actualizar estado del análisis a RESERVADO
+            await analysisService.update(analysis.id, {
+              ...analysis,
+              state: 'RESERVADO',
+            })
+
+            successCount++
+          } catch (error) {
+            console.error(`Error creando reservados para análisis ${analysis.id}:`, error)
+            errorCount++
+          }
+        }
+
+        if (errorCount === 0) {
+          toast.add({
+            severity: 'success',
+            summary: 'Reservados generados',
+            detail: `Reservados generados correctamente para ${successCount} análisis`,
+            life: 3000,
+          })
+        } else {
+          toast.add({
+            severity: successCount > 0 ? 'warn' : 'error',
+            summary: 'Generación Parcial',
+            detail: `${successCount} exitosos, ${errorCount} con errores`,
+            life: 3000,
+          })
+        }
+
+        showReservedsDialog.value = false
+        reservedsData.value = {
+          fiscaliaLocal: null,
+          isp: null,
+        }
+
+        // Recargar datos para actualizar la vista
+        await fetchAnalyses()
+      } catch (error) {
+        console.error('Error generando reservados:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo generar los reservados',
+          life: 3000,
+        })
+      } finally {
+        isGeneratingReserveds.value = false
       }
     }
 
     const openMicroanalysisDialog = (analysis) => {
       selectedAnalysisForMicroanalysis.value = analysis
       showMicroanalysisDialog.value = true
+    }
+
+    const openChemicalTestDialog = (analysis) => {
+      selectedAnalysisForChemicalTest.value = analysis
+      showChemicalTestDialog.value = true
+    }
+
+    const sendToISP = async (analysis) => {
+      try {
+        toast.add({
+          severity: 'info',
+          summary: 'Enviando a ISP',
+          detail: `Análisis #${analysis.id} será enviado a ISP`,
+          life: 3000,
+        })
+
+        // Aquí puedes implementar la lógica para enviar a ISP
+        // Por ahora, solo mostramos un mensaje
+        console.log('Enviando a ISP:', analysis)
+      } catch (error) {
+        console.error('❌ Error enviando a ISP:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo enviar a ISP',
+          life: 3000,
+        })
+      }
+    }
+
+    const printReserved = async (analysis) => {
+      try {
+        // Obtener los números reservados de este análisis
+        const response = await reservedsService.getByAnalysisId(analysis.id)
+        const reserveds = response.data
+
+        if (!reserveds || reserveds.length === 0) {
+          toast.add({
+            severity: 'warn',
+            summary: 'Sin reservados',
+            detail: 'No se encontraron números reservados para este análisis',
+            life: 2500,
+          })
+          return
+        }
+
+        // Generar PDF con los números reservados
+        generarReservadoPDF(analysis, reserveds)
+
+        toast.add({
+          severity: 'success',
+          summary: 'PDF Generado',
+          detail: `Documento de reservados generado para análisis #${analysis.id}`,
+          life: 3000,
+        })
+      } catch (error) {
+        console.error('❌ Error imprimiendo reservado:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo imprimir el documento de reservados',
+          life: 3000,
+        })
+      }
+    }
+
+    const printReservedFiscalia = async (analysis) => {
+      try {
+        // Obtener los números reservados de este análisis
+        const response = await reservedsService.getByAnalysisId(analysis.id)
+        const reserveds = response.data
+
+        if (!reserveds || reserveds.length === 0) {
+          toast.add({
+            severity: 'warn',
+            summary: 'Sin reservados',
+            detail: 'No se encontraron números reservados para este análisis',
+            life: 2500,
+          })
+          return
+        }
+
+        // Generar PDF con los números reservados para Fiscalía
+        generarReservadoFiscaliaPDF(analysis, reserveds)
+
+        toast.add({
+          severity: 'success',
+          summary: 'PDF Generado',
+          detail: `Documento de reservados Fiscalía generado para análisis #${analysis.id}`,
+          life: 3000,
+        })
+      } catch (error) {
+        console.error('❌ Error imprimiendo reservado Fiscalía:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo imprimir el documento de reservados Fiscalía',
+          life: 3000,
+        })
+      }
+    }
+
+    const printMicroanalysis = (analysis) => {
+      try {
+        if (!analysis.micro) {
+          toast.add({
+            severity: 'warn',
+            summary: 'Sin datos',
+            detail: 'No hay información de microanálisis para este análisis',
+            life: 2500,
+          })
+          return
+        }
+
+        // Generar PDF del microanálisis
+        generarReporteMicroanalisisPDF(analysis)
+
+        toast.add({
+          severity: 'success',
+          summary: 'PDF Generado',
+          detail: `Reporte de microanálisis generado para análisis #${analysis.id}`,
+          life: 3000,
+        })
+      } catch (error) {
+        console.error('❌ Error imprimiendo microanálisis:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo imprimir el reporte de microanálisis',
+          life: 3000,
+        })
+      }
     }
 
     onMounted(() => {
@@ -1030,6 +1660,8 @@ export default {
       onRowCollapse,
       getPoliceName,
       getSubstanceName,
+      getAnalysisResult,
+      getResultSeverity,
       getDestinationName,
       viewReceptionDetail,
       viewPreAnalysis,
@@ -1048,6 +1680,7 @@ export default {
       loadingAnalysis,
       selectedAnalysis,
       canSelectAnalysis,
+      canSelectRow,
       isAnalysisSelected,
       toggleAnalysisSelection,
 
@@ -1060,6 +1693,24 @@ export default {
       showMicroanalysisDialog,
       selectedAnalysisForMicroanalysis,
       openMicroanalysisDialog,
+      showChemicalTestDialog,
+      selectedAnalysisForChemicalTest,
+      openChemicalTestDialog,
+      sendToISP,
+      printReserved,
+      printReservedFiscalia,
+      printMicroanalysis,
+      showReservedNumberDialog,
+      reservedNumber,
+      isGeneratingReport,
+      confirmGenerateReport,
+      showReservedsDialog,
+      reservedsData,
+      isGeneratingReserveds,
+      confirmGenerateReserveds,
+      hasOnlyInteriorDestination,
+      hasOnlyExteriorDestination,
+      generateReserveds,
     }
   },
 }

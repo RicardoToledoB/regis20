@@ -153,7 +153,7 @@ export default {
       }
     }
 
-    // Resetear formulario cuando se abre el diálogo
+    // Resetear formulario cuando se abre el diálogo y auto-seleccionar destino
     watch(
       () => props.visible,
       (newVal) => {
@@ -163,6 +163,28 @@ export default {
             weight_sampled: null,
             methodDestruction: null,
             observation: '',
+          }
+
+          // Auto-seleccionar destino basado en el tipo de sustancia
+          if (props.selectedSubstance?.substanceType?.id) {
+            const substanceTypeId = props.selectedSubstance.substanceType.id
+            const interiorGroup = [1, 2, 3]
+            const isInteriorType = interiorGroup.includes(substanceTypeId)
+
+            // Buscar el destino correcto
+            if (isInteriorType) {
+              // Buscar destino con id 1
+              const interiorDestination = props.destinations.find((d) => d.id === 1)
+              if (interiorDestination) {
+                formData.value.destination = interiorDestination.id
+              }
+            } else {
+              // Buscar destino con id 2
+              const exteriorDestination = props.destinations.find((d) => d.id === 2)
+              if (exteriorDestination) {
+                formData.value.destination = exteriorDestination.id
+              }
+            }
           }
         }
       },

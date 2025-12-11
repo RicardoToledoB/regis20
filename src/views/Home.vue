@@ -5,7 +5,7 @@
         <div class="page-content">
           <h1>Inicio</h1>
 
-          <div class="grid">
+          <!--      <div class="grid">
             <div class="col-12 md:col-6 lg:col-3">
               <Card class="stats-card">
                 <template #content>
@@ -61,7 +61,7 @@
                 </template>
               </Card>
             </div>
-          </div>
+          </div>-->
 
           <div class="grid mt-4">
             <div class="col-12">
@@ -69,7 +69,7 @@
                 <template #header>
                   <img alt="user header" src="/public/ssm/BANNER.png" class="banner-img" />
                 </template>
-                <template #title style="padding-left: 15%;">{{ user.name }}</template>
+                <template #title style="padding-left: 15%">{{ user.name }}</template>
                 <template #content>
                   <p>RUT: {{ user.rut }}</p>
                   <p>EMAIL: {{ user.email }}</p>
@@ -89,7 +89,7 @@
 </template>
 
 <script>
-import PlantillaContenido from './template/PlantillaContenido.vue';
+import PlantillaContenido from './template/PlantillaContenido.vue'
 
 export default {
   name: 'Home',
@@ -97,107 +97,107 @@ export default {
   data() {
     return {
       user: {
-        name: "",
-        rut: "",
-        email: "",
-        cantidad: 0
+        name: '',
+        rut: '',
+        email: '',
+        cantidad: 0,
       },
       visible: false,
       buttondisplay: null,
       receptions: 0,
       analisis: 0,
       borradores: 0,
-      isLoading: false
+      isLoading: false,
     }
   },
   mounted() {
-    console.log('Componente Home montado');
-    this.cargarDatosDesdeLocalStorage();
-    this.user.cantidad = 100; // Puedes mantener este valor o obtenerlo de otra API
+    console.log('Componente Home montado')
+    this.cargarDatosDesdeLocalStorage()
+    this.user.cantidad = 100 // Puedes mantener este valor o obtenerlo de otra API
   },
   methods: {
     cargarDatosDesdeLocalStorage() {
       try {
-        console.log('📥 Cargando datos desde localStorage...');
-        
+        console.log('📥 Cargando datos desde localStorage...')
+
         // Obtener datos del localStorage
-        const userName = localStorage.getItem('userName');
-        const userRut = localStorage.getItem('userRut');
-        const userEmail = localStorage.getItem('userEmail');
-        const userData = localStorage.getItem('userData');
-        
+        const userName = localStorage.getItem('userName')
+        const userRut = localStorage.getItem('userRut')
+        const userEmail = localStorage.getItem('userEmail')
+        const userData = localStorage.getItem('userData')
+
         console.log('📋 Datos encontrados en localStorage:', {
           userName,
           userRut,
           userEmail,
-          userData: userData ? 'Presente' : 'No presente'
-        });
+          userData: userData ? 'Presente' : 'No presente',
+        })
 
         // Cargar datos básicos
-        this.user.name = userName || 'Usuario';
-        this.user.rut = userRut || 'No disponible';
-        this.user.email = userEmail || 'No disponible';
+        this.user.name = userName || 'Usuario'
+        this.user.rut = userRut || 'No disponible'
+        this.user.email = userEmail || 'No disponible'
 
         // Si hay datos completos, intentar cargar información adicional
         if (userData) {
           try {
-            const userDataObj = JSON.parse(userData);
-            console.log('✅ Datos completos del usuario:', userDataObj);
-            
+            const userDataObj = JSON.parse(userData)
+            console.log('✅ Datos completos del usuario:', userDataObj)
+
             // Si no tenemos nombre completo, intentar construirlo desde los datos
             if (!userName && (userDataObj.firstName || userDataObj.firstLastName)) {
-              this.user.name = `${userDataObj.firstName || ''} ${userDataObj.firstLastName || ''}`.trim();
+              this.user.name =
+                `${userDataObj.firstName || ''} ${userDataObj.firstLastName || ''}`.trim()
             }
-            
+
             // Si no tenemos RUT, intentar obtenerlo de los datos
             if (!userRut && userDataObj.rut) {
-              this.user.rut = userDataObj.rut;
+              this.user.rut = userDataObj.rut
             }
-            
+
             // Si no tenemos email, intentar obtenerlo de los datos
             if (!userEmail && userDataObj.email) {
-              this.user.email = userDataObj.email;
+              this.user.email = userDataObj.email
             }
           } catch (parseError) {
-            console.error('❌ Error al parsear userData:', parseError);
+            console.error('❌ Error al parsear userData:', parseError)
           }
         }
 
-        console.log('✅ Datos cargados en el componente:', this.user);
-
+        console.log('✅ Datos cargados en el componente:', this.user)
       } catch (error) {
-        console.error('❌ Error al cargar datos desde localStorage:', error);
+        console.error('❌ Error al cargar datos desde localStorage:', error)
         // Valores por defecto en caso de error
-        this.user.name = 'Usuario';
-        this.user.rut = 'No disponible';
-        this.user.email = 'No disponible';
+        this.user.name = 'Usuario'
+        this.user.rut = 'No disponible'
+        this.user.email = 'No disponible'
       }
     },
 
     openDialog() {
-      this.visible = true;
+      this.visible = true
     },
     closeDialog() {
-      this.visible = false;
+      this.visible = false
     },
     saveData() {
-      console.log('Guardando datos...', this.value, this.buttondisplay);
-      this.visible = false;
-    }
+      console.log('Guardando datos...', this.value, this.buttondisplay)
+      this.visible = false
+    },
   },
   watch: {
     visible(newVal) {
-      console.log('Visibilidad del diálogo:', newVal);
+      console.log('Visibilidad del diálogo:', newVal)
     },
     value(newVal) {
-      console.log('Valor cambiado:', newVal);
-    }
+      console.log('Valor cambiado:', newVal)
+    },
   },
   computed: {
     formattedDate() {
-      return this.buttondisplay ? this.buttondisplay.toLocaleDateString() : '';
-    }
-  }
+      return this.buttondisplay ? this.buttondisplay.toLocaleDateString() : ''
+    },
+  },
 }
 </script>
 

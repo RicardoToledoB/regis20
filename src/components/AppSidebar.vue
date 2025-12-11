@@ -348,14 +348,9 @@ const mainMenu = ref([
     to: '/analysis',
   },
   {
-    label: 'Almacenamiento',
-    icon: 'pi pi-file-check',
-    to: '/storage',
-  },
-  {
-    label: 'Destrucción',
-    icon: 'pi pi-ban',
-    to: '/destructions',
+    label: 'Almacenamiento y Destrucción',
+    icon: 'pi pi-warehouse',
+    to: '/storage-destruction',
   },
 ])
 

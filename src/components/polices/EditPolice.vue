@@ -1,10 +1,6 @@
 <template>
   <div>
-    <Button
-      icon="pi pi-pencil"
-      class="p-button-rounded p-button-info"
-      @click="openDialog"
-    />
+    <Button icon="pi pi-pencil" class="p-button-rounded p-button-info" @click="openDialog" />
 
     <Dialog
       v-model:visible="visible"
@@ -22,7 +18,7 @@
         <div
           v-if="isLoading"
           class="flex justify-content-center align-items-center"
-          style="height: 200px;"
+          style="height: 200px"
         >
           <ProgressSpinner />
         </div>
@@ -35,7 +31,7 @@
               <InputText
                 id="firstName"
                 v-model="form.firstName"
-                class="  w-full"
+                class="w-full"
                 placeholder="Primer nombre"
               />
             </div>
@@ -44,7 +40,7 @@
               <InputText
                 id="secondName"
                 v-model="form.secondName"
-                class="  w-full"
+                class="w-full"
                 placeholder="Segundo nombre"
               />
             </div>
@@ -56,7 +52,7 @@
               <InputText
                 id="firstLastName"
                 v-model="form.firstLastName"
-                class="  w-full"
+                class="w-full"
                 placeholder="Primer apellido"
               />
             </div>
@@ -65,7 +61,7 @@
               <InputText
                 id="secondLastName"
                 v-model="form.secondLastName"
-                class="  w-full"
+                class="w-full"
                 placeholder="Segundo apellido"
               />
             </div>
@@ -74,19 +70,15 @@
           <div class="grid grid-nogutter gap-1">
             <div class="col-12 field">
               <label for="rut">RUT *</label>
-              <InputText
-                id="rut"
-                v-model="form.rut"
-                class="  w-full"
-                placeholder="12345678-9"
-              />
+              <InputText id="rut" v-model="form.rut" class="w-full" placeholder="12345678-9" />
+              <small v-if="rutError" class="p-error">{{ rutError }}</small>
             </div>
             <div class="col-12 field">
               <label for="cellphone">Celular *</label>
               <InputText
                 id="cellphone"
                 v-model="form.cellphone"
-                class="  w-full"
+                class="w-full"
                 placeholder="912345678"
               />
             </div>
@@ -97,7 +89,7 @@
             <InputText
               id="email"
               v-model="form.email"
-              class="  w-full"
+              class="w-full"
               placeholder="correo@ejemplo.cl"
               type="email"
             />
@@ -136,28 +128,19 @@
       </div>
 
       <template #footer>
-        <Button
-          label="Cerrar"
-          severity="secondary"
-          @click="closeDialog"
-          :disabled="isLoading"
-        />
-        <Button
-          label="Guardar"
-          icon="pi pi-save"
-          @click="updatePolice"
-          :loading="isLoading"
-        />
+        <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading" />
+        <Button label="Guardar" icon="pi pi-save" @click="updatePolice" :loading="isLoading" />
       </template>
     </Dialog>
   </div>
 </template>
 
 <script>
-import { reactive, ref, computed, onMounted } from 'vue'
+import { reactive, ref, computed, onMounted, watch } from 'vue'
 import policeService from '@/services/policesService'
 import institutionTypeService from '@/services/institutionTypesService'
 import gradeService from '@/services/gradesService'
+import { formatRut, validateRut } from '@/others/verificationRut'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
@@ -170,8 +153,8 @@ export default {
   props: {
     police: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   emits: ['updated'],
 
@@ -180,24 +163,45 @@ export default {
     const isLoading = ref(false)
     const institutionTypes = ref([])
     const allGrades = ref([]) // Almacena todos los grados
+    const rutError = ref('')
+
+    const cleanRut = (value) =>
+      (value || '')
+        .toString()
+        .replace(/^0+|[^0-9kK]+/g, '')
+        .toUpperCase()
 
     const form = reactive({
-      firstName: "",
-      secondName: "",
-      firstLastName: "",
-      secondLastName: "",
-      rut: "",
-      email: "",
-      cellphone: "",
+      firstName: '',
+      secondName: '',
+      firstLastName: '',
+      secondLastName: '',
+      rut: '',
+      email: '',
+      cellphone: '',
       institutionType: null,
-      grade: null
+      grade: null,
     })
+
+    // Formatear visualmente el RUT mientras el usuario escribe
+    watch(
+      () => form.rut,
+      (newVal) => {
+        if (!newVal) return
+        const formatted = formatRut(newVal)
+        if (formatted !== newVal) {
+          form.rut = formatted
+        }
+        // limpiar posible error cuando el usuario edita
+        rutError.value = ''
+      },
+    )
 
     // ✅ Computed para filtrar grados por institutionType seleccionado
     const filteredGrades = computed(() => {
       if (!form.institutionType) return []
-      return allGrades.value.filter(grade => 
-        grade.institutionType?.id === form.institutionType.id
+      return allGrades.value.filter(
+        (grade) => grade.institutionType?.id === form.institutionType.id,
       )
     })
 
@@ -236,11 +240,11 @@ export default {
     // Cargar datos cuando se abre el diálogo
     const openDialog = async () => {
       console.log('🎯 Abriendo diálogo con police:', props.police)
-      
+
       // Recargar datos para asegurar que tenemos los datos más recientes
       await fetchInstitutionTypes()
       await fetchGrades()
-      
+
       // Asignar valores al formulario
       form.firstName = props.police.firstName || ''
       form.secondName = props.police.secondName || ''
@@ -249,29 +253,26 @@ export default {
       form.rut = props.police.rut || ''
       form.email = props.police.email || ''
       form.cellphone = props.police.cellphone || ''
-      
+
       // Buscar el objeto completo de institutionType en la lista cargada
       if (props.police.institutionType?.id) {
-        form.institutionType = institutionTypes.value.find(
-          type => type.id === props.police.institutionType.id
-        ) || null
+        form.institutionType =
+          institutionTypes.value.find((type) => type.id === props.police.institutionType.id) || null
       } else {
         form.institutionType = null
       }
-      
+
       // Buscar el objeto completo de grade en la lista cargada
       if (props.police.grade?.id) {
-        form.grade = allGrades.value.find(
-          grade => grade.id === props.police.grade.id
-        ) || null
+        form.grade = allGrades.value.find((grade) => grade.id === props.police.grade.id) || null
       } else {
         form.grade = null
       }
-      
+
       console.log('📝 Formulario cargado:', {
         firstName: form.firstName,
         institutionType: form.institutionType,
-        grade: form.grade
+        grade: form.grade,
       })
 
       visible.value = true
@@ -282,10 +283,24 @@ export default {
     }
 
     const updatePolice = async () => {
-      if (!form.firstName.trim() || !form.firstLastName.trim() || 
-          !form.rut.trim() || !form.email.trim() || !form.cellphone.trim() ||
-          !form.institutionType || !form.grade) {
+      if (
+        !form.firstName.trim() ||
+        !form.firstLastName.trim() ||
+        !form.rut.trim() ||
+        !form.email.trim() ||
+        !form.cellphone.trim() ||
+        !form.institutionType ||
+        !form.grade
+      ) {
         console.error('❌ Todos los campos marcados con * son requeridos')
+        return
+      }
+
+      // Validar RUT limpio antes de enviar
+      const rutLimpio = cleanRut(form.rut)
+      if (!validateRut(rutLimpio)) {
+        rutError.value = 'RUT inválido'
+        console.error('❌ RUT inválido')
         return
       }
 
@@ -296,11 +311,11 @@ export default {
           secondName: form.secondName.trim(),
           firstLastName: form.firstLastName.trim(),
           secondLastName: form.secondLastName.trim(),
-          rut: form.rut.trim(),
+          rut: rutLimpio,
           email: form.email.trim(),
           cellphone: form.cellphone.trim(),
           institutionType: form.institutionType,
-          grade: form.grade
+          grade: form.grade,
         }
 
         console.log('💾 Enviando payload:', payload)
@@ -324,9 +339,10 @@ export default {
       openDialog,
       closeDialog,
       updatePolice,
-      onInstitutionTypeChange
+      onInstitutionTypeChange,
+      rutError,
     }
-  }
+  },
 }
 </script>
 

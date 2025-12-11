@@ -58,15 +58,17 @@ const parseHtmlToTextSegments = (html) => {
 export const generarReporteAnalisisPDF = (analysis) => {
   console.log(analysis)
 
-  const doc = new jsPDF()
+  const doc = new jsPDF({
+    compress: true,
+  })
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
   const margin = 20
 
-  // Cargar y agregar logo
+  // Cargar y agregar logo con compresión
   const logo = new Image()
   logo.src = '/ssm/logo-ssm.png' // Ruta pública
-  doc.addImage(logo, 'PNG', 15, 10, 25, 25)
+  doc.addImage(logo, 'PNG', 15, 10, 25, 25, undefined, 'FAST')
 
   // ENCABEZADO PRINCIPAL
   doc.setFont('helvetica', 'bold')
@@ -251,5 +253,7 @@ export const generarReporteAnalisisPDF = (analysis) => {
 
   // Generar y abrir PDF
   const fileName = `Protocolo_Analisis_${protocolNumber}_${substanceNue}_${Date.now()}.pdf`
+
+  // Comprimir antes de guardar
   doc.save(fileName)
 }

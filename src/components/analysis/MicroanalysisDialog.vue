@@ -19,48 +19,56 @@
         </div>
         <div class="col-12 md:col-6 field">
           <label>Tricomas Glandulares</label>
-          <InputText v-model="formData.ttgland" />
+          <Dropdown
+            v-model="formData.ttgland"
+            :options="statusOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccionar..."
+          />
         </div>
 
         <div class="col-12 md:col-6 field">
           <label>Tricomas no Glandulares</label>
-          <InputText v-model="formData.ttnogland" />
+          <Dropdown
+            v-model="formData.ttnogland"
+            :options="statusOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccionar..."
+          />
         </div>
 
         <div class="col-12 md:col-6 field">
           <label>Estomas</label>
-          <InputText v-model="formData.stomas" />
+          <Dropdown
+            v-model="formData.stomas"
+            :options="statusOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccionar..."
+          />
         </div>
 
         <div class="col-12 md:col-6 field">
           <label>Celulas Epidermicas</label>
-          <InputText v-model="formData.celepi" />
-        </div>
-
-        <div class="col-12 md:col-6 field">
-          <label>Celulas con Resina</label>
-          <InputText v-model="formData.celresi" />
-        </div>
-
-        <div class="col-12 md:col-6 field">
-          <label>Cristales</label>
-          <InputText v-model="formData.cris" />
-        </div>
-
-        <div class="col-12 field">
-          <label>Observación</label>
-          <Textarea
-            v-model="formData.observation"
-            rows="3"
-            placeholder="Observaciones adicionales"
+          <Dropdown
+            v-model="formData.celepi"
+            :options="statusOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccionar..."
           />
         </div>
+
         <div class="col-12 field">
-          <label>Conclusión</label>
-          <Textarea
-            v-model="formData.conclution"
-            rows="3"
-            placeholder="Conclusión del microanálisis"
+          <label>Resultado</label>
+          <Dropdown
+            v-model="formData.observation"
+            :options="resultOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccionar resultado"
           />
         </div>
       </div>
@@ -86,8 +94,10 @@ import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Calendar from 'primevue/calendar'
 import Button from 'primevue/button'
+import Dropdown from 'primevue/dropdown'
 import { useToast } from 'primevue/usetoast'
 import microanalysisService from '@/services/microanalysisService.js'
+import analysisService from '@/services/analysisService.js'
 
 export default {
   name: 'MicroanalysisDialog',
@@ -97,6 +107,7 @@ export default {
     Textarea,
     Calendar,
     Button,
+    Dropdown,
   },
   props: {
     visible: {
@@ -112,15 +123,24 @@ export default {
   setup(props, { emit }) {
     const toast = useToast()
     const isSaving = ref(false)
+    const existingMicroanalysisId = ref(null)
+
+    const statusOptions = [
+      { label: 'Presentes', value: 'Presentes' },
+      { label: 'Ausentes', value: 'Ausentes' },
+      { label: 'No observados', value: 'No observados' },
+    ]
+
+    const resultOptions = [
+      { label: 'Característico de Cannabis', value: 'Característico de Cannabis' },
+      { label: 'No Característico de Cannabis', value: 'No Característico de Cannabis' },
+    ]
 
     const formData = ref({
-      ttgland: '',
-      ttnogland: '',
-      stomas: '',
-      celepi: '',
-      celresi: '',
-      cris: '',
-      conclution: '',
+      ttgland: null,
+      ttnogland: null,
+      stomas: null,
+      celepi: null,
       observation: '',
       date: null,
       aumento: '',
@@ -132,27 +152,26 @@ export default {
       async (newVal) => {
         if (newVal && props.analysis?.id) {
           try {
-            const { data } = await microanalysisService.getById(props.analysis.id)
+            const { data } = await microanalysisService.getByAnalysisId(props.analysis.id)
             const microanalysis = data.content?.[0] || data?.[0]
-
             if (microanalysis) {
+              existingMicroanalysisId.value = microanalysis.id
               formData.value = {
-                ttgland: microanalysis.ttgland || '',
-                ttnogland: microanalysis.ttnogland || '',
-                stomas: microanalysis.stomas || '',
-                celepi: microanalysis.celepi || '',
-                celresi: microanalysis.celresi || '',
-                cris: microanalysis.cris || '',
-                conclution: microanalysis.conclution || '',
+                ttgland: microanalysis.ttgland || null,
+                ttnogland: microanalysis.ttnogland || null,
+                stomas: microanalysis.stomas || null,
+                celepi: microanalysis.celepi || null,
                 observation: microanalysis.observation || '',
                 date: microanalysis.date ? new Date(microanalysis.date) : null,
                 aumento: microanalysis.aumento || '',
               }
             } else {
+              existingMicroanalysisId.value = null
               resetForm()
             }
           } catch (error) {
             console.error('Error cargando microanálisis:', error)
+            existingMicroanalysisId.value = null
             resetForm()
           }
         }
@@ -160,14 +179,12 @@ export default {
     )
 
     const resetForm = () => {
+      existingMicroanalysisId.value = null
       formData.value = {
-        ttgland: '',
-        ttnogland: '',
-        stomas: '',
-        celepi: '',
-        celresi: '',
-        cris: '',
-        conclution: '',
+        ttgland: null,
+        ttnogland: null,
+        stomas: null,
+        celepi: null,
         observation: '',
         date: null,
         aumento: '',
@@ -205,9 +222,6 @@ export default {
           ttnogland: formData.value.ttnogland || null,
           stomas: formData.value.stomas || null,
           celepi: formData.value.celepi || null,
-          celresi: formData.value.celresi || null,
-          cris: formData.value.cris || null,
-          conclution: formData.value.conclution || null,
           observation: formData.value.observation || null,
           date: formData.value.date ? formatDate(formData.value.date) : null,
           aumento: formData.value.aumento || null,
@@ -217,13 +231,9 @@ export default {
 
         console.log('📤 Enviando payload:', payload)
 
-        // Intentar obtener si existe microanálisis
-        const { data: existing } = await microanalysisService.getById(props.analysis.id)
-        const microanalysis = existing.content?.[0] || existing?.[0]
-
-        if (microanalysis) {
+        if (existingMicroanalysisId.value) {
           // Actualizar existente
-          await microanalysisService.update(microanalysis.id, payload)
+          await microanalysisService.update(existingMicroanalysisId.value, payload)
           toast.add({
             severity: 'success',
             summary: 'Actualizado',
@@ -237,9 +247,26 @@ export default {
           toast.add({
             severity: 'success',
             summary: 'Guardado',
-            detail: 'Microanálisis guardado correctamente',
+            detail: 'Microanálisis guardado. Proceda con Examen Químico',
             life: 3000,
           })
+        }
+
+        // Convertir resultado mostrado a Positivo/Negativo para guardar en micro
+        let savedResult = 'NEGATIVO'
+        if (formData.value.observation === 'Característico de Cannabis') {
+          savedResult = 'POSITIVO'
+        }
+
+        // Actualizar estado del análisis a MICRO_COMPLETADO y guardar resultado en micro
+        try {
+          await analysisService.update(props.analysis.id, {
+            ...props.analysis,
+            state: 'MICRO_COMPLETADO',
+            micro: savedResult,
+          })
+        } catch (stateErr) {
+          console.warn('No se pudo actualizar el estado del análisis:', stateErr)
         }
 
         emit('saved')
@@ -260,6 +287,9 @@ export default {
     return {
       formData,
       isSaving,
+      existingMicroanalysisId,
+      statusOptions,
+      resultOptions,
       closeDialog,
       submit,
       formatDate,

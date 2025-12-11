@@ -1,99 +1,121 @@
 <template>
   <div>
-    <Button icon="pi pi-pencil" class="p-button-rounded p-button-info" @click="openDialog" />
+    <Button
+      icon="pi pi-pencil"
+      severity="info"
+      text
+      rounded
+      @click="openDialog"
+      v-tooltip="'Editar'"
+    />
 
-    <Dialog 
+    <Dialog
       v-model:visible="visible"
       :style="{ width: 'auto', padding: '0.5rem' }"
       modal
       :headerStyle="{ padding: '1rem 1.5rem' }"
-       
       :transition-options="{ name: 'fade', duration: 300 }"
     >
       <template #header>
-        <span class="text-xl font-semibold">Editar Sustancia</span>
+        <span class="text-xl font-semibold">Editar Tipo de Sustancia</span>
       </template>
 
       <div class="dialog-content">
-        <div v-if="isLoading" class="flex justify-content-center align-items-center" style="height:200px;">
+        <div
+          v-if="isLoading"
+          class="flex justify-content-center align-items-center"
+          style="height: 200px"
+        >
           <ProgressSpinner />
         </div>
 
         <div v-else class="flex flex-column gap-4">
-          <div >
+          <div>
             <label>Nombre</label>
-            <InputText v-model="form.firstName" class="  w-full" />
+            <InputText v-model="form.name" class="w-full" />
           </div>
-
         </div>
       </div>
 
       <template #footer>
-        <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading"/>
-        <Button label="Guardar" @click="updateSubstance" :loading="isLoading"/>
+        <Button label="Cerrar" severity="secondary" @click="closeDialog" :disabled="isLoading" />
+        <Button label="Guardar" severity="success" @click="updateSubstance" :loading="isLoading" />
       </template>
     </Dialog>
   </div>
 </template>
 
 <script>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive } from 'vue'
 import substances_types_service from '@/services/substancesTypesService'
 import InputText from 'primevue/inputtext'
-import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
+import ProgressSpinner from 'primevue/progressspinner'
+import { useToast } from 'primevue/usetoast'
 
 export default {
-  name: "EditUser",
-  components: {  InputText, Password, Button, Dialog },
+  name: 'EditSubstance',
+  components: { InputText, Button, Dialog, ProgressSpinner },
   props: {
-    substances_types_id: {
-      type: Number,
-      required: true
-    }
+    substance: {
+      type: Object,
+      required: true,
+    },
   },
-  emits: ["updated"],
+  emits: ['updated'],
 
   setup(props, { emit }) {
     const visible = ref(false)
     const isLoading = ref(false)
+    const toast = useToast()
 
     const form = reactive({
-      name:""
+      name: '',
     })
 
-
     const openDialog = async () => {
+      if (props.substance) {
+        form.name = props.substance.name || ''
+      }
       visible.value = true
-      isLoading.value = true
-      await loadSubstance()
-      isLoading.value = false
     }
 
     const closeDialog = () => {
       visible.value = false
     }
 
-    const loadSubstance = async () => {
-      try {
-        const { data } = await userService.getById(props.userId)
-        form.name = data.name || ''
-       
-      } catch (e) {
-        console.error("❌ Error al cargar usuario:", e)
+    const updateSubstance = async () => {
+      if (!form.name.trim()) {
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'El nombre es requerido',
+          life: 3000,
+        })
+        return
       }
-    }
 
-    const updateUser = async () => {
       try {
         isLoading.value = true
-        const payload = { ...form, username: username.value }
-        const { data } = await substances_types_service.update(props.userId, payload)
-        emit("updated", data)
+        const payload = { name: form.name }
+        const { data } = await substances_types_service.update(props.substance.id, payload)
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Tipo de sustancia actualizado correctamente',
+          life: 3000,
+        })
+        emit('updated', data)
         closeDialog()
       } catch (e) {
-        console.error("❌ Error al actualizar usuario:", e)
+        console.error('❌ Error al actualizar sustancia:', e)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo actualizar la sustancia',
+          life: 3000,
+        })
       } finally {
         isLoading.value = false
       }
@@ -105,9 +127,9 @@ export default {
       form,
       openDialog,
       closeDialog,
-      updateUser
+      updateSubstance,
     }
-  }
+  },
 }
 </script>
 

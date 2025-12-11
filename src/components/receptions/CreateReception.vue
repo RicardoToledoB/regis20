@@ -38,12 +38,17 @@
               <InputText v-model="form.of_number" class=" " />
             </div>
 
-            <div class="field col-12 md:col-4">
+            <div class="field col-12 md:col-2">
+              <label>Número de Parte</label>
+              <InputText v-model="form.nparte" class=" " placeholder="N° de parte" />
+            </div>
+
+            <div class="field col-12 md:col-3">
               <label>Fecha Oficio</label>
               <Calendar v-model="form.of_number_date" dateFormat="dd/mm/yy" showIcon />
             </div>
 
-            <div class="field col-12 md:col-4">
+            <div class="field col-12 md:col-3">
               <label>Fecha Recepción</label>
               <Calendar v-model="form.date_reception" dateFormat="dd/mm/yy" showIcon />
             </div>
@@ -289,6 +294,13 @@
             <Column header="Acciones" bodyStyle="text-align:center">
               <template #body="slotProps">
                 <Button
+                  icon="pi pi-copy"
+                  severity="info"
+                  text
+                  title="Duplicar"
+                  @click="duplicateSubstance(slotProps.index)"
+                />
+                <Button
                   icon="pi pi-trash"
                   severity="danger"
                   text
@@ -382,6 +394,7 @@ export default {
     const form = reactive({
       number: '',
       of_number: '',
+      nparte: '',
       of_number_date: null,
       date_reception: null,
       location: { id: 1 }, // ID predeterminado
@@ -637,6 +650,18 @@ export default {
       })
     }
 
+    const duplicateSubstance = (index) => {
+      const substanceToDuplicate = form.substances[index]
+      const newSubstance = { ...substanceToDuplicate }
+
+      // Calcular nuevo número de sustancia
+      const nsubstance = form.substances.length + 1
+      newSubstance.nsubstance = nsubstance
+
+      // Agregar la sustancia duplicada después de la actual
+      form.substances.splice(index + 1, 0, newSubstance)
+    }
+
     const buscarPolicia = async () => {
       if (!form.police.rut || rutError.value) return
       try {
@@ -737,6 +762,7 @@ export default {
         const receptionPayload = {
           number: form.number,
           of_number: form.of_number,
+          nparte: form.nparte,
           of_number_date: formatDateOnly(form.of_number_date),
           date_reception: formatDateOnly(form.date_reception),
           state: 'BORRADOR',
@@ -827,6 +853,7 @@ export default {
         const receptionPayload = {
           number: form.number,
           of_number: form.of_number,
+          nparte: form.nparte,
           of_number_date: formatDateOnly(form.of_number_date),
           date_reception: formatDateOnly(form.date_reception),
           state: 'FINALIZADO',
@@ -940,6 +967,7 @@ export default {
       closeDialog,
       addSubstance,
       removeSubstance,
+      duplicateSubstance,
       buscarPolicia,
       guardarRecepcion,
       formatDateOnly,

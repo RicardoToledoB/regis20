@@ -2,17 +2,20 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
 export const generarActaPDF = (form, substances) => {
-  const doc = new jsPDF('p', 'mm', 'a4')
+  const doc = new jsPDF('p', 'mm', 'a4', true) // 'true' para compresión
   const policeName =
     `${form.police?.firstName || ''} ${form.police?.firstLastName || ''}`.trim() || '—'
   const policeRut = form.police?.rut || '—'
   const policeGrade = form.police?.grade?.name || '—'
   const policeInstitution = form.police?.institutionType?.institution?.name || '—'
   const policeCommune = form.police?.institutionType?.commune?.name || '—'
+
   // === Encabezado ===
   const logo = new Image()
-  logo.src = '/ssm/logo-ssm.png' // Ruta pública
-  doc.addImage(logo, 'PNG', 15, 10, 25, 25)
+  logo.src = '/ssm/logo-ssm.png'
+
+  // Agregar imagen con compresión
+  doc.addImage(logo, 'PNG', 15, 10, 25, 25, undefined, 'FAST')
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(12)

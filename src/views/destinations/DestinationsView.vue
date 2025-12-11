@@ -30,6 +30,12 @@
                         :destination="slotProps.data"
                         @updated="handleDestinationUpdated"
                       />
+                      <Button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        text
+                        @click="confirmDelete(slotProps.data.id)"
+                      />
                     </template>
                   </Column>
                 </DataTable>
@@ -40,13 +46,20 @@
       </div>
     </template>
   </PlantillaContenido>
+
+  <!-- Confirmación de Eliminación -->
+  <ConfirmDialog />
 </template>
 
 <script>
 import { ref, onMounted } from 'vue'
+import { useConfirm } from 'primevue/useconfirm'
+import { useToast } from 'primevue/usetoast'
 import PlantillaContenido from '../template/PlantillaContenido.vue'
 import CreateDestination from '../../components/destinations/CreateDestination.vue'
 import EditDestination from '@/components/destinations/EditDestination.vue'
+import Button from 'primevue/button'
+import ConfirmDialog from 'primevue/confirmdialog'
 import destinationsService from '@/services/destinationsService'
 
 export default {
@@ -55,17 +68,22 @@ export default {
   components: {
     PlantillaContenido,
     CreateDestination,
-    EditDestination
+    EditDestination,
+    Button,
+    ConfirmDialog,
   },
 
   setup() {
+    const confirm = useConfirm()
+    const toast = useToast()
     const destinations = ref([])
+
     const fetchdestinations = async () => {
       try {
         const { data } = await destinationsService.getAll()
         destinations.value = data
       } catch (error) {
-        console.error('❌ Error cargando comunas:', error)
+        console.error('❌ Error cargando destinos:', error)
       }
     }
 
@@ -80,8 +98,36 @@ export default {
       }
     }
 
+    const confirmDelete = (id) => {
+      confirm.require({
+        message: '¿Estás seguro de que deseas eliminar este destino?',
+        header: 'Confirmar Eliminación',
+        icon: 'pi pi-exclamation-triangle',
+        accept: async () => {
+          try {
+            await destinationsService.delete(id)
+            destinations.value = destinations.value.filter((d) => d.id !== id)
+            toast.add({
+              severity: 'success',
+              summary: 'Éxito',
+              detail: 'Destino eliminado correctamente',
+              life: 3000,
+            })
+          } catch (error) {
+            console.error('Error eliminando destino:', error)
+            toast.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'No se pudo eliminar el destino',
+              life: 3000,
+            })
+          }
+        },
+      })
+    }
+
     onMounted(() => {
-      console.log('✅ Vista de comunas cargada')
+      console.log('✅ Vista de destinos cargada')
       fetchdestinations()
     })
 
@@ -89,9 +135,10 @@ export default {
       destinations,
       fetchdestinations,
       handleDestinationCreated,
-      handleDestinationUpdated
+      handleDestinationUpdated,
+      confirmDelete,
     }
-  }
+  },
 }
 </script>
 

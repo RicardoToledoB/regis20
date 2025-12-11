@@ -2,9 +2,9 @@
   <div class="card flex justify-center">
     <Button
       icon="pi pi-cog"
-      class="p-button-text p-button-warning"
-      label="Procesar"
+      class="p-button-rounded p-button-success p-button-outlined"
       @click="openDialog"
+      v-tooltip.top="'Macroanalisis'"
     />
 
     <Dialog
@@ -16,7 +16,7 @@
       @hide="handleClose"
     >
       <template #header>
-        <span class="text-xl font-semibold">Procesar Análisis</span>
+        <span class="text-xl font-semibold">Macroanalisis</span>
       </template>
 
       <div class="dialog-content">
@@ -25,7 +25,7 @@
           <template #title>
             <div class="flex align-items-center justify-content-between w-full">
               <div class="flex align-items-center gap-3">
-                <div class="text-xl font-bold">Análisis #{{ form.id || '-' }}</div>
+                <span class="text-base">Macroanalisis</span>
               </div>
               <Tag :value="form.state || '—'" :severity="stateSeverity(form.state)" />
             </div>
@@ -81,30 +81,49 @@
             <Calendar v-model="form.date_analysis" dateFormat="dd/mm/yy" showIcon />
           </div>
 
-          <div class="col-12 field">
-            <label>Descripción</label>
-            <Textarea autoResize rows="2" v-model="form.description" />
-          </div>
-
           <div class="col-12 md:col-6 field">
             <label>Color</label>
-            <InputText v-model="form.color" />
+            <Dropdown
+              v-model="form.color"
+              :options="colorOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccione color"
+            />
           </div>
 
           <div class="col-12 md:col-6 field">
             <label>Olor</label>
-            <InputText v-model="form.smell" />
+            <Dropdown
+              v-model="form.smell"
+              :options="smellOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccione olor"
+            />
           </div>
 
           <!-- NUEVOS CAMPOS -->
           <div class="col-12 md:col-6 field">
             <label>Grado de fragmentación</label>
-            <InputText v-model="form.gradeFrac" />
+            <Dropdown
+              v-model="form.gradeFrac"
+              :options="gradeFracOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccione grado de fragmentación"
+            />
           </div>
 
           <div class="col-12 md:col-6 field">
             <label>Grado de humedad</label>
-            <InputText v-model="form.gradeHum" />
+            <Dropdown
+              v-model="form.gradeHum"
+              :options="gradeHumOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccione grado de humedad"
+            />
           </div>
 
           <div class="col-12 md:col-6 field">
@@ -117,39 +136,53 @@
               placeholder="Seleccione resultado"
             />
           </div>
+        </div>
 
-          <!-- Editor de Composición -->
-          <div class="col-12 field">
-            <label>Composición</label>
-            <div class="wysiwyg-toolbar">
-              <button type="button" class="tool" @click.prevent="exec('bold')">
-                <i class="pi pi-bold"></i>
-              </button>
-              <button type="button" class="tool" @click.prevent="exec('italic')">
-                <i class="pi pi-italic"></i>
-              </button>
-              <button type="button" class="tool" @click.prevent="exec('underline')">
-                <i class="pi pi-underline"></i>
-              </button>
-              <button type="button" class="tool" @click.prevent="exec('insertUnorderedList')">
-                <i class="pi pi-list"></i>
-              </button>
-              <button type="button" class="tool" @click.prevent="exec('insertOrderedList')">
-                <i class="pi pi-list-ol"></i>
-              </button>
-              <button type="button" class="tool" @click.prevent="execLink">
-                <i class="pi pi-link"></i>
-              </button>
+        <hr class="my-3" />
+
+        <!-- PARTES DE LA PLANTA -->
+        <h3 class="font-semibold mb-3">Partes de la planta</h3>
+        <div class="grid formgrid">
+          <div class="col-12 md:col-4 field">
+            <div class="flex align-items-center">
+              <Checkbox v-model="form.has_palmed_leaves" :binary="true" inputId="palmed_leaves" />
+              <label for="palmed_leaves" class="ml-2">Hojas palmeadas</label>
             </div>
+          </div>
 
-            <div
-              ref="editor"
-              class="wysiwyg-editor"
-              contenteditable
-              @input="onEditorInput"
-              role="textbox"
-              aria-multiline="true"
-            ></div>
+          <div class="col-12 md:col-4 field">
+            <div class="flex align-items-center">
+              <Checkbox v-model="form.has_leaf_remains" :binary="true" inputId="leaf_remains" />
+              <label for="leaf_remains" class="ml-2">Restos de hojas</label>
+            </div>
+          </div>
+
+          <div class="col-12 md:col-4 field">
+            <div class="flex align-items-center">
+              <Checkbox v-model="form.has_stems" :binary="true" inputId="stems" />
+              <label for="stems" class="ml-2">Tallos</label>
+            </div>
+          </div>
+
+          <div class="col-12 md:col-4 field">
+            <div class="flex align-items-center">
+              <Checkbox v-model="form.has_roots" :binary="true" inputId="roots" />
+              <label for="roots" class="ml-2">Raíces</label>
+            </div>
+          </div>
+
+          <div class="col-12 md:col-4 field">
+            <div class="flex align-items-center">
+              <Checkbox v-model="form.has_seeds" :binary="true" inputId="seeds" />
+              <label for="seeds" class="ml-2">Semillas</label>
+            </div>
+          </div>
+
+          <div class="col-12 md:col-4 field">
+            <div class="flex align-items-center">
+              <Checkbox v-model="form.has_inflorescences" :binary="true" inputId="inflorescences" />
+              <label for="inflorescences" class="ml-2">Inflorescencias</label>
+            </div>
           </div>
         </div>
       </div>
@@ -177,12 +210,13 @@ import Tag from 'primevue/tag'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Dropdown from 'primevue/dropdown'
+import Checkbox from 'primevue/checkbox'
 import { useToast } from 'primevue/usetoast'
 import analysisService from '@/services/analysisService'
 
 export default {
   name: 'CompleteAnalysis',
-  components: { Button, Dialog, Card, Tag, InputText, Textarea, Dropdown },
+  components: { Button, Dialog, Card, Tag, InputText, Textarea, Dropdown, Checkbox },
   props: {
     analysis: { type: Object, default: null },
   },
@@ -195,8 +229,36 @@ export default {
 
     // Opciones para el resultado
     const resultOptions = ref([
-      { label: 'POSITIVO', value: 'POSITIVO' },
-      { label: 'NEGATIVO', value: 'NEGATIVO' },
+      { label: 'Característico de Cannabis', value: 'Característico de Cannabis' },
+      { label: 'No Característico de Cannabis', value: 'No Característico de Cannabis' },
+    ])
+
+    // Opciones para color
+    const colorOptions = ref([
+      { label: 'Verde', value: 'Verde' },
+      { label: 'Café', value: 'Café' },
+      { label: 'Amarillo', value: 'Amarillo' },
+      { label: 'Verde amarillo', value: 'Verde amarillo' },
+      { label: 'Verde Café', value: 'Verde Café' },
+    ])
+
+    // Opciones para olor
+    const smellOptions = ref([
+      { label: 'Característico', value: 'Característico' },
+      { label: 'No característico', value: 'No característico' },
+    ])
+
+    // Opciones para grado de humedad
+    const gradeHumOptions = ref([
+      { label: 'Seca', value: 'Seca' },
+      { label: 'Fresca', value: 'Fresca' },
+    ])
+
+    // Opciones para grado de fragmentación
+    const gradeFracOptions = ref([
+      { label: 'Fragmentada', value: 'Fragmentada' },
+      { label: 'Entera', value: 'Entera' },
+      { label: 'Plantas pequeñas', value: 'Plantas pequeñas' },
     ])
 
     // Copia profunda del analysis cuando se abre el modal
@@ -225,13 +287,24 @@ export default {
 
       isSaving.value = true
       try {
-        // Forzar estado COMPLETADO al procesar
-        const payload = { ...form.value, state: 'COMPLETADO' }
+        // Convertir resultado mostrado a Positivo/Negativo para guardar en macro
+        let savedResult = 'NEGATIVO'
+        if (form.value.result === 'Característico de Cannabis') {
+          savedResult = 'POSITIVO'
+        }
+
+        // Cambiar estado a MACRO_COMPLETADO después del macroanalisis
+        const payload = {
+          ...form.value,
+          state: 'MACRO_COMPLETADO',
+          macro: savedResult,
+          result: null,
+        }
         const { data } = await analysisService.update(form.value.id, payload)
         toast.add({
           severity: 'success',
           summary: 'Guardado',
-          detail: 'Análisis actualizado',
+          detail: 'Macroanalisis completado. Proceda con el Microanalisis',
           life: 3000,
         })
         emit('processed', data || form.value)
@@ -270,51 +343,25 @@ export default {
 
     const editor = ref(null)
 
-    const exec = (command, value = null) => {
-      if (!editor.value) return
-      editor.value.focus()
-      try {
-        document.execCommand(command, false, value)
-      } catch (e) {
-        console.warn('execCommand no soportado', e)
-      }
-    }
-
-    const execLink = () => {
-      const url = window.prompt('Ingrese URL (http://...)')
-      if (url) exec('createLink', url)
-    }
-
-    const onEditorInput = () => {
-      console.log('algo')
-
-      if (!editor.value) return
-      form.value.composition = editor.value.innerHTML
-    }
-
-    // cuando se abre el diálogo, inicializar editor con el HTML existente
+    // cuando se abre el diálogo, no necesita inicializar editor
     const openDialogOrig = openDialog
     const openDialogWrap = () => {
       openDialogOrig()
-      // next tick to ensure DOM
-      setTimeout(() => {
-        if (editor.value) editor.value.innerHTML = form.value.composition || ''
-      }, 0)
     }
 
     return {
       visible,
       form,
       resultOptions,
+      colorOptions,
+      smellOptions,
+      gradeHumOptions,
+      gradeFracOptions,
       openDialog: openDialogWrap,
       closeDialog,
       handleClose,
       submit,
       stateSeverity,
-      editor,
-      exec,
-      execLink,
-      onEditorInput,
       isSaving,
     }
   },
@@ -355,32 +402,5 @@ export default {
 
 .p-card-compact .p-card-body {
   padding: 0.75rem 0.75rem;
-}
-
-.wysiwyg-toolbar {
-  display: flex;
-  gap: 0.25rem;
-  margin-bottom: 0.5rem;
-}
-
-.wysiwyg-toolbar .tool {
-  background: #fff;
-  border: 1px solid #dcdcdc;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.wysiwyg-editor {
-  min-height: 160px;
-  border: 1px solid #e6e6e6;
-  padding: 0.5rem;
-  border-radius: 6px;
-  background: #fff;
-  overflow: auto;
-}
-
-.wysiwyg-editor:focus {
-  outline: 2px solid rgba(0, 123, 255, 0.12);
 }
 </style>

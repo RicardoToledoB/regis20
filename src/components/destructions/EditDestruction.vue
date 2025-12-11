@@ -73,15 +73,14 @@
             >
             <Dropdown
               id="methodDestruction"
-              v-model="form.methodDestructionId"
+              v-model="form.methodDestruction"
               :options="methodsDestructions"
               optionLabel="name"
-              optionValue="id"
               placeholder="Seleccione un método"
-              :class="{ 'p-invalid': errors.methodDestructionId }"
+              :class="{ 'p-invalid': errors.methodDestruction }"
             />
-            <small v-if="errors.methodDestructionId" class="p-error">{{
-              errors.methodDestructionId
+            <small v-if="errors.methodDestruction" class="p-error">{{
+              errors.methodDestruction
             }}</small>
           </div>
 
@@ -126,7 +125,7 @@
 <script>
 import { ref } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import destructionsService from '@/services/destructionsService.js'
+import destructionsService from '@/services/destructionsHeaderService.js'
 import methodsDestructionsService from '@/services/methodsDestructionsService.js'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
@@ -172,7 +171,7 @@ export default {
       observation: '',
       state: '',
       weight: null,
-      methodDestructionId: null,
+      methodDestruction: null,
     })
 
     const errors = ref({})
@@ -218,7 +217,7 @@ export default {
         observation: props.destruction.observation || '',
         state: props.destruction.state || 'BORRADOR',
         weight: props.destruction.weight || null,
-        methodDestructionId: props.destruction.methodDestruction?.id || null,
+        methodDestruction: props.destruction.methodDestruction || null,
       }
     }
 
@@ -246,8 +245,8 @@ export default {
         errors.value.weight = 'El peso debe ser mayor a 0'
       }
 
-      if (!form.value.methodDestructionId) {
-        errors.value.methodDestructionId = 'Debe seleccionar un método de destrucción'
+      if (!form.value.methodDestruction) {
+        errors.value.methodDestruction = 'Debe seleccionar un método de destrucción'
       }
 
       if (!form.value.state) {
@@ -276,7 +275,8 @@ export default {
           observation: form.value.observation || null,
           state: form.value.state,
           weight: Number(form.value.weight),
-          methodDestructionId: form.value.methodDestructionId,
+          methodDestruction: form.value.methodDestruction,
+          user: props.destruction.user,
         }
 
         console.log('📤 Actualizando destrucción:', payload)

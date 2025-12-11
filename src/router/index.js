@@ -16,8 +16,7 @@ import Grades from '@/views/grades/GradesView.vue'
 import Destinations from '@/views/destinations/DestinationsView.vue'
 import PreAnalisis from '@/views/preanalysis/PreAnalysis.vue'
 import Analysis from '@/views/analysis/Analysis.vue'
-import Storage from '@/views/storages/Storage.vue'
-import Destructions from '@/views/destructions/Destructions.vue'
+import StorageAndDestruction from '@/views/storageAndDestruction/StorageAndDestruction.vue'
 import Login from '@/views/Login.vue'
 const routes = [
   {
@@ -31,9 +30,9 @@ const routes = [
     component: Analysis,
   },
   {
-    path: '/storage',
-    name: 'Storage',
-    component: Storage,
+    path: '/storage-destruction',
+    name: 'StorageAndDestruction',
+    component: StorageAndDestruction,
   },
   {
     path: '/grades',
@@ -110,12 +109,6 @@ const routes = [
     name: 'PreAnalisis',
     component: PreAnalisis,
   },
-  {
-    path: '/destructions',
-    name: 'Destructions',
-    component: Destructions,
-  },
-
   {
     path: '/',
     name: 'login',

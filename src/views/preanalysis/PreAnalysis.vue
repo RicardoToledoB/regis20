@@ -155,11 +155,14 @@
                           v-model:selection="selectedSubstances"
                           dataKey="id"
                           :rowClass="isRowSelectable"
+                          selectionMode="checkbox"
+                          @row-select="onSubstanceSelect"
+                          @row-unselect="onSubstanceUnselect"
                         >
                           <!-- COLUMNA DE SELECCIÓN -->
                           <Column
                             selectionMode="multiple"
-                            :row-select-all="false"
+                            :rowSelectAll="false"
                             headerStyle="width: 3rem"
                           >
                           </Column>
@@ -347,7 +350,8 @@ import destinationsService from '@/services/destinationsService.js'
 import methodsDestructionsService from '@/services/methodsDestructionsService.js'
 import analysisService from '@/services/analysisService.js'
 import storagesService from '@/services/storagesService.js'
-import destructionsService from '@/services/destructionsService.js'
+import destructionsService from '@/services/destructionsHeaderService.js'
+import destructionDetailsService from '@/services/destructionDetailsService.js'
 
 import PreAnalysisDialog from '@/components/preanalysis/PreAnalysisDialog.vue'
 import BulkPreAnalysisDialog from '@/components/preanalysis/BulkPreAnalysisDialog.vue'
@@ -429,7 +433,32 @@ export default {
     const isRowSelectable = (data) => {
       console.log(data.state)
       console.log(data.reception.state)
-      if (data.state != 'DERIVADO' && data.reception.state === 'ACEPTADO') {
+
+      // Primero verificar estado de derivación y recepción
+      if (data.state === 'DERIVADO' || data.reception.state !== 'ACEPTADO') {
+        return 'p-disabled'
+      }
+
+      // Si no hay sustancias seleccionadas, permitir seleccionar
+      if (selectedSubstances.value.length === 0) {
+        return ''
+      }
+
+      // Obtener el tipo de sustancia actual
+      const currentSubstanceTypeId = data.substanceType?.id
+      // Obtener el tipo de la primera sustancia seleccionada
+      const firstSelectedSubstance = selectedSubstances.value[0]
+      const firstSelectedTypeId = firstSelectedSubstance.substanceType?.id
+
+      // Definir grupos
+      const interiorGroup = [1, 2, 3]
+      const isCurrentInterior = interiorGroup.includes(currentSubstanceTypeId)
+      const isFirstSelectedInterior = interiorGroup.includes(firstSelectedTypeId)
+
+      // Si ambos están en el mismo grupo, permitir
+      // Si ambos están en grupos diferentes, permitir
+      // Si uno está en interior y otro no, bloquear
+      if (isCurrentInterior === isFirstSelectedInterior) {
         return ''
       } else {
         return 'p-disabled'
@@ -718,9 +747,23 @@ export default {
         return
       }
 
+      // Determinar destino automáticamente basado en el tipo de sustancia
+      const firstSubstance = selectedSubstances.value[0]
+      const substanceTypeId = firstSubstance.substanceType?.id
+      const interiorGroup = [1, 2, 3]
+      const isInteriorType = interiorGroup.includes(substanceTypeId)
+
+      // Buscar el destino correcto
+      let autoDestination = null
+      if (isInteriorType) {
+        autoDestination = destinations.value.find((d) => d.name?.toLowerCase().includes('interior'))
+      } else {
+        autoDestination = destinations.value.find((d) => d.name?.toLowerCase().includes('exterior'))
+      }
+
       // Inicializar datos del formulario
       bulkPreAnalysisData.value = {
-        destination: null,
+        destination: autoDestination || null,
         methodDestruction: null,
         observation: '',
         useAutoWeight: false,
@@ -751,7 +794,39 @@ export default {
         let successCount = 0
         let errorCount = 0
 
-        // Procesar cada sustancia individualmente
+        // 1️⃣ CREAR UN SOLO DESTRUCTION HEADER PARA TODAS LAS SUSTANCIAS
+        let destructionHeader = null
+        try {
+          // Calcular peso total de restantes (para destrucción)
+          const totalRestante = selectedSubstances.value.reduce((sum, substance) => {
+            const indiv = formData.individualWeights[substance.id] || { sample: null, contra: null }
+            const sampleWeight = formData.useAutoWeight ? formData.autoWeightValue : indiv.sample
+            const contraWeight = Number(indiv.contra) || 0
+            const restante =
+              Number(substance.weight || 0) - Number(sampleWeight || 0) - contraWeight
+            return sum + (restante > 0 ? restante : 0)
+          }, 0)
+
+          if (totalRestante > 0) {
+            const destructionHeaderPayload = {
+              act_number: `BULK-${Date.now()}`,
+              date_destruction: new Date().toISOString().split('T')[0],
+              observation: formData.observation || 'Procesamiento masivo',
+              state: 'PENDIENTE',
+              weight: totalRestante,
+              methodDestruction: formData.methodDestruction || null,
+              user: { id: parseInt(localStorage.getItem('user_id')) || 1 },
+            }
+            const { data: createdHeader } =
+              await destructionsService.create(destructionHeaderPayload)
+            destructionHeader = createdHeader
+            console.log('✅ Destruction Header creado (PreAnalysis):', destructionHeader)
+          }
+        } catch (headerErr) {
+          console.error('❌ Error creando destruction header:', headerErr)
+        }
+
+        // 2️⃣ PROCESAR CADA SUSTANCIA INDIVIDUALMENTE
         for (const substance of selectedSubstances.value) {
           try {
             // Determinar pesos: muestra (sample), contramuestra (contra) y restante (destrucción)
@@ -799,10 +874,11 @@ export default {
             }
 
             // 2) Si hay contramuestra, crear registro en storage (almacenamiento)
+            let createdStorageId = null
             if (contraWeight > 0) {
               try {
                 // storagesService guarda el registro de almacenamiento
-                await storagesService.create({
+                const { data: createdStorage } = await storagesService.create({
                   entry_date: new Date().toISOString().split('T')[0],
                   sample_quantity: 0,
                   counter_sample_quantity: contraWeight,
@@ -810,25 +886,25 @@ export default {
                   substance: substance,
                   storageLocation: { id: 1 },
                 })
+                createdStorageId = createdStorage.id
               } catch (storErr) {
                 console.warn('No se pudo crear registro de almacenamiento:', storErr)
               }
             }
 
-            // 3) El restante queda para destrucción
-            if (restante > 0) {
+            // 3️⃣ Si hay restante para destrucción Y existe el header, crear SOLO el detail
+            if (restante > 0 && destructionHeader) {
               try {
-                await destructionsService.create({
-                  act_number: null,
-                  date_destruction: null,
-                  observation: null,
+                const destructionDetailPayload = {
                   state: 'PENDIENTE',
                   weight: restante,
-                  methodDestruction: formData.methodDestruction || null,
-                  user: { id: parseInt(localStorage.getItem('user_id')) || 1 },
-                })
+                  destructionHeader: destructionHeader,
+                  substance: substance,
+                }
+                await destructionDetailsService.create(destructionDetailPayload)
+                console.log(`✅ Destruction Detail creado para sustancia ${substance.nue}`)
               } catch (destErr) {
-                console.warn('No se pudo crear registro de destrucción:', destErr)
+                console.warn('No se pudo crear destruction detail:', destErr)
               }
             }
 
@@ -947,6 +1023,35 @@ export default {
         )
       }
     }
+
+    const onSubstanceSelect = (event) => {
+      // Validar que no se mezclen sustancias incompatibles
+      const selectedSubstance = event.data
+      const currentSubstanceTypeId = selectedSubstance.substanceType?.id
+      const interiorGroup = [1, 2, 3]
+      const isCurrentInterior = interiorGroup.includes(currentSubstanceTypeId)
+
+      // Si es la primera selección, permitir
+      if (selectedSubstances.value.length <= 1) {
+        return
+      }
+
+      // Validar que no se mezclen grupos
+      const firstSelectedSubstance = selectedSubstances.value[0]
+      const firstSelectedTypeId = firstSelectedSubstance.substanceType?.id
+      const isFirstSelectedInterior = interiorGroup.includes(firstSelectedTypeId)
+
+      if (isCurrentInterior !== isFirstSelectedInterior) {
+        // Remover la sustancia si no es compatible
+        selectedSubstances.value = selectedSubstances.value.filter(
+          (s) => s.id !== selectedSubstance.id,
+        )
+      }
+    }
+
+    const onSubstanceUnselect = (event) => {
+      // No es necesario hacer nada aquí, pero está disponible para futuros eventos
+    }
     const rowClassPreAnalysis = (row) => {
       console.log(row.data)
 
@@ -1064,6 +1169,8 @@ export default {
 
       isRowSelectable,
       rowClassPreAnalysis,
+      onSubstanceSelect,
+      onSubstanceUnselect,
     }
   },
 }
@@ -1076,5 +1183,14 @@ export default {
 :deep(.borrador-row) > td,
 :deep(.borrador-row) td {
   background-color: #fff6b8 !important;
+}
+
+/* Ocultar el checkbox de seleccionar todo en la tabla de sustancias */
+:deep(.p-datatable-thead > tr > th[data-pc-section='headercell']:first-child .p-checkbox) {
+  display: none !important;
+}
+
+:deep(.p-datatable .p-datatable-thead > tr > th:first-child .p-checkbox) {
+  display: none !important;
 }
 </style>

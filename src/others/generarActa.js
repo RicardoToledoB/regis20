@@ -7,7 +7,7 @@ export const generarActaPDF = (form, receptionResponse) => {
   // === Encabezado ===
   const logo = new Image()
   logo.src = '/ssm/logo-ssm.png' // Ruta pública
-  doc.addImage(logo, 'PNG', 15, 10, 25, 25)
+  doc.addImage(logo, 'JPEG', 15, 10, 25, 25, undefined, 'FAST')
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(12)
@@ -69,8 +69,15 @@ export const generarActaPDF = (form, receptionResponse) => {
     head: [columns.map((c) => c.header)],
     body: data.map((d) => Object.values(d)),
     startY: 60,
-    styles: { fontSize: 9, cellPadding: 2, halign: 'center', valign: 'middle' },
-    headStyles: { fillColor: [200, 200, 200] },
+    styles: {
+      fontSize: 8,
+      cellPadding: 2,
+      halign: 'center',
+      valign: 'middle',
+      lineWidth: 0.3,
+      lineColor: [100, 100, 100],
+    },
+    headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0] },
   })
 
   let y = doc.lastAutoTable.finalY + 15
@@ -99,5 +106,5 @@ export const generarActaPDF = (form, receptionResponse) => {
 
   // === Guardar archivo ===
   const filename = `Acta_Recepcion_${form.number}.pdf`
-  doc.save(filename)
+  doc.save(filename, { compress: true })
 }

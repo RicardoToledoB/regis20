@@ -16,10 +16,10 @@ export const generarInformeConsolidadoPDF = (analyses) => {
   const pageHeight = doc.internal.pageSize.getHeight()
   const margin = 20
 
-  // Cargar y agregar logo
+  // Cargar y agregar logo optimizado
   const logo = new Image()
   logo.src = '/ssm/logo-ssm.png' // Ruta pública
-  doc.addImage(logo, 'PNG', 15, 10, 25, 25)
+  doc.addImage(logo, 'JPEG', 15, 10, 20, 20, undefined, 'FAST')
 
   // ENCABEZADO
   doc.setFont('helvetica', 'bold')
@@ -48,11 +48,11 @@ export const generarInformeConsolidadoPDF = (analyses) => {
 
   yPos += 6
   doc.text('Ordinario Nº', rightBoxX + 10, yPos)
-  const policeName = `${policeData.firstName || ''} ${policeData.firstLastName || ''}`.trim() || '—'
+  const policeName = ` ${policeData.institutionType.name || ''}`.trim() || '—'
   doc.text(ord, pageWidth - margin - 5, yPos, { align: 'right' })
 
   yPos += 6
-  doc.text('UNIDAD POLICIAL', rightBoxX + 10, yPos)
+  doc.text(policeName, rightBoxX + 10, yPos)
   doc.text(commune, pageWidth - margin - 5, yPos, { align: 'right' })
 
   yPos += 6
@@ -118,20 +118,20 @@ export const generarInformeConsolidadoPDF = (analyses) => {
     body: tableData,
     theme: 'grid',
     styles: {
-      fontSize: 9,
-      cellPadding: 3,
+      fontSize: 8,
+      cellPadding: 2,
       halign: 'center',
     },
     headStyles: {
-      fillColor: [255, 255, 255],
+      fillColor: [240, 240, 240],
       textColor: [0, 0, 0],
       fontStyle: 'bold',
-      lineWidth: 0.5,
-      lineColor: [0, 0, 0],
+      lineWidth: 0.3,
+      lineColor: [100, 100, 100],
     },
     bodyStyles: {
-      lineWidth: 0.5,
-      lineColor: [0, 0, 0],
+      lineWidth: 0.3,
+      lineColor: [150, 150, 150],
     },
     columnStyles: {
       0: { halign: 'center' },
@@ -180,7 +180,7 @@ export const generarInformeConsolidadoPDF = (analyses) => {
     'Lautaro Navarro N° 525 - Casilla N° 527 - Fono 61 2294000 - E-mail: direccion.ssm@redsalud.gob.cl - PUNTA ARENAS'
   doc.text(footerText, pageWidth / 2, yPos, { align: 'center' })
 
-  // Generar y descargar PDF
+  // Generar y descargar PDF con compresión
   const fileName = `Informe_Consolidado_Acta_${actaNumber}_${Date.now()}.pdf`
-  doc.save(fileName)
+  doc.save(fileName, { compress: true })
 }

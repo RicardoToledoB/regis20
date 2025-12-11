@@ -141,6 +141,12 @@
                           v-tooltip="'Generar PDF'"
                           @click="generatePDF(slotProps.data)"
                         />
+                        <Button
+                          icon="pi pi-paperclip"
+                          class="p-button-text p-button-info"
+                          v-tooltip="'Adjuntar Archivo'"
+                          @click="openFileUploadDialog(slotProps.data)"
+                        />
                         <EditReceptionUnlock
                           v-if="
                             slotProps.data.is_editable !== 'SI' &&
@@ -168,6 +174,12 @@
       </div>
     </template>
   </PlantillaContenido>
+  <FileUploadDialog
+    :visible="fileUploadDialogVisible"
+    :reception="selectedReceptionForUpload"
+    @update:visible="fileUploadDialogVisible = $event"
+    @uploaded="handleFileUploaded"
+  />
 </template>
 
 <script>
@@ -190,6 +202,7 @@ import { generarActaPDF } from '@/others/generarActaBtn.js'
 import EditReception from '@/components/receptions/EditReception.vue'
 import ViewHistoryReception from '@/components/receptions/ViewHistoryReception.vue'
 import EditReceptionUnlock from '@/components/receptions/EditReceptionUnlock.vue'
+import FileUploadDialog from '@/components/reception/FileUploadDialog.vue'
 export default {
   name: 'ReceptionsView',
   components: {
@@ -205,6 +218,7 @@ export default {
     IconField,
     InputIcon,
     EditReceptionUnlock,
+    FileUploadDialog,
   },
 
   setup() {
@@ -212,6 +226,8 @@ export default {
     const loading = ref(false)
     const toast = useToast()
     const confirm = useConfirm()
+    const fileUploadDialogVisible = ref(false)
+    const selectedReceptionForUpload = ref(null)
 
     // Definir los filtros
     const filters = ref({
@@ -373,6 +389,21 @@ export default {
       }
     }
 
+    const openFileUploadDialog = (reception) => {
+      selectedReceptionForUpload.value = reception
+      fileUploadDialogVisible.value = true
+    }
+
+    const handleFileUploaded = () => {
+      toast.add({
+        severity: 'success',
+        summary: 'Archivo adjuntado',
+        detail: 'El archivo se cargó exitosamente',
+        life: 3000,
+      })
+      fileUploadDialogVisible.value = false
+    }
+
     onMounted(() => {
       console.log('✅ Vista de recepciones cargada')
       fetchReceptions()
@@ -391,6 +422,10 @@ export default {
       viewReception,
       confirmDelete,
       handleReceptionUpdated,
+      fileUploadDialogVisible,
+      selectedReceptionForUpload,
+      openFileUploadDialog,
+      handleFileUploaded,
     }
   },
 }

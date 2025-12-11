@@ -36,6 +36,7 @@ import Textarea from 'primevue/textarea'
 import ConfirmationService from 'primevue/confirmationservice'
 import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
+import Tooltip from 'primevue/tooltip'
 
 import axiosClient from '@/services/axiosClient'
 
@@ -146,5 +147,6 @@ app.component('ProgressSpinner', ProgressSpinner)
 app.component('Textarea', Textarea)
 app.component('TabView', TabView)
 app.component('TabPanel', TabPanel)
+app.directive('tooltip', Tooltip)
 
 app.mount('#app')
