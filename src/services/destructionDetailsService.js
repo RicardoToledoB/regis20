@@ -13,7 +13,7 @@ export default {
 
   // Obtener detalles de destrucción por ID de header
   getByHeaderId(headerId) {
-    return axiosClient.get(`/api/v1/destructions_details/header/${headerId}`)
+    return axiosClient.get(`/api/v1/destructions_details/by-header/${headerId}`)
   },
 
   // Crear detalle de destrucción

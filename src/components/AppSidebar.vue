@@ -348,7 +348,7 @@ const mainMenu = ref([
     to: '/analysis',
   },
   {
-    label: 'Almacenamiento y Destrucción',
+    label: 'Contramuestra y Destrucción',
     icon: 'pi pi-warehouse',
     to: '/storage-destruction',
   },

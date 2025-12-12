@@ -3,16 +3,16 @@
     <template #contenido>
       <div class="storage-destruction-container">
         <div class="page-content">
-          <h1>Almacenamiento y Destrucción</h1>
+          <h1>Contramuestra y Destrucción</h1>
 
           <TabView>
-            <!-- Pestaña de Almacenamiento -->
-            <TabPanel header="Almacenamiento" leftIcon="pi pi-warehouse">
-              <div class="storages-container">
+            <!-- Pestaña de Contramuestra -->
+            <TabPanel header="Contramuestra" leftIcon="pi pi-warehouse">
+              <div class="contramuestra-container">
                 <div class="flex justify-content-between align-items-center mb-4">
                   <Button
                     v-if="selectedStorages.length > 0"
-                    label="Enviar a Destrucción2"
+                    label="Enviar a Destrucción"
                     icon="pi pi-trash"
                     @click="openDestructionDialog"
                     severity="warning"
@@ -23,19 +23,26 @@
                   <template #content>
                     <div class="table-container">
                       <DataTable
-                        :selection="selectedStorages"
-                        @update:selection="updateSelection"
+                        v-model:selection="selectedStorages"
                         :value="storages"
                         paginator
                         size="large"
-                        :rows="5"
+                        :rows="10"
                         :rowsPerPageOptions="[5, 10, 20, 50]"
                         scrollable
                         scrollHeight="400px"
                         class="p-datatable-striped p-datatable-gridlines storages-table"
                         dataKey="id"
                       >
-                        <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                        <Column headerStyle="width: 3rem">
+                          <template #body="slotProps">
+                            <Checkbox
+                              v-model="selectedStorages"
+                              :value="slotProps.data"
+                              :disabled="slotProps.data.state === 'Enviado a destrucción'"
+                            />
+                          </template>
+                        </Column>
                         <Column field="id" header="N° de Muestra" />
                         <Column header="N° NUE">
                           <template #body="slotProps">
@@ -75,6 +82,7 @@
                     <div class="table-container">
                       <DataTable
                         v-model:filters="filters"
+                        v-model:expandedRows="expandedRows"
                         :value="destructions"
                         paginator
                         size="small"
@@ -84,6 +92,7 @@
                         class="p-datatable-striped p-datatable-gridlines"
                         :loading="loadingDestructions"
                         dataKey="id"
+                        @row-expand="onRowExpand"
                         :globalFilterFields="[
                           'id',
                           'act_number',
@@ -112,11 +121,12 @@
                         <template #empty> No se encontraron destrucciones. </template>
                         <template #loading> Cargando destrucciones. Por favor espere. </template>
 
+                        <Column :expander="true" headerStyle="width: 3rem" />
                         <Column field="id" header="ID" />
                         <Column field="act_number" header="N° Acta" />
                         <Column field="date_destruction" header="Fecha Destrucción">
                           <template #body="slotProps">
-                            {{ formatDate(slotProps.data.date_destruction) }}
+                            {{ slotProps.data.date_destruction }}
                           </template>
                         </Column>
                         <Column field="weight" header="Peso (gr)" />
@@ -136,18 +146,92 @@
                         <Column field="observation" header="Observación" />
                         <Column header="Acciones" bodyStyle="text-align:center">
                           <template #body="slotProps">
-                            <EditDestruction
-                              :destruction="slotProps.data"
-                              @updated="onDestructionUpdated"
-                            />
-                            <Button
-                              icon="pi pi-trash"
-                              severity="danger"
-                              text
-                              @click="confirmDelete(slotProps.data.id)"
-                            />
+                            <div class="flex gap-2 justify-content-center">
+                              <Button
+                                v-if="slotProps.data.state === 'DESTRUCCION_MASIVA'"
+                                icon="pi pi-file-pdf"
+                                severity="success"
+                                text
+                                rounded
+                                @click="downloadDestructionReport(slotProps.data)"
+                                v-tooltip.top="'Descargar Acta de Destrucción'"
+                              />
+                              <Button
+                                v-if="
+                                  slotProps.data.state === 'COMPLETADO' &&
+                                  slotProps.data.methodDestruction?.id === 1
+                                "
+                                icon="pi pi-file"
+                                severity="info"
+                                text
+                                rounded
+                                @click="downloadDestructionReportMethod1(slotProps.data)"
+                                v-tooltip.top="'Descargar Acta Incineración'"
+                              />
+                              <Button
+                                v-if="slotProps.data.state === 'COMPLETADO'"
+                                icon="pi pi-file-pdf"
+                                severity="warning"
+                                text
+                                rounded
+                                @click="downloadDestructionReportCompletado(slotProps.data)"
+                                v-tooltip.top="'Descargar Acta de Destrucción'"
+                              />
+                              <EditDestruction
+                                v-if="
+                                  slotProps.data.state !== 'DESTRUCCION_MASIVA' &&
+                                  slotProps.data.state !== 'COMPLETADO'
+                                "
+                                :destruction="slotProps.data"
+                                @updated="onDestructionUpdated"
+                              />
+                            </div>
                           </template>
                         </Column>
+
+                        <template #expansion="slotProps">
+                          <div class="p-3">
+                            <h5 class="mb-3">Detalles de Destrucción</h5>
+                            <DataTable
+                              :value="destructionDetails[slotProps.data.id] || []"
+                              :loading="loadingDetails[slotProps.data.id]"
+                              size="small"
+                              class="p-datatable-sm"
+                            >
+                              <template #empty>
+                                <div class="text-center text-500">No hay detalles disponibles</div>
+                              </template>
+                              <template #loading>
+                                <div class="text-center text-500">Cargando detalles...</div>
+                              </template>
+                              <Column field="id" header="ID" />
+                              <Column header="Sustancia">
+                                <template #body="detailSlot">
+                                  {{ detailSlot.data.substance?.substanceType?.name || '—' }}
+                                </template>
+                              </Column>
+                              <Column header="Nº NUE">
+                                <template #body="detailSlot">
+                                  {{ detailSlot.data.substance?.nue || '—' }}
+                                </template>
+                              </Column>
+                              <Column header="Nº Acta">
+                                <template #body="detailSlot">
+                                  {{ detailSlot.data.substance?.reception?.number || '—' }}
+                                </template>
+                              </Column>
+                              <Column field="weight" header="Peso (gr)" />
+                              <Column field="state" header="Estado">
+                                <template #body="detailSlot">
+                                  <Tag
+                                    :value="detailSlot.data.state"
+                                    :severity="getDestructionSeverity(detailSlot.data.state)"
+                                  />
+                                </template>
+                              </Column>
+                            </DataTable>
+                          </div>
+                        </template>
                       </DataTable>
                     </div>
                   </template>
@@ -203,6 +287,10 @@ import CreateDestruction from '@/components/destructions/CreateDestruction.vue'
 import EditDestruction from '@/components/destructions/EditDestruction.vue'
 import storagesService from '@/services/storagesService'
 import destructionsService from '@/services/destructionsHeaderService'
+import destructionDetailsService from '@/services/destructionDetailsService'
+import { generarActaDestruccionPDF } from '@/others/generarActaDestruccion.js'
+import { generarActaDestruccionMetodo1PDF } from '@/others/generarActaDestruccionMetodo1.js'
+import { generarActaDestruccionCompletadoPDF } from '@/others/generarActaDestruccionCompletado.js'
 import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
 import Card from 'primevue/card'
@@ -211,6 +299,7 @@ import Column from 'primevue/column'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
+import Checkbox from 'primevue/checkbox'
 import InputText from 'primevue/inputtext'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
@@ -230,6 +319,7 @@ export default {
     Dialog,
     Button,
     Tag,
+    Checkbox,
     InputText,
     IconField,
     InputIcon,
@@ -247,6 +337,9 @@ export default {
     const destructions = ref([])
     const loadingDestructions = ref(false)
     const selectedDestruction = ref(null)
+    const expandedRows = ref({})
+    const destructionDetails = ref({})
+    const loadingDetails = ref({})
 
     // Diálogos
     const destructionDialogVisible = ref(false)
@@ -292,9 +385,31 @@ export default {
       }
     }
 
-    // Actualizar selección
-    const updateSelection = (val) => {
-      selectedStorages.value = val
+    // Cargar detalles de destrucción cuando se expande una fila
+    const onRowExpand = async (event) => {
+      const headerId = event.data.id
+
+      // Si ya tenemos los detalles cargados, no los volvemos a cargar
+      if (destructionDetails.value[headerId]) {
+        return
+      }
+
+      try {
+        loadingDetails.value[headerId] = true
+        const { data } = await destructionDetailsService.getByHeaderId(headerId)
+        destructionDetails.value[headerId] = data.content || data || []
+      } catch (error) {
+        console.error('Error cargando detalles de destrucción:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudieron cargar los detalles de la destrucción',
+          life: 3000,
+        })
+        destructionDetails.value[headerId] = []
+      } finally {
+        loadingDetails.value[headerId] = false
+      }
     }
 
     // Abrir diálogo de destrucción
@@ -372,6 +487,7 @@ export default {
     const getDestructionSeverity = (state) => {
       switch (state) {
         case 'COMPLETADO':
+        case 'DESTRUCCION_MASIVA':
           return 'success'
         case 'PENDIENTE':
           return 'warning'
@@ -379,6 +495,94 @@ export default {
           return 'danger'
         default:
           return 'info'
+      }
+    }
+
+    // Descargar reporte de destrucción
+    const downloadDestructionReport = async (destruction) => {
+      try {
+        // Si no tenemos los detalles cargados, cargarlos primero
+        if (!destructionDetails.value[destruction.id]) {
+          loadingDetails.value[destruction.id] = true
+          const { data } = await destructionDetailsService.getByHeaderId(destruction.id)
+          destructionDetails.value[destruction.id] = data.content || data || []
+          loadingDetails.value[destruction.id] = false
+        }
+
+        // Generar el PDF
+        generarActaDestruccionPDF(destruction, destructionDetails.value[destruction.id])
+
+        toast.add({
+          severity: 'success',
+          summary: 'PDF Generado',
+          detail: 'Acta de destrucción descargada correctamente',
+          life: 3000,
+        })
+      } catch (error) {
+        console.error('Error generando acta de destrucción:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo generar el acta de destrucción',
+          life: 3000,
+        })
+      }
+    }
+
+    // Descargar reporte de destrucción método 1
+    const downloadDestructionReportMethod1 = async (destruction) => {
+      try {
+        // Generar el PDF con el formato del método 1
+        await generarActaDestruccionMetodo1PDF(destruction)
+
+        toast.add({
+          severity: 'success',
+          summary: 'PDF Generado',
+          detail: 'Acta de destrucción método 1 descargada correctamente',
+          life: 3000,
+        })
+      } catch (error) {
+        console.error('Error generando acta de destrucción método 1:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo generar el acta de destrucción método 1',
+          life: 3000,
+        })
+      }
+    }
+
+    // Descargar reporte de destrucción para estado COMPLETADO (otros métodos)
+    const downloadDestructionReportCompletado = async (destruction) => {
+      try {
+        // Si no tenemos los detalles cargados, cargarlos primero
+        if (!destructionDetails.value[destruction.id]) {
+          loadingDetails.value[destruction.id] = true
+          const { data } = await destructionDetailsService.getByHeaderId(destruction.id)
+          destructionDetails.value[destruction.id] = data.content || data || []
+          loadingDetails.value[destruction.id] = false
+        }
+
+        // Generar el PDF con el formato para COMPLETADO
+        await generarActaDestruccionCompletadoPDF(
+          destruction,
+          destructionDetails.value[destruction.id],
+        )
+
+        toast.add({
+          severity: 'success',
+          summary: 'PDF Generado',
+          detail: 'Acta de destrucción descargada correctamente',
+          life: 3000,
+        })
+      } catch (error) {
+        console.error('Error generando acta de destrucción:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo generar el acta de destrucción',
+          life: 3000,
+        })
       }
     }
 
@@ -392,20 +596,26 @@ export default {
       selectedStorages,
       destructions,
       loadingDestructions,
+      expandedRows,
+      destructionDetails,
+      loadingDetails,
       destructionDialogVisible,
       editDestructionDialogVisible,
       selectedDestruction,
       filters,
-      updateSelection,
       openDestructionDialog,
       closeDestructionDialog,
       onDestructionCreated,
+      onRowExpand,
       editDestruction,
       closeEditDestructionDialog,
       onDestructionUpdated,
       confirmDelete,
       formatDate,
       getDestructionSeverity,
+      downloadDestructionReport,
+      downloadDestructionReportMethod1,
+      downloadDestructionReportCompletado,
     }
   },
 }

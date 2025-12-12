@@ -177,13 +177,25 @@
                             v-tooltip.top="'Examen Químico'"
                           />
 
-                          <!-- Generar Reporte: aparece en estado COMPLETADO -->
+                          <!-- Generar Reporte: aparece en estado COMPLETADO y COMPLETADO_RESERVADO -->
                           <Button
-                            v-if="slotProps.data.state === 'COMPLETADO'"
+                            v-if="
+                              slotProps.data.state === 'COMPLETADO' ||
+                              slotProps.data.state === 'COMPLETADO_RESERVADO'
+                            "
                             icon="pi pi-file-pdf"
                             class="p-button-rounded p-button-success p-button-outlined"
                             @click="generateAnalysisReport(slotProps.data)"
                             v-tooltip.top="'Generar Reporte'"
+                          />
+
+                          <!-- Imprimir Informe Consolidado: aparece en estado COMPLETADO_RESERVADO -->
+                          <Button
+                            v-if="slotProps.data.state === 'COMPLETADO_RESERVADO'"
+                            icon="pi pi-print"
+                            class="p-button-rounded p-button-info p-button-outlined"
+                            @click="printConsolidatedReport(slotProps.data)"
+                            v-tooltip.top="'Imprimir Informe Consolidado'"
                           />
                         </template>
                       </div>
@@ -460,6 +472,11 @@ export default {
     }
 
     const canSelectAnalysis = (row) => {
+      // No permitir seleccionar si el estado es COMPLETADO_RESERVADO
+      if (row.state === 'COMPLETADO_RESERVADO') {
+        return false
+      }
+
       // Permitir seleccionar si el destino NO es 1 (Exterior/ISP)
       if (row.preAnalysis?.destination?.id !== 1) {
         return true
@@ -860,7 +877,7 @@ export default {
           }, 0)
 
           const headerPayload = {
-            act_number: `BULK-${Date.now()}`,
+            act_number: selectedReceptionForBulk.value?.number || `BULK-${Date.now()}`,
             date_destruction: new Date().toISOString().split('T')[0],
             observation: formData.observation || 'Procesamiento masivo',
             state: 'COMPLETADO',
@@ -1303,7 +1320,7 @@ export default {
         let successCount = 0
         let errorCount = 0
 
-        // Crear un registro de reserved por cada análisis seleccionado
+        // Crear un registro de reserved por cada análisis seleccionado y actualizar estado
         for (const analysis of selectedAnalysis.value) {
           try {
             const reservedPayload = {
@@ -1313,6 +1330,13 @@ export default {
               isp: false,
             }
             await reservedsService.create(reservedPayload)
+
+            // Actualizar estado del análisis a COMPLETADO_RESERVADO
+            await analysisService.update(analysis.id, {
+              ...analysis,
+              state: 'COMPLETADO_RESERVADO',
+            })
+
             successCount++
           } catch (error) {
             console.error(`Error creando reservado para análisis ${analysis.id}:`, error)
@@ -1341,6 +1365,9 @@ export default {
 
         showReservedNumberDialog.value = false
         reservedNumber.value = null
+
+        // Recargar análisis para actualizar estados
+        await fetchAnalyses()
       } catch (error) {
         console.error('Error generando informe consolidado:', error)
         toast.add({
@@ -1524,7 +1551,7 @@ export default {
         }
 
         // Generar PDF con los números reservados
-        generarReservadoPDF(analysis, reserveds)
+        await generarReservadoPDF(analysis, reserveds)
 
         toast.add({
           severity: 'success',
@@ -1560,7 +1587,7 @@ export default {
         }
 
         // Generar PDF con los números reservados para Fiscalía
-        generarReservadoFiscaliaPDF(analysis, reserveds)
+        await generarReservadoFiscaliaPDF(analysis, reserveds)
 
         toast.add({
           severity: 'success',
@@ -1606,6 +1633,71 @@ export default {
           severity: 'error',
           summary: 'Error',
           detail: 'No se pudo imprimir el reporte de microanálisis',
+          life: 3000,
+        })
+      }
+    }
+
+    const printConsolidatedReport = async (analysis) => {
+      try {
+        // Obtener el número reservado asociado a este análisis
+        const response = await reservedsService.getByAnalysisId(analysis.id)
+        const reserveds = response.data
+
+        if (!reserveds || reserveds.length === 0) {
+          toast.add({
+            severity: 'warn',
+            summary: 'Sin reservados',
+            detail: 'No se encontró número reservado para este análisis',
+            life: 2500,
+          })
+          return
+        }
+
+        // Buscar el reservado fiscal (fiscal: true)
+        const fiscalReserved = reserveds.find((r) => r.fiscal)
+        if (!fiscalReserved) {
+          toast.add({
+            severity: 'warn',
+            summary: 'Sin reservado fiscal',
+            detail: 'No se encontró número reservado fiscal',
+            life: 2500,
+          })
+          return
+        }
+
+        // Cargar todos los análisis asociados a este número reservado
+        const analysesResponse = await reservedsService.getByNumberPaginated(fiscalReserved.number)
+        const allAnalyses = analysesResponse.data.content || analysesResponse.data || []
+
+        if (allAnalyses.length === 0) {
+          toast.add({
+            severity: 'warn',
+            summary: 'Sin análisis',
+            detail: 'No se encontraron análisis asociados a este reservado',
+            life: 2500,
+          })
+          return
+        }
+
+        // Extraer los análisis del formato de respuesta
+        const analyses = allAnalyses.map((item) => item.analysis)
+
+        // Generar PDF con todos los análisis
+        generarInformeConsolidadoPDF(analyses, fiscalReserved.number)
+
+        toast.add({
+          severity: 'success',
+          summary: 'Informe Generado',
+          detail: `Informe consolidado con ${analyses.length} análisis generado`,
+          life: 3000,
+        })
+      } catch (error) {
+        console.error('❌ Error imprimiendo informe consolidado:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo imprimir el informe consolidado',
           life: 3000,
         })
       }
@@ -1711,6 +1803,7 @@ export default {
       hasOnlyInteriorDestination,
       hasOnlyExteriorDestination,
       generateReserveds,
+      printConsolidatedReport,
     }
   },
 }

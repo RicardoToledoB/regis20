@@ -50,8 +50,8 @@ export const generarReporteMicroanalisisPDF = (analysis) => {
 
   const actaNumber = analysis.preAnalysis?.reception?.number || 'N/A'
   const sampleNumber = analysis.preAnalysis?.substance?.nue || 'N/A'
-  const receptionDate = analysis.preAnalysis?.reception?.reception_date
-    ? new Date(analysis.preAnalysis.reception.reception_date).toLocaleDateString('es-CL')
+  const receptionDate = analysis.preAnalysis?.reception?.date_reception
+    ? new Date(analysis.preAnalysis.reception.date_reception).toLocaleDateString('es-CL')
     : 'N/A'
 
   const datosGenerales = [

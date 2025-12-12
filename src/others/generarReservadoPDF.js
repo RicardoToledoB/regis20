@@ -1,11 +1,15 @@
 import jsPDF from 'jspdf'
+import reservedsService from '@/services/reservedsService.js'
+import Login from '@/views/Login.vue'
 
 /**
  * Genera un documento de reservado para un análisis con números de Fiscalía Local e ISP
  * @param {Object} analysis - Análisis con información completa
  * @param {Array} reserveds - Array de números reservados (fiscal e ISP)
  */
-export const generarReservadoPDF = (analysis, reserveds) => {
+export const generarReservadoPDF = async (analysis, reserveds) => {
+  console.log(analysis)
+
   if (!analysis) {
     console.error('No hay análisis para generar el documento')
     return
@@ -16,6 +20,19 @@ export const generarReservadoPDF = (analysis, reserveds) => {
     return
   }
 
+  // Cargar análisis asociados al número reservado ISP
+  const reservedISP = reserveds.find((r) => r.isp === 'true')
+  let analyses = []
+  if (reservedISP) {
+    try {
+      const { data } = await reservedsService.getByNumberPaginated(reservedISP.number)
+      analyses = data.content || data || []
+      console.log('✅ Análisis cargados:', analyses)
+    } catch (error) {
+      console.error('❌ Error cargando análisis:', error)
+    }
+  }
+
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
@@ -24,7 +41,7 @@ export const generarReservadoPDF = (analysis, reserveds) => {
   // Cargar y agregar logo
   const logo = new Image()
   logo.src = '/ssm/logo-ssm.png' // Ruta pública
-  doc.addImage(logo, 'PNG', 15, 10, 25, 25)
+  doc.addImage(logo, 'JPEG', 15, 10, 20, 20, undefined, 'FAST')
 
   // Marca X en la esquina superior izquierda
   doc.setFont('helvetica', 'bold')
@@ -33,17 +50,12 @@ export const generarReservadoPDF = (analysis, reserveds) => {
 
   // ENCABEZADO - RESERVADO
   doc.setFontSize(11)
-  const reservedFiscal = reserveds.find((r) => r.fiscal)
-  const reservedISP = reserveds.find((r) => r.isp)
+  console.log(reservedISP)
 
-  const reservedNumber = reservedFiscal
-    ? reservedFiscal.number
-    : reservedISP
-      ? reservedISP.number
-      : 'X'
+  const reservedNumber = reservedISP.number
 
   doc.text('RESERVADO.:', pageWidth - margin - 60, 35)
-  doc.text('X', pageWidth - margin - 15, 35, { align: 'right' })
+  doc.text(reservedNumber, pageWidth - margin - 15, 35, { align: 'right' })
   doc.text('.-', pageWidth - margin - 5, 35, { align: 'right' })
 
   let yPos = 45
@@ -54,7 +66,7 @@ export const generarReservadoPDF = (analysis, reserveds) => {
   const ord = analysis.preAnalysis?.reception?.of_number || 'X'
   const institutionData = policeData.institutionType || {}
   const commune = institutionData.commune?.name || 'COMUNA'
-  const partNumber = analysis.preAnalysis?.reception?.part_number || 'Nº'
+  const partNumber = analysis.preAnalysis?.reception?.nparte || '0'
 
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
@@ -65,14 +77,13 @@ export const generarReservadoPDF = (analysis, reserveds) => {
   doc.text('ANT.:', rightBoxX, yPos)
   doc.text(`Acta de Recepción Nº`, rightBoxX + 10, yPos)
   doc.text(actaNumber.toString(), pageWidth - margin - 15, yPos, { align: 'right' })
-  doc.text(`/20XX`, pageWidth - margin - 5, yPos, { align: 'right' })
 
   yPos += 6
   doc.text('Ordinario Nº', rightBoxX + 10, yPos)
   doc.text(ord.toString(), pageWidth - margin - 5, yPos, { align: 'right' })
 
   yPos += 6
-  doc.text('UNIDAD POLICIAL', rightBoxX + 10, yPos)
+  doc.text(institutionData.name, rightBoxX + 10, yPos)
   doc.text(commune, pageWidth - margin - 5, yPos, { align: 'right' })
 
   yPos += 6
@@ -139,22 +150,46 @@ export const generarReservadoPDF = (analysis, reserveds) => {
 
   yPos += 10
 
-  // MUESTRA N 1
-  doc.setFont('helvetica', 'bold')
-  doc.text('MUESTRA N 1', margin + 30, yPos)
+  // MUESTRAS - iterar sobre los análisis cargados
+  if (analyses.length > 0) {
+    analyses.forEach((analysisItem, index) => {
+      console.log(analysisItem) // Verificar si hay espacio suficiente para la muestra y el pie de firma (necesitamos ~80px)
 
-  yPos += 8
+      // Verificar si hay espacio suficiente para la muestra y el pie de firma (necesitamos ~80px)
+      if (yPos > pageHeight - 90) {
+        doc.addPage()
+        yPos = 20
+      }
 
-  doc.setFont('helvetica', 'normal')
-  doc.text('CANTIDAD NETA Y DESCRIPCIÓN MUESTRA', margin + 50, yPos)
+      doc.setFont('helvetica', 'bold')
+      const substanceName =
+        analysisItem.analysis.preAnalysis?.substance?.substanceType?.name || 'N/A'
+      const weight = analysisItem.analysis.preAnalysis?.weight_sampled || 0
+      doc.text(`MUESTRA N° ${index + 1}: `, margin + 30, yPos)
 
-  yPos += 10
+      doc.setFont('helvetica', 'normal')
+      doc.text(`${weight} gr - ${substanceName}`, margin + 60, yPos)
+      yPos += 8
+    })
+  } else {
+    // Fallback si no hay análisis cargados
+    doc.setFont('helvetica', 'bold')
+    doc.text('MUESTRA N° 1: ', margin + 30, yPos)
+    doc.setFont('helvetica', 'normal')
+    doc.text('CANTIDAD NETA Y DESCRIPCIÓN MUESTRA', margin + 60, yPos)
+    yPos += 8
+  }
+
+  yPos += 5
+
+  // Verificar espacio antes del texto de solicitud
+  if (yPos > pageHeight - 90) {
+    doc.addPage()
+    yPos = 20
+  }
 
   // Texto de solicitud
-  const requestText = reservedFiscal
-    ? 'Se solicita remitir resultado de análisis: FISCALÍA LOCAL'
-    : 'Se solicita remitir resultado de análisis: FISCALÍA LOCAL'
-
+  const requestText = 'Se solicita remitir resultado de análisis: FISCALÍA LOCAL'
   doc.text(requestText, margin + 30, yPos)
 
   yPos += 15
@@ -198,7 +233,7 @@ export const generarReservadoPDF = (analysis, reserveds) => {
 
   // Generar y descargar PDF
   const fileName = `Reservado_ISP_Acta_${actaNumber}_Analisis_${analysis.id}_${Date.now()}.pdf`
-  doc.save(fileName)
+  doc.save(fileName, { compress: true })
 }
 
 /**
@@ -206,7 +241,7 @@ export const generarReservadoPDF = (analysis, reserveds) => {
  * @param {Object} analysis - Análisis con información completa
  * @param {Array} reserveds - Array de números reservados (fiscal e ISP)
  */
-export const generarReservadoFiscaliaPDF = (analysis, reserveds) => {
+export const generarReservadoFiscaliaPDF = async (analysis, reserveds) => {
   if (!analysis) {
     console.error('No hay análisis para generar el documento')
     return
@@ -217,6 +252,19 @@ export const generarReservadoFiscaliaPDF = (analysis, reserveds) => {
     return
   }
 
+  // Cargar análisis asociados al número reservado fiscal
+  const reservedFiscal = reserveds.find((r) => r.fiscal)
+  let analyses = []
+  if (reservedFiscal) {
+    try {
+      const { data } = await reservedsService.getByNumberPaginated(reservedFiscal.number)
+      analyses = data.content || data || []
+      console.log('✅ Análisis cargados:', analyses)
+    } catch (error) {
+      console.error('❌ Error cargando análisis:', error)
+    }
+  }
+
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
@@ -225,7 +273,7 @@ export const generarReservadoFiscaliaPDF = (analysis, reserveds) => {
   // Cargar y agregar logo
   const logo = new Image()
   logo.src = '/ssm/logo-ssm.png' // Ruta pública
-  doc.addImage(logo, 'PNG', 15, 10, 25, 25)
+  doc.addImage(logo, 'JPEG', 15, 10, 20, 20, undefined, 'FAST')
 
   // Marca X en la esquina superior izquierda
   doc.setFont('helvetica', 'bold')
@@ -234,13 +282,12 @@ export const generarReservadoFiscaliaPDF = (analysis, reserveds) => {
 
   // ENCABEZADO - RESERVADO
   doc.setFontSize(11)
-  const reservedFiscal = reserveds.find((r) => r.fiscal)
-  const reservedISP = reserveds.find((r) => r.isp)
+  const reservedISPForFiscalia = reserveds.find((r) => r.isp)
 
   const reservedNumber = reservedFiscal ? reservedFiscal.number : 'X'
 
   doc.text('RESERVADO.:', pageWidth - margin - 60, 35)
-  doc.text('X', pageWidth - margin - 15, 35, { align: 'right' })
+  doc.text(reservedNumber, pageWidth - margin - 15, 35, { align: 'right' })
   doc.text('.-', pageWidth - margin - 5, 35, { align: 'right' })
 
   let yPos = 45
@@ -262,14 +309,13 @@ export const generarReservadoFiscaliaPDF = (analysis, reserveds) => {
   doc.text('ANT.:', rightBoxX, yPos)
   doc.text(`Acta de Recepción Nº`, rightBoxX + 10, yPos)
   doc.text(actaNumber.toString(), pageWidth - margin - 15, yPos, { align: 'right' })
-  doc.text(`/20XX`, pageWidth - margin - 5, yPos, { align: 'right' })
 
   yPos += 6
   doc.text('Ordinario Nº', rightBoxX + 10, yPos)
   doc.text(ord.toString(), pageWidth - margin - 5, yPos, { align: 'right' })
 
   yPos += 6
-  doc.text('UNIDAD POLICIAL', rightBoxX + 10, yPos)
+  doc.text(institutionData.name, rightBoxX + 10, yPos)
   doc.text(commune, pageWidth - margin - 5, yPos, { align: 'right' })
 
   yPos += 6
@@ -305,23 +351,48 @@ export const generarReservadoFiscaliaPDF = (analysis, reserveds) => {
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
 
-  const mainText = `Junto con saludar, y en relación con documento Acta de Recepción N°${actaNumber}     /20XX se informa que las siguientes muestras fueron remitidas al I.S.P. para su correspondiente análisis mediante Reservado Nº ${reservedISP ? reservedISP.number : 'X'}     , quienes enviarán los resultados directamente a: FISCALÍA LOCAL`
+  const mainText = `Junto con saludar, y en relación con documento Acta de Recepción N°${actaNumber} se informa que las siguientes muestras fueron remitidas al I.S.P. para su correspondiente análisis mediante Reservado Nº ${reservedISPForFiscalia ? reservedISPForFiscalia.number : 'X'}     , quienes enviarán los resultados directamente a: FISCALÍA LOCAL`
   const mainLines = doc.splitTextToSize(mainText, pageWidth - margin * 2 - 20)
   doc.text(mainLines, margin + 15, yPos)
   yPos += mainLines.length * 6
 
   yPos += 10
 
-  // MUESTRA N 1
-  doc.setFont('helvetica', 'bold')
-  doc.text('MUESTRA N° 1', margin + 30, yPos)
+  // MUESTRAS - iterar sobre los análisis cargados
+  if (analyses.length > 0) {
+    analyses.forEach((analysisItem, index) => {
+      console.log(analysisItem) // Verificar si hay espacio suficiente para la muestra y el pie de firma (necesitamos ~80px)
+      if (yPos > pageHeight - 90) {
+        doc.addPage()
+        yPos = 20
+      }
 
-  yPos += 8
+      doc.setFont('helvetica', 'bold')
+      const substanceName =
+        analysisItem.analysis?.preAnalysis?.substance?.substanceType?.name || 'N/A'
+      const weight = analysisItem.analysis?.preAnalysis?.weight_sampled || 0
+      doc.text(`MUESTRA N° ${index + 1}: `, margin + 30, yPos)
 
-  doc.setFont('helvetica', 'normal')
-  doc.text('CANTIDAD NETA Y DESCRIPCIÓN MUESTRA', margin + 50, yPos)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`${weight} gr - ${substanceName}`, margin + 60, yPos)
+      yPos += 8
+    })
+  } else {
+    // Fallback si no hay análisis cargados
+    doc.setFont('helvetica', 'bold')
+    doc.text('MUESTRA N° 1: ', margin + 30, yPos)
+    doc.setFont('helvetica', 'normal')
+    doc.text('CANTIDAD NETA Y DESCRIPCIÓN MUESTRA', margin + 60, yPos)
+    yPos += 8
+  }
 
-  yPos += 15
+  yPos += 10
+
+  // Verificar espacio antes del saludo final
+  if (yPos > pageHeight - 90) {
+    doc.addPage()
+    yPos = 20
+  }
 
   // Saludo final
   doc.text('Se despide atentamente a usted,', margin + 30, yPos)
@@ -362,5 +433,5 @@ export const generarReservadoFiscaliaPDF = (analysis, reserveds) => {
 
   // Generar y descargar PDF
   const fileName = `Reservado_Fiscalia_Acta_${actaNumber}_Analisis_${analysis.id}_${Date.now()}.pdf`
-  doc.save(fileName)
+  doc.save(fileName, { compress: true })
 }

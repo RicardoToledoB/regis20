@@ -66,6 +66,19 @@ const reservedsService = {
       throw error
     }
   },
+
+  // Obtener análisis por número de reservado (paginado)
+  getByNumberPaginated: async (reservedNumber) => {
+    try {
+      const { data } = await axiosClient.get(`/api/v1/reserveds/by-number/paginated`, {
+        params: { number: reservedNumber },
+      })
+      return { data }
+    } catch (error) {
+      console.error('Error obteniendo análisis por número de reservado:', error)
+      throw error
+    }
+  },
 }
 
 export default reservedsService

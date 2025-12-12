@@ -809,7 +809,7 @@ export default {
 
           if (totalRestante > 0) {
             const destructionHeaderPayload = {
-              act_number: `BULK-${Date.now()}`,
+              act_number: selectedReceptionForBulk.value?.number || `BULK-${Date.now()}`,
               date_destruction: new Date().toISOString().split('T')[0],
               observation: formData.observation || 'Procesamiento masivo',
               state: 'PENDIENTE',

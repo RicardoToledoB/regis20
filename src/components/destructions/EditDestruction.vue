@@ -44,27 +44,13 @@
             <Calendar
               id="date_destruction"
               v-model="form.date_destruction"
-              dateFormat="dd/mm/yy"
+              dateFormat="dd-mm-yy"
               showIcon
               :class="{ 'p-invalid': errors.date_destruction }"
             />
             <small v-if="errors.date_destruction" class="p-error">{{
               errors.date_destruction
             }}</small>
-          </div>
-
-          <div class="field col-12 md:col-6">
-            <label for="weight">Peso (kg) <span class="required">*</span></label>
-            <InputNumber
-              id="weight"
-              v-model="form.weight"
-              mode="decimal"
-              :minFractionDigits="2"
-              :maxFractionDigits="2"
-              placeholder="0.00"
-              :class="{ 'p-invalid': errors.weight }"
-            />
-            <small v-if="errors.weight" class="p-error">{{ errors.weight }}</small>
           </div>
 
           <div class="field col-12 md:col-6">
@@ -84,18 +70,6 @@
             }}</small>
           </div>
 
-          <div class="field col-12 md:col-6">
-            <label for="state">Estado <span class="required">*</span></label>
-            <Dropdown
-              id="state"
-              v-model="form.state"
-              :options="stateOptions"
-              placeholder="Seleccione un estado"
-              :class="{ 'p-invalid': errors.state }"
-            />
-            <small v-if="errors.state" class="p-error">{{ errors.state }}</small>
-          </div>
-
           <div class="field col-12">
             <label for="observation">Observación</label>
             <Textarea
@@ -106,8 +80,40 @@
             />
           </div>
         </div>
-      </div>
 
+        <!-- Sección de Sustancias Asociadas al final -->
+        <div v-if="destructionDetails.length > 0" class="mt-5">
+          <h5 class="mb-3">Sustancias a Destruir</h5>
+          <DataTable
+            :value="destructionDetails"
+            size="small"
+            class="p-datatable-sm"
+            responsiveLayout="scroll"
+          >
+            <Column field="id" header="ID" style="width: 60px" />
+            <Column header="Sustancia">
+              <template #body="slotProps">
+                {{ slotProps.data.substance?.substanceType?.name || '—' }}
+              </template>
+            </Column>
+            <Column header="N° NUE">
+              <template #body="slotProps">
+                {{ slotProps.data.substance?.nue || '—' }}
+              </template>
+            </Column>
+            <Column header="N° Acta">
+              <template #body="slotProps">
+                {{ slotProps.data.substance?.reception?.number || '—' }}
+              </template>
+            </Column>
+            <Column field="weight" header="Peso (gr)">
+              <template #body="slotProps">
+                {{ slotProps.data.weight ? Number(slotProps.data.weight).toFixed(2) : '—' }}
+              </template>
+            </Column>
+          </DataTable>
+        </div>
+      </div>
       <template #footer>
         <Button label="Cancelar" icon="pi pi-times" @click="closeDialog" text />
         <Button
@@ -126,6 +132,7 @@
 import { ref } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import destructionsService from '@/services/destructionsHeaderService.js'
+import destructionDetailsService from '@/services/destructionDetailsService.js'
 import methodsDestructionsService from '@/services/methodsDestructionsService.js'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
@@ -135,6 +142,8 @@ import Calendar from 'primevue/calendar'
 import Dropdown from 'primevue/dropdown'
 import Textarea from 'primevue/textarea'
 import ProgressSpinner from 'primevue/progressspinner'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
 
 export default {
   name: 'EditDestruction',
@@ -147,6 +156,8 @@ export default {
     Dropdown,
     Textarea,
     ProgressSpinner,
+    DataTable,
+    Column,
   },
   props: {
     destruction: {
@@ -162,14 +173,21 @@ export default {
     const isLoading = ref(false)
     const isSaving = ref(false)
     const methodsDestructions = ref([])
+    const destructionDetails = ref([])
 
-    const stateOptions = ref(['PENDIENTE', 'COMPLETADO', 'CANCELADO', 'BORRADOR'])
+    const stateOptions = ref([
+      'PENDIENTE',
+      'COMPLETADO',
+      'CANCELADO',
+      'BORRADOR',
+      'DESTRUCCION_MASIVA',
+    ])
 
     const form = ref({
       act_number: '',
       date_destruction: null,
       observation: '',
-      state: '',
+      state: 'COMPLETADO',
       weight: null,
       methodDestruction: null,
     })
@@ -185,9 +203,26 @@ export default {
     const openDialog = async () => {
       visible.value = true
       isLoading.value = true
-      await loadMethodsDestructions()
+      await Promise.all([loadMethodsDestructions(), loadDestructionDetails()])
       loadDestructionData()
       isLoading.value = false
+    }
+
+    const loadDestructionDetails = async () => {
+      try {
+        const { data } = await destructionDetailsService.getByHeaderId(props.destruction.id)
+        destructionDetails.value = data.content || data || []
+        console.log('✅ Detalles de destrucción cargados:', destructionDetails.value)
+      } catch (error) {
+        console.error('❌ Error cargando detalles de destrucción:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudieron cargar los detalles de la destrucción',
+          life: 3000,
+        })
+        destructionDetails.value = []
+      }
     }
 
     const closeDialog = () => {
@@ -213,9 +248,9 @@ export default {
     const loadDestructionData = () => {
       form.value = {
         act_number: props.destruction.act_number || '',
-        date_destruction: parseDateDDMMYYYY(props.destruction.date_destruction),
+        date_destruction: '',
         observation: props.destruction.observation || '',
-        state: props.destruction.state || 'BORRADOR',
+        state: 'COMPLETADO',
         weight: props.destruction.weight || null,
         methodDestruction: props.destruction.methodDestruction || null,
       }
@@ -241,16 +276,8 @@ export default {
         errors.value.date_destruction = 'La fecha de destrucción es requerida'
       }
 
-      if (form.value.weight === null || form.value.weight === undefined || form.value.weight <= 0) {
-        errors.value.weight = 'El peso debe ser mayor a 0'
-      }
-
       if (!form.value.methodDestruction) {
         errors.value.methodDestruction = 'Debe seleccionar un método de destrucción'
-      }
-
-      if (!form.value.state) {
-        errors.value.state = 'Debe seleccionar un estado'
       }
 
       return Object.keys(errors.value).length === 0
@@ -283,6 +310,24 @@ export default {
         const { data } = await destructionsService.update(props.destruction.id, payload)
         console.log('✅ Destrucción actualizada:', data)
 
+        // Actualizar todos los destruction_details a estado COMPLETADO
+        if (destructionDetails.value.length > 0) {
+          console.log('📤 Actualizando detalles de destrucción a COMPLETADO...')
+          const updatePromises = destructionDetails.value.map((detail) => {
+            const detailPayload = {
+              ...detail,
+              state: 'COMPLETADO',
+              destructionHeader: props.destruction,
+              substance: detail.substance,
+              storage: detail.storage,
+            }
+            return destructionDetailsService.update(detail.id, detailPayload)
+          })
+
+          await Promise.all(updatePromises)
+          console.log('✅ Todos los detalles actualizados a COMPLETADO')
+        }
+
         emit('updated', data)
         closeDialog()
       } catch (error) {
@@ -305,6 +350,7 @@ export default {
       form,
       errors,
       methodsDestructions,
+      destructionDetails,
       stateOptions,
       openDialog,
       closeDialog,

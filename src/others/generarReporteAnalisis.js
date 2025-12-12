@@ -132,7 +132,21 @@ export const generarReporteAnalisisPDF = (analysis) => {
   const color = analysis.color || 'N/A'
   const smell = analysis.smell || 'N/A'
 
-  const macroscopicText = `Materia de naturaleza herbosa, ${fragmentationGrade} y ${humidityGrade}.\nMuestra de color ${color} y olor ${smell}.`
+  // Construir texto de partes de la planta
+  const plantParts = []
+  if (analysis.has_palmed_leaves) plantParts.push('hojas palmeadas dentadas')
+  if (analysis.has_leaf_remains) plantParts.push('restos de hojas')
+  if (analysis.has_stems) plantParts.push('tallos')
+  if (analysis.has_roots) plantParts.push('raíces')
+  if (analysis.has_seeds) plantParts.push('semillas')
+  if (analysis.has_inflorescences) plantParts.push('inflorescencias')
+
+  let plantPartsText = ''
+  if (plantParts.length > 0) {
+    plantPartsText = ` Se observa ${plantParts.join(', ')}.`
+  }
+
+  const macroscopicText = `Materia de naturaleza herbosa, ${fragmentationGrade} y ${humidityGrade}.\nMuestra de color ${color} y olor ${smell}.${plantPartsText}`
   const macroscopicLines = doc.splitTextToSize(macroscopicText, pageWidth - margin * 2)
   doc.text(macroscopicLines, margin + 5, yPos)
   yPos += macroscopicLines.length * 5
