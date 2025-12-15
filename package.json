@@ -9,7 +9,7 @@
   "scripts": {
   "dev": "vite",
   "build": "vite build",
-  "start": "vite preview --port 8080",
+  "start": "vite preview --port $PORT",
   "lint": "eslint . --fix",
   "format": "prettier --write src/"
   },
