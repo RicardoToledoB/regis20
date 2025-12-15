@@ -9,7 +9,7 @@
   "scripts": {
   "dev": "vite",
   "build": "vite build",
-  "start": "serve -s dist -l $PORT",
+  "start": "npm run build && serve -s dist -l $PORT",
   "lint": "eslint . --fix",
   "format": "prettier --write src/"
 },
