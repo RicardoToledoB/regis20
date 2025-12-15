@@ -12,7 +12,7 @@
   "start": "vite preview --port 8080",
   "lint": "eslint . --fix",
   "format": "prettier --write src/"
-},
+  },
   
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
